@@ -1,3 +1,16 @@
+# My Project Frontend
+
+## Description
+Frontend built with React.
+
+## Setup
+
+1. **Clone the Repository:**
+   ```bash
+   git clone https://github.com/yourusername/my-project-frontend.git
+   cd my-project-frontend
+
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
