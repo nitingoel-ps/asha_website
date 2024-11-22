@@ -6,26 +6,19 @@ import { Button, Container, Navbar, Nav } from 'react-bootstrap';
 function Home() {
   const isAuthenticated = localStorage.getItem('access_token') ? true : false;
 
-  const handleLogout = () => {
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('refresh_token');
-    window.location.reload();
-  };
-
   return (
     <>
       <Navbar bg="dark" variant="dark" expand="lg">
-        <Navbar.Brand href="/">Healthcare App</Navbar.Brand>
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
         <Navbar.Collapse id="basic-navbar-nav">
           <Nav className="ml-auto">
             {isAuthenticated ? (
               <>
                 <Nav.Link as={Link} to="/dashboard">
-                  Dashboard
+                  Add Data
                 </Nav.Link>
-                <Nav.Link href="#" onClick={handleLogout}>
-                  Logout
+                <Nav.Link as={Link} to="/patient-dashboard">
+                  Dashboard
                 </Nav.Link>
               </>
             ) : (
