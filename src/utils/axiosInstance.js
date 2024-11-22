@@ -1,7 +1,7 @@
 // src/utils/axiosInstance.js
 import axios from 'axios';
 
-//const baseURL = 'http://127.0.0.1:8000/';
+//const baseURL = 'https://127.0.0.1:8000/';
 const apiBaseURL = process.env.REACT_APP_API_BASE_URL;
 
 const axiosInstance = axios.create({
@@ -13,6 +13,7 @@ const axiosInstance = axios.create({
       : null,
     'Content-Type': 'application/json',
     accept: 'application/json',
+    'ngrok-skip-browser-warning': 'whatever',
   },
 });
 
