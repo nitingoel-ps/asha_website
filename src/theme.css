@@ -1,0 +1,71 @@
+/* theme.css */
+:root {
+    --primary-color: #008cba; /* Cyan Theme */
+    --secondary-color: #005f73; /* Darker Cyan */
+    --text-color: #333333;
+    --background-color: #f9f9f9;
+    --card-bg-color: #ffffff;
+    --highlight-bg: #e0f7fa;
+    --font-family: 'Roboto', sans-serif; /* Add Google Fonts */
+  }
+  
+  body {
+    font-family: var(--font-family);
+    background-color: var(--background-color);
+    color: var(--text-color);
+  }
+  
+  .navbar {
+    background-color: var(--primary-color) !important;
+  }
+  
+  .navbar {
+    padding-top: 0.5rem; /* Adjust padding to your liking */
+    padding-bottom: 0.5rem;
+  }
+
+  .navbar-brand {
+    color: white !important;
+  }
+  
+  .navbar-nav .nav-link {
+    color: white !important;
+  }
+  
+  .card {
+    background-color: var(--card-bg-color);
+    border: 1px solid #e0e0e0;
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+  }
+  
+  .card-title {
+    font-weight: bold;
+  }
+  
+  .card-text {
+    color: var(--text-color);
+  }
+  
+  .tab-pane {
+    margin-top: 20px;
+  }
+  
+  .alert {
+    background-color: var(--highlight-bg);
+    border: none;
+    color: var(--text-color);
+  }
+
+  .dashboard-container {
+    max-width: 1200px; /* Adjust width as per your needs */
+    margin: 0 auto; /* Center align */
+    padding: 1.5rem; /* Add some consistent padding */
+    box-sizing: border-box; /* Ensures padding does not exceed max-width */
+  }
+
+
+  .navbar .nav-link {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem; /* Add spacing between icons and text */
+  }

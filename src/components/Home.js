@@ -8,40 +8,22 @@ function Home() {
 
   return (
     <>
-      <Navbar bg="dark" variant="dark" expand="lg">
-        <Navbar.Toggle aria-controls="basic-navbar-nav" />
-        <Navbar.Collapse id="basic-navbar-nav">
-          <Nav className="ml-auto">
-            {isAuthenticated ? (
-              <>
-                <Nav.Link as={Link} to="/dashboard">
-                  Add Data
-                </Nav.Link>
-                <Nav.Link as={Link} to="/patient-dashboard">
-                  Dashboard
-                </Nav.Link>
-              </>
-            ) : (
-              <>
-                <Nav.Link as={Link} to="/register">
-                  Register
-                </Nav.Link>
-                <Nav.Link as={Link} to="/login">
-                  Login
-                </Nav.Link>
-              </>
-            )}
-          </Nav>
-        </Navbar.Collapse>
-      </Navbar>
       <Container fluid className="bg-light p-5 mb-4 rounded-3 text-center">
         <Container>
           <h1>Welcome to the Healthcare App</h1>
           <p>Your personal health data at your fingertips.</p>
           {isAuthenticated ? (
-            <Button variant="primary" as={Link} to="/dashboard">
-              Go to Dashboard
-            </Button>
+            <>
+              <Button variant="primary" as={Link} to="/patient-dashboard">
+                Go to Dashboard
+              </Button><br/>
+              <Button variant="primary" as={Link} to="/add-providers">
+                Upload healthcare data Files
+              </Button><br/>       
+              <Button variant="primary" as={Link} to="/dashboard">
+                Establish Connection with your healthcare provider.
+              </Button>            
+          </>
           ) : (
             <>
               <Button variant="primary" as={Link} to="/register" className="mr-2">

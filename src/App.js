@@ -1,31 +1,35 @@
 // src/App.js
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext'; // Import the AuthProvider
 import Home from './components/Home';
 import Register from './components/Register';
 import Login from './components/Login'; // Import Login
-import Dashboard from './components/Dashboard'; // We'll create this later
+import AddProviders from './components/AddProviders'; // We'll create this later
 import PatientDashboard from './components/PatientDashboard'; // We'll create this later
 import PrivateRoute from './components/PrivateRoute';
 import Navbar from './components/Navbar';
+import './theme.css';
 
 
 function App() {
   return (
-    <Router>
-      <Navbar />
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/dashboard" element={
-          <PrivateRoute>
-            <Dashboard />
-          </PrivateRoute>}
-        />
-        <Route path="/patient-dashboard" element={<PatientDashboard />} />
-      </Routes>
-    </Router>
+    <AuthProvider>
+      <Router>
+        <Navbar />
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/add-providers" element={
+            <PrivateRoute>
+              <AddProviders />
+            </PrivateRoute>}
+          />
+          <Route path="/patient-dashboard" element={<PatientDashboard />} />
+        </Routes>
+      </Router>
+    </AuthProvider>
   );
 }
 

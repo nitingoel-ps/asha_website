@@ -1,29 +1,33 @@
-// src/components/Dashboard.js
-import React, { useEffect, useState } from 'react';
-import axiosInstance from '../utils/axiosInstance';
-import { useNavigate } from 'react-router-dom';
-import { Container, Card, Button, Navbar, Nav, Form } from 'react-bootstrap';
-import AppNavbar from "./Navbar";
+// src/components/AddProviders.js
+import React, { useEffect, useState } from "react";
+import axiosInstance from "../utils/axiosInstance";
+import { useNavigate } from "react-router-dom";
+import { Container, Card, Button, Navbar, Nav, Form, Table } from "react-bootstrap";
+import { format, parseISO } from "date-fns"; // Import date-fns functions
 
-function Dashboard() {
-  const [message, setMessage] = useState('');
+function AddProviders() {
+  const [message, setMessage] = useState("");
   const navigate = useNavigate();
   const [providers, setProviders] = useState([]); // To store the list of providers
   const [selectedProvider, setSelectedProvider] = useState(""); // To store the selected provider
+  const [connections, setConnections] = useState([]); // To store existing connections
+  const [loadingConnections, setLoadingConnections] = useState(true); // Track loading of connections
+  const [errorConnections, setErrorConnections] = useState(""); // Track errors fetching connections
 
   useEffect(() => {
     axiosInstance
-      .get('/welcome/')
+      .get("/welcome/")
       .then((response) => {
         setMessage(response.data.message);
       })
       .catch((error) => {
         console.error(error);
-        navigate('/login');
+        navigate("/login");
       });
   }, [navigate]);
 
   useEffect(() => {
+    // Fetch available providers
     axiosInstance
       .get("/providers")
       .then((response) => {
@@ -35,14 +39,20 @@ function Dashboard() {
       .catch((error) => {
         console.error("Failed to fetch providers:", error);
       });
-  }, []);
 
-  const handleLogout = () => {
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('refresh_token');
-    delete axiosInstance.defaults.headers.common['Authorization'];
-    navigate('/login');
-  };
+    // Fetch existing connections
+    axiosInstance
+      .get("/provider-connections")
+      .then((response) => {
+        setConnections(response.data || []); // Set connections from the API response
+        setLoadingConnections(false);
+      })
+      .catch((error) => {
+        console.error("Failed to fetch connections:", error);
+        setErrorConnections("Failed to load connections.");
+        setLoadingConnections(false);
+      });
+  }, []);
 
   const handleConnectProvider = async () => {
     try {
@@ -90,17 +100,59 @@ function Dashboard() {
     }
   };
 
+  // Utility function to format ISO dates
+  const formatDateTime = (isoString) => {
+    if (!isoString) return "N/A"; // Handle missing or invalid dates
+    try {
+      const date = parseISO(isoString); // Parse the ISO date
+      return format(date, "PPpp"); // Format to human-readable date/time
+    } catch (error) {
+      console.error("Error formatting date:", error);
+      return "Invalid date";
+    }
+  };
+
   return (
     <>
       <Container className="mt-5">
-        <h2 className="mb-4">Dashboard</h2>
+        <h2 className="mb-4">Connect to Providers</h2>
+
+      {/* Display Current Connections */}
         <Card className="mb-3">
           <Card.Body>
-            <Card.Title>Welcome Message</Card.Title>
-            <Card.Text>{message ? message : 'Loading...'}</Card.Text>
+          <Card.Title>Current Connections</Card.Title>
+          {loadingConnections ? (
+            <p>Loading connections...</p>
+          ) : errorConnections ? (
+            <p className="text-danger">{errorConnections}</p>
+          ) : connections.length === 0 ? (
+            <p>No connections found.</p>
+          ) : (
+            <Table striped bordered hover>
+              <thead>
+                <tr>
+                  <th>Provider</th>
+                  <th>Created At</th>
+                  <th>Last Fetched</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {connections.map((connection) => (
+                  <tr key={connection.id}>
+                    <td>{connection.provider}</td>
+                    <td>{formatDateTime(connection.created_at)}</td>
+                    <td>{formatDateTime(connection.last_fetched_at)}</td>
+                    <td>{connection.last_fetch_status || "N/A"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </Table>
+          )}
           </Card.Body>
         </Card>
-        {/* Additional Cards or Content */}
+
+      {/* Connect to a New Provider */}
         <Card>
           <Card.Body>
             <Card.Title>Connect to a Provider</Card.Title>
@@ -131,4 +183,4 @@ function Dashboard() {
   );
 }
 
-export default Dashboard;
+export default AddProviders;

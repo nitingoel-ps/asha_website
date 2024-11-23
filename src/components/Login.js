@@ -1,10 +1,9 @@
-// src/components/Login.js
 import React, { useState } from 'react';
 import axiosInstance from '../utils/axiosInstance'; // Import axiosInstance
 import { useNavigate } from 'react-router-dom';
 import { Form, Button, Container, Row, Col, Card, Alert } from 'react-bootstrap';
 import { FaUser } from 'react-icons/fa'; // Import the icon here
-
+import { useAuth } from '../context/AuthContext'; // Import AuthContext
 
 function Login() {
   const [credentials, setCredentials] = useState({
@@ -14,6 +13,7 @@ function Login() {
 
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const { login } = useAuth(); // Get the login function from AuthContext
 
   const handleChange = (e) => {
     setCredentials({
@@ -27,11 +27,19 @@ function Login() {
     axiosInstance
       .post('/token/', credentials)
       .then((response) => {
+        // Save tokens to localStorage
         localStorage.setItem('access_token', response.data.access);
         localStorage.setItem('refresh_token', response.data.refresh);
+
+        // Set Authorization header for future requests
         axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${response.data.access}`;
+
+        // Update global authentication state
+        login();
+
+        // Clear error and redirect
         setError('');
-        navigate('/dashboard');
+        navigate('/');
       })
       .catch((error) => {
         setError('Invalid username or password');
