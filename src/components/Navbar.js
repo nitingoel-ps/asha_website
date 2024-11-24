@@ -17,7 +17,7 @@ function CustomNavbar() {
     <Navbar className="navbar" variant="dark" expand="lg">
       <Container>
         <Navbar.Brand as={Link} to="/">
-          <FaHome /> Healthcare App
+          <FaHome /> My Health 360
         </Navbar.Brand>
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
         <Navbar.Collapse id="basic-navbar-nav">

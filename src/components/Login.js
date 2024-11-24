@@ -13,7 +13,7 @@ function Login() {
 
   const [error, setError] = useState('');
   const navigate = useNavigate();
-  const { login } = useAuth(); // Get the login function from AuthContext
+  const { login, setUser } = useAuth(); // Get the login function and setUser from AuthContext
 
   const handleChange = (e) => {
     setCredentials({
@@ -22,28 +22,35 @@ function Login() {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    axiosInstance
-      .post('/token/', credentials)
-      .then((response) => {
-        // Save tokens to localStorage
-        localStorage.setItem('access_token', response.data.access);
-        localStorage.setItem('refresh_token', response.data.refresh);
+    try {
+      // Step 1: Authenticate and get tokens
+      const response = await axiosInstance.post('/token/', credentials);
+      const { access, refresh } = response.data;
 
-        // Set Authorization header for future requests
-        axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${response.data.access}`;
+      // Step 2: Save tokens to localStorage
+      localStorage.setItem('access_token', access);
+      localStorage.setItem('refresh_token', refresh);
 
-        // Update global authentication state
-        login();
+      // Step 3: Set Authorization header for future requests
+      axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${access}`;
 
-        // Clear error and redirect
-        setError('');
-        navigate('/');
-      })
-      .catch((error) => {
-        setError('Invalid username or password');
-      });
+      // Step 4: Fetch user details
+      const userResponse = await axiosInstance.get('/user-context'); // Assuming `/user-context` returns user details
+      const userDetails = userResponse.data;
+
+      // Step 5: Update global authentication state
+      setUser(userDetails); // Save user info in context
+      login(); // Update the logged-in state
+
+      // Step 6: Redirect
+      setError('');
+      navigate('/');
+    } catch (error) {
+      console.error("Login error:", error);
+      setError('Invalid username or password');
+    }
   };
 
   return (

@@ -67,7 +67,7 @@ function PatientDashboard() {
                 <Tabs defaultActiveKey="summary" id="patient-dashboard-tabs" className="mt-4">
                 <Tab eventKey="summary" title={<><Activity size={16} /> Summary</>}>
                     <Alert className="mt-3">
-                        {patientData.conditions.summary}
+                        {patientData.overall_summary}
                     </Alert>
                     <Card className="mb-3">
                         <Card.Body>

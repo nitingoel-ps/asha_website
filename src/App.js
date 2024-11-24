@@ -3,6 +3,8 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext'; // Import the AuthProvider
 import Home from './components/Home';
+import LoggedInHome from './components/Home/LoggedInHome';
+import LoggedOutHome from './components/Home/LoggedOutHome';
 import Register from './components/Register';
 import Login from './components/Login'; // Import Login
 import AddProviders from './components/AddProviders'; // We'll create this later
