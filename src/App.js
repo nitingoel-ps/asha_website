@@ -11,6 +11,8 @@ import AddProviders from './components/AddProviders'; // We'll create this later
 import PatientDashboard from './components/PatientDashboard'; // We'll create this later
 import PrivateRoute from './components/PrivateRoute';
 import Navbar from './components/Navbar';
+import UploadFiles from "./components/UploadFiles";
+
 import './theme.css';
 
 
@@ -28,6 +30,14 @@ function App() {
               <AddProviders />
             </PrivateRoute>}
           />
+          <Route
+            path="/upload-files"
+            element={
+              <PrivateRoute>
+                <UploadFiles />
+              </PrivateRoute>
+            }
+          />          
           <Route path="/patient-dashboard" element={<PatientDashboard />} />
         </Routes>
       </Router>

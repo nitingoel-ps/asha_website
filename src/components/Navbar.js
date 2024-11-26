@@ -3,14 +3,17 @@ import { Link } from 'react-router-dom';
 import { Navbar, Nav, Container } from 'react-bootstrap';
 import { FaHome, FaUserPlus, FaSignInAlt, FaSignOutAlt, FaTachometerAlt } from 'react-icons/fa';
 import { useAuth } from '../context/AuthContext'; // Import the auth context
+import { useNavigate } from "react-router-dom"; // Import useNavigate
 
 function CustomNavbar() {
   const { isAuthenticated, logout } = useAuth(); // Consume the auth state
+  const navigate = useNavigate();
 
   const handleLogout = () => {
     localStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');
     window.location.reload();
+    navigate('/'); // Redirect to the home page
   };
 
   return (
