@@ -13,8 +13,6 @@ const UploadFiles = () => {
   const [backendFiles, setBackendFiles] = useState([]); // To store files fetched from backend
   const [fetchingFiles, setFetchingFiles] = useState(false); // To track file fetching
   const [modalContent, setModalContent] = useState(null); // For inline viewing
-  const [modalTitle, setModalTitle] = useState("");
-  const [showModal, setShowModal] = useState(false);
   const navigate = useNavigate();
   const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB in bytes
 
@@ -95,6 +93,8 @@ const UploadFiles = () => {
     setUploadSuccess(null);
     setUploadProgress(0);
 
+    const uploadedFiles = []; // Collect uploaded files for immediate update
+
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       const formData = new FormData();
@@ -102,9 +102,12 @@ const UploadFiles = () => {
       formData.append("relativePath", file.webkitRelativePath || file.name); // Send relative path
 
       try {
-        await axiosInstance.post("/upload-file/", formData, {
+        const response = await axiosInstance.post("/upload-file/", formData, {
           headers: { "Content-Type": "multipart/form-data" },
         });
+
+        // Add the uploaded file to the list (assume API returns the file object)
+        uploadedFiles.push(response.data);
 
         // Update progress
         setUploadProgress(((i + 1) / files.length) * 100);
@@ -117,10 +120,13 @@ const UploadFiles = () => {
     setUploading(false);
     if (!uploadError) {
       setUploadSuccess("All files uploaded successfully!");
-      fetchBackendFiles(); // Refresh the backend file list
+      
+      // Immediately update the file list with the new files
+      // setBackendFiles((prevFiles) => [...prevFiles, ...uploadedFiles]);
+      fetchBackendFiles(); // Refresh from backend for a full sync
     }
     setFiles([]);
-  };
+};
 
   // Handle removing a selected file
   const handleRemoveFile = (index) => {
