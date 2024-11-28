@@ -23,13 +23,13 @@ function PatientDashboard() {
   const [isThinking, setIsThinking] = useState(false); // Track AI thinking status
   const chatContainerRef = useRef(null); // Create a ref for the chat container
 
-    // Check authentication
-    useEffect(() => {
-        const accessToken = localStorage.getItem('access_token');
-        if (!accessToken) {
-          navigate('/'); // Redirect to home if not logged in
-        }
-      }, [navigate]);
+  // Check authentication
+  useEffect(() => {
+      const accessToken = localStorage.getItem('access_token');
+      if (!accessToken) {
+        navigate('/'); // Redirect to home if not logged in
+      }
+  }, [navigate]);
 
 
   // Fetch patient data on component mount
@@ -49,6 +49,7 @@ function PatientDashboard() {
       .catch((err) => {
         setError("Failed to fetch patient data.");
         setLoading(false);
+
       });
   }, []);
 
@@ -105,9 +106,24 @@ function PatientDashboard() {
 
   if (error) {
     return (
+      /*
       <Container className="mt-5 text-center">
         <h5 className="text-danger">{error}</h5>
       </Container>
+      */
+      <Container className="mt-5 text-center">
+      <Card>
+        <Card.Body>
+          <h3 className="text-primary">We're building your dashboard!</h3>
+          <p>
+            Your dashboard is currently under construction. Once we finish processing your uploaded files or fetching data from your medical providers, your personalized dashboard will be ready.
+          </p>
+          <p>
+            In the meantime, you can <a href="/upload-files">upload your medical records directly</a> or <a href="/add-providers">connect your healthcare providers</a>.
+          </p>
+        </Card.Body>
+      </Card>
+    </Container>     
     );
   }
 

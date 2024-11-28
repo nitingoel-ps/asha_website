@@ -22,19 +22,18 @@ function MedicationsTab({ medications }) {
           <tr>
             <th>Medication</th>
             <th>Dosage</th>
-            <th>Status</th>
             <th>Prescribed On</th>
+            <th>Status</th>
           </tr>
         </thead>
         <tbody>
-          {medications.list.entry.map((entry) => {
-            const med = entry.resource;
+          {medications.list.map((med) => {
             return (
               <tr key={med.id}>
-                <td>{med.medicationReference.display}</td>
-                <td>{med.dosageInstruction[0]?.text || "N/A"}</td>
-                <td>{med.status}</td>
+                <td>{med.medication}</td>
+                <td>{med.dosageInstruction || "N/A"}</td>
                 <td>{med.authoredOn}</td>
+                <td>{med.status}</td>
               </tr>
             );
           })}

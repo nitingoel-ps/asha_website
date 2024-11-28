@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Container, Card, Button, Alert, Spinner, ProgressBar, Table, Modal } from "react-bootstrap";
+import { Container, Card, Button, Alert, Spinner, ProgressBar, Table, OverlayTrigger, Tooltip } from "react-bootstrap";
+import { AiOutlineInfoCircle } from "react-icons/ai";
 import axiosInstance from "../utils/axiosInstance";
 import "./UploadFiles.css";
 
@@ -12,7 +13,6 @@ const UploadFiles = () => {
   const [uploadError, setUploadError] = useState(null);
   const [backendFiles, setBackendFiles] = useState([]); // To store files fetched from backend
   const [fetchingFiles, setFetchingFiles] = useState(false); // To track file fetching
-  const [modalContent, setModalContent] = useState(null); // For inline viewing
   const navigate = useNavigate();
   const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB in bytes
 
@@ -41,6 +41,9 @@ const UploadFiles = () => {
   useEffect(() => {
     fetchBackendFiles();
   }, []);
+
+
+
 
   // Handle file and folder selection via drag-and-drop
   const handleDrop = (event) => {
@@ -288,8 +291,10 @@ const UploadFiles = () => {
                   <th>Upload Time</th>
                   <th>Last Modified</th>
                   <th>AI Summary</th> */}
-                  <th>AI Review</th>
-                  <th>AI Category</th>
+                  <th>Document Date</th>
+                  <th>AI Summary</th>
+                  <th>Document Category</th>
+                  <th>Review Status</th>
                 </tr>
               </thead>
               <tbody>
@@ -304,14 +309,25 @@ const UploadFiles = () => {
                         {file.file_name}
                       </a>
                       </td>
-                    {/*
-                    <td>{file.file_path}</td>
-                    <td>{file.upload_time}</td>
-                    <td>{file.last_modified}</td>
-                    <td>{file.ai_summary}</td>
-                    */}
-                    <td>{file.ai_status}</td>
+                      <td>{file.ai_document_date}</td>
+                    <td>
+                      {/* OverlayTrigger for Hover */}
+                      <OverlayTrigger
+                        placement="top"
+                        delay={{ show: 250, hide: 400 }}
+                        overlay={
+                          <Tooltip className="ai-summary-tooltip">
+                            {file.ai_summary || "No summary available for this file."}
+                          </Tooltip>
+                        }
+                      >
+                        <span className="truncated-summary" >
+                          {file.ai_summary || "No summary available for this file."}
+                        </span>
+                      </OverlayTrigger>
+                    </td>
                     <td>{file.ai_category}</td>
+                    <td>{file.ai_status}</td>
                   </tr>
                 ))}
               </tbody>
@@ -321,7 +337,6 @@ const UploadFiles = () => {
           )}
         </Card.Body>
       </Card>
-
     </Container>
   );
 };

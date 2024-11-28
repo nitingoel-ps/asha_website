@@ -33,3 +33,44 @@
   .progress-bar {
     margin-top: 10px;
   }
+
+  .tooltip-arrow {
+    color: #ffffff !important; /* Match the background color */
+  }
+
+
+  .tooltip-inner {
+    max-width: none !important; /* Remove Bootstrap's default width limit */
+    width: auto !important;     /* Allow content to dictate width */
+    white-space: pre-wrap !important; /* Preserve line breaks */
+    word-wrap: break-word !important; /* Ensure text wraps within the tooltip */
+    background-color: #ffffff !important; /* Light background */
+    color: #333333 !important; /* Dark text for readability */
+    border: 1px solid #ddd !important; /* Subtle border */
+    border-radius: 8px !important; /* Rounded corners */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2) !important; /* Subtle shadow */
+    padding: 10px !important; /* Adjust padding for readability */
+  }
+  
+  .tooltip {
+    max-width: 600px !important; /* Set a wider tooltip limit */
+  }
+
+  /* Styles for truncated summary text in the table */
+.truncated-summary {
+  cursor: pointer;
+  color: gray;
+  font-style: italic;
+  font-size: 12px; /* Reduced font size */
+  display: inline-block;
+  max-width: 400px; /* Limit width for truncation */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-decoration: underline dashed; /* Add dashed underline */
+  text-underline-offset: 3px; /* Add some spacing between text and underline */
+}
+
+.ai-summary-tooltip {
+  text-align: justify; /* Fully justify text ... not working*/
+}
