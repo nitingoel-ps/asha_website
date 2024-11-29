@@ -6,6 +6,7 @@ const apiBaseURL = process.env.REACT_APP_API_BASE_URL;
 
 const axiosInstance = axios.create({
   baseURL: apiBaseURL,
+  //withCredentials: true, // Enable sending cookies
   timeout: 60000,  //Made very long for the /chat API
   headers: {
     Authorization: localStorage.getItem('access_token')

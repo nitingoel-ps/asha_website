@@ -163,9 +163,9 @@ function PatientDashboard() {
                     ))}
                     {isThinking && (
                       <div className="chat-message text-start ai-message">
-                        <em>AI is thinking...</em>
+                        <span className="blinking-cursor">AI is thinking... </span>
                       </div>
-                    )}
+                    )}  
                     </div>
 
                     {/* Chat Input */}

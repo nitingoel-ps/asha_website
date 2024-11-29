@@ -50,3 +50,28 @@
     resize: none;
     overflow-y: hidden;
 }
+
+
+.blinking-cursor {
+    display: inline-flex;
+    align-items: center;
+    font-style: italic;
+    position: relative;
+  }
+  
+  .blinking-cursor::after {
+    content: " "; /* Create the block cursor */
+    display: inline-block;
+    width: 8px; /* Width of the block cursor */
+    height: 1em; /* Height matches font size */
+    background-color: black; /* Cursor color */
+    animation: blink-block 1s steps(1) infinite; /* Blinking effect */
+    margin-left: 5px; /* Space between text and block */
+    vertical-align: bottom;
+  }
+  
+  @keyframes blink-block {
+    50% {
+      opacity: 0;
+    }
+  }
