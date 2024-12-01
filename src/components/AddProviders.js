@@ -134,6 +134,7 @@ function AddProviders() {
                   <th>Provider</th>
                   <th>Created At</th>
                   <th>Last Fetched</th>
+                  <th>Access Expires At</th>                  
                   <th>Status</th>
                 </tr>
               </thead>
@@ -143,6 +144,7 @@ function AddProviders() {
                     <td>{connection.provider}</td>
                     <td>{formatDateTime(connection.created_at)}</td>
                     <td>{formatDateTime(connection.last_fetched_at)}</td>
+                    <td>{formatDateTime(connection.expires_at)}</td>
                     <td>{connection.last_fetch_status || "N/A"}</td>
                   </tr>
                 ))}
