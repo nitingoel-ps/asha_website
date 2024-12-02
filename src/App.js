@@ -8,7 +8,8 @@ import LoggedOutHome from './components/Home/LoggedOutHome';
 import Register from './components/Register';
 import Login from './components/Login'; // Import Login
 import AddProviders from './components/AddProviders'; // We'll create this later
-import PatientDashboard from './components/PatientDashboard'; // We'll create this later
+import PatientDashboard from './components/PatientDashboard'; 
+import MyDocuments from './components/MyDocuments'; // We'll create this later
 import PrivateRoute from './components/PrivateRoute';
 import Navbar from './components/Navbar';
 import UploadFiles from "./components/UploadFiles";
@@ -39,6 +40,7 @@ function App() {
             }
           />          
           <Route path="/patient-dashboard" element={<PatientDashboard />} />
+          <Route path="/my-documents" element={<MyDocuments />} />
         </Routes>
       </Router>
     </AuthProvider>

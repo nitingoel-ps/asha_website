@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Container, Card, Button, Alert, Spinner, ProgressBar, Table, OverlayTrigger, Tooltip } from "react-bootstrap";
+import { Container, Card, Button, Alert, Spinner, ProgressBar, Table, OverlayTrigger, Tooltip, Accordion } from "react-bootstrap";
+//import OverlayTrigger from "react-bootstrap/OverlayTrigger";Suggested, but why? Try it later.
+//import Tooltip from "react-bootstrap/Tooltip"; Suggested, but why? Try it later.
 import { AiOutlineInfoCircle } from "react-icons/ai";
 import axiosInstance from "../utils/axiosInstance";
 import "./UploadFiles.css";
@@ -14,7 +16,7 @@ const UploadFiles = () => {
   const [backendFiles, setBackendFiles] = useState([]); // To store files fetched from backend
   const [fetchingFiles, setFetchingFiles] = useState(false); // To track file fetching
   const navigate = useNavigate();
-  const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB in bytes
+  const MAX_FILE_SIZE = 50 * 1024 * 1024; // 10MB in bytes
 
   // Redirect non-authenticated users
   useEffect(() => {
@@ -42,8 +44,14 @@ const UploadFiles = () => {
     fetchBackendFiles();
   }, []);
 
-
-
+  // Helper function to format date
+  const formatDate = (dateString) => {
+    if (!dateString) return "N/A"; // Return "N/A" if dateString is null or undefined
+    const options = { day: "numeric", month: "short", year: "numeric" };
+    const date = new Date(dateString);
+    if (isNaN(date)) return "N/A"; // Handle invalid dates
+    return date.toLocaleDateString("en-US", options);
+  };
 
   // Handle file and folder selection via drag-and-drop
   const handleDrop = (event) => {
@@ -206,6 +214,44 @@ const UploadFiles = () => {
     }
   };
 
+  // Group files by year for reviewed documents
+  const groupByYear = (files) => {
+    return files.reduce((groups, file) => {
+      const date = file.ai_document_date ? new Date(file.ai_document_date) : null;
+      const year = date && !isNaN(date) ? date.getFullYear() : "Unknown";
+  
+      if (!groups[year]) {
+        groups[year] = [];
+      }
+      groups[year].push(file);
+  
+      return groups;
+    }, {});
+  };
+
+  // Prepare sorted and grouped files
+  const prepareFileDisplay = () => {
+    // Define completed statuses
+    const COMPLETED_STATUSES = ["completed", "final"]; // Add other relevant statuses
+
+    // Not completed (e.g., pending, processing, failed)
+    const notCompletedFiles = backendFiles
+      .filter((file) => !file.ai_status || !COMPLETED_STATUSES.includes(file.ai_status.toLowerCase()))
+      .sort((a, b) => new Date(b.upload_time) - new Date(a.upload_time));
+
+    // Completed files
+    const completedFiles = backendFiles
+      .filter((file) => file.ai_status && COMPLETED_STATUSES.includes(file.ai_status.toLowerCase()))
+      .sort((a, b) => new Date(b.ai_document_date) - new Date(a.ai_document_date));
+
+    // Group completed files by year
+    const groupedCompletedFiles = groupByYear(completedFiles);
+
+    return { notCompletedFiles, groupedCompletedFiles };
+  };
+
+  const { notCompletedFiles: pendingFiles, groupedCompletedFiles: groupedReviewedFiles } = prepareFileDisplay();
+
   return (
     <Container className="mt-5">
       <Card>
@@ -231,7 +277,12 @@ const UploadFiles = () => {
                 directory
                 multiple
                 accept=".txt,.pdf,.html,.csv"
-                onChange={handleFileChange}
+                onChange={(event) => {
+                  console.log("File input changed");
+                  handleFileChange(event);
+                  // Reset the input to allow re-uploading the same file
+                  event.target.value = null;
+                }}
                 className="file-input"
               />
             </Button>
@@ -282,24 +333,22 @@ const UploadFiles = () => {
           {fetchingFiles ? (
             <Spinner animation="border" />
           ) : backendFiles.length > 0 ? (
+            <>
+              {/* Pending Review Section */}
+              {pendingFiles.length > 0 && (
+            <>
+              <h5>Pending Review</h5>
             <Table striped bordered hover>
               <thead>
                 <tr>
                   <th>File Name</th>
-                  {/*
-                  <th>File Path</th>
-                  <th>Upload Time</th>
-                  <th>Last Modified</th>
-                  <th>AI Summary</th> */}
-                  <th>Document Date</th>
-                  <th>AI Summary</th>
-                  <th>Document Category</th>
+                    <th>Uploaded Date</th>
                   <th>Review Status</th>
                 </tr>
               </thead>
               <tbody>
-                {backendFiles.map((file, index) => (
-                  <tr key={index}>
+                  {pendingFiles.map((file) => (
+                    <tr key={file.id}>
                     <td>                      
                         <a
                         href="#!"
@@ -309,9 +358,50 @@ const UploadFiles = () => {
                         {file.file_name}
                       </a>
                       </td>
-                      <td>{file.ai_document_date}</td>
-                    <td>
-                      {/* OverlayTrigger for Hover */}
+                          <td>{formatDate(file.upload_time)}</td>
+                      <td>{file.ai_status || "Pending"}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </Table>
+                </>
+              )}
+
+              {/* Reviewed Files Section */}
+              <h5>Reviewed Files</h5>
+              <Accordion>
+                {Object.keys(groupedReviewedFiles)
+                  .sort((a, b) => {
+                    if (a === "Unknown") return 1; // Place "Unknown" at the bottom
+                    if (b === "Unknown") return -1;
+                    return b - a; // Sort numeric years in descending order
+                  })                  .map((year) => (
+                  <Accordion.Item eventKey={year} key={year}>
+                    <Accordion.Header>{year}</Accordion.Header>
+                    <Accordion.Body>
+                      <Table striped bordered hover>
+                        <thead>
+                          <tr>
+                            <th>File Name</th>
+                            <th>Document Date</th>
+                            <th>AI Summary</th>
+                            <th>Category</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {groupedReviewedFiles[year].map((file) => (
+                            <tr key={file.id}>
+                              <td>
+                                <a
+                                  href="#!"
+                                  onClick={() => handleFileClick(file)}
+                                  style={{ textDecoration: "underline", cursor: "pointer", color: "blue" }}
+                                >
+                                  {file.file_name}
+                                </a>
+                              </td>
+                                <td>{formatDate(file.ai_document_date)}</td>
+                              <td>
                       <OverlayTrigger
                         placement="top"
                         delay={{ show: 250, hide: 400 }}
@@ -321,17 +411,21 @@ const UploadFiles = () => {
                           </Tooltip>
                         }
                       >
-                        <span className="truncated-summary" >
+                                    <span className="truncated-summary">
                           {file.ai_summary || "No summary available for this file."}
                         </span>
                       </OverlayTrigger>
                     </td>
                     <td>{file.ai_category}</td>
-                    <td>{file.ai_status}</td>
                   </tr>
                 ))}
               </tbody>
             </Table>
+                    </Accordion.Body>
+                  </Accordion.Item>
+                ))}
+              </Accordion>
+            </>
           ) : (
             <Alert variant="info">No files uploaded yet.</Alert>
           )}

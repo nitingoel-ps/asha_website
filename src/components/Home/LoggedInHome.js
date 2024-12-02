@@ -49,10 +49,10 @@ function LoggedInHome() {
           <Card className="action-card shadow">
             <Card.Body>
               <i className="bi bi-cloud-upload display-4 text-success mb-3"></i>
-              <h5>Upload Data</h5>
-              <p>Manually upload health data or files from your computer or email.</p>
-              <Button as={Link} to="/upload-files" variant="success">
-                Upload Files
+              <h5>Manage Documents</h5>
+              <p>Review manually uploaded health data or files from your computer or email.</p>
+              <Button as={Link} to="/my-documents" variant="success">
+                Manage Documents
               </Button>
             </Card.Body>
           </Card>
