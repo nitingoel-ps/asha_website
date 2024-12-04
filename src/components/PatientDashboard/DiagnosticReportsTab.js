@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { Card, Table, Button, Collapse } from "react-bootstrap";
+import { Card, Table, Button, Collapse, OverlayTrigger, Tooltip } from "react-bootstrap";
+import { FaCheckCircle, FaExclamationTriangle } from "react-icons/fa"; // Import icons from Font Awesome
 
 function DiagnosticReportsTab({ diagnosticReports }) {
   const [expandedReportId, setExpandedReportId] = useState(null);
@@ -7,6 +8,14 @@ function DiagnosticReportsTab({ diagnosticReports }) {
   // Function to toggle a report's observations
   const toggleObservations = (reportId) => {
     setExpandedReportId((prevId) => (prevId === reportId ? null : reportId));
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return "N/A"; // Return "N/A" if dateString is null or undefined
+    const options = { day: "numeric", month: "short", year: "numeric" };
+    const date = new Date(dateString);
+    if (isNaN(date)) return "N/A"; // Handle invalid dates
+    return date.toLocaleDateString("en-US", options);
   };
 
   return (
@@ -33,9 +42,10 @@ function DiagnosticReportsTab({ diagnosticReports }) {
         <thead>
           <tr>
             <th>Report</th>
+            <th>Source</th>
             <th>Issued Date</th>
-            <th>Status</th>
             <th>Category</th>
+            <th>Conclusion</th>
           </tr>
         </thead>
         <tbody>
@@ -50,33 +60,43 @@ function DiagnosticReportsTab({ diagnosticReports }) {
                     style={{ textDecoration: "underline", cursor: "pointer" }}
                     onClick={() => toggleObservations(report.id)}
                   >
-                    {report.text}
+                    {report.report_name}
                   </Button>
                 </td>
-              <td>{report.issued || "N/A"}</td>
-              <td>{report.status}</td>
-              <td>{report.categories || "N/A"}</td>
+                <td>{report.source || "N/A"}</td>
+                <td>{formatDate(report.report_date)}</td>
+              <td>{report.report_type || "N/A"}</td>
+              <td>{report.report_summary || "N/A"}</td>              
             </tr>
               {/* Observations Row */}
               <tr>
-                <td colSpan={4}>
+                <td colSpan={5}>
                   <Collapse in={expandedReportId === report.id}>
-                    <div>
+                    <div style={{ width: "100%" }}>
                       {report.observations.length > 0 ? (
-                        <Table bordered size="sm">
+                        <Table bordered size="sm" className="mb-0">
                           <thead>
                             <tr>
-                              <th>Observation</th>
-                              <th>Value (Quantity)</th>
-                              <th>Value (String)</th>
+                            <th style={{ width: "20%" }}>Observation</th>
+                            <th style={{ width: "15%" }}>Value</th>
+                            <th style={{ width: "10%", textAlign: "center" }}>Is Normal</th>
+                            <th style={{ width: "55%" }}>Explanation</th>                          
                             </tr>
                           </thead>
                           <tbody>
                             {report.observations.map((obs) => (
                               <tr key={obs.id}>
-                                <td>{obs.text || "N/A"}</td>
-                                <td>{obs.valueQuantity || "N/A"}</td>
-                                <td>{obs.valueString || "N/A"}</td>
+                                {/* Observation Name with Tooltip */}
+                                <td>{obs.name || "N/A"}</td>
+                                <td>{obs.value || "N/A"}</td>
+                                <td align="center">
+                                  {obs.is_normal ? (
+                                    <FaCheckCircle style={{ color: "green" }} title="Normal" />
+                                  ) : (
+                                    <FaExclamationTriangle style={{ color: "red" }} title="Not Normal" />
+                                  )}
+                                </td>
+                                <td>{obs.explanation || "N/A"}</td>                                
                               </tr>
                             ))}
                           </tbody>
