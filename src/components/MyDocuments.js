@@ -172,7 +172,7 @@ const MyDocuments = () => {
     setLoadingFileId(file.id);
   
     try {
-      const response = await axiosInstance.get(`/view-file?file_name=${encodeURIComponent(file.file_name)}`, {
+      const response = await axiosInstance.get(`/view-file?file_id=${encodeURIComponent(file.id)}`, {
         responseType: extension === ".pdf" ? "blob" : "text",
       });
   
@@ -351,7 +351,7 @@ const MyDocuments = () => {
                     setSelectedYear("");
                     }}
                 >
-                    Clear all
+                    show all
                 </Button>
               </div>
               {renderFilters()}
