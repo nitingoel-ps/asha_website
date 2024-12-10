@@ -3,6 +3,7 @@ import { Tabs, Tab, Card, Container, Spinner, Button, Form, InputGroup } from "r
 import { IoSend } from "react-icons/io5";
 
 import ConditionsTab from "./PatientDashboard/ConditionsTab";
+import ChartsTab from "./PatientDashboard/ChartsTab";
 import ProceduresTab from "./PatientDashboard/ProceduresTab";
 import MedicationsTab from "./PatientDashboard/MedicationsTab";
 import DiagnosticReportsTab from "./PatientDashboard/DiagnosticReportsTab";
@@ -22,7 +23,7 @@ function PatientDashboard() {
   const [currentMessage, setCurrentMessage] = useState("");
   const [isThinking, setIsThinking] = useState(false); // Track AI thinking status
   const chatContainerRef = useRef(null); // Create a ref for the chat container
-
+  
   // Check authentication
   useEffect(() => {
       const accessToken = localStorage.getItem('access_token');
@@ -204,6 +205,9 @@ function PatientDashboard() {
             </Tab>
 
             {/* Other Tabs */}
+            <Tab eventKey="charts" title={<><Clipboard size={16} /> Charts</>}>
+              <ChartsTab charts={patientData.important_charts}/>
+            </Tab>
             <Tab eventKey="conditions" title={<><Clipboard size={16} /> Conditions</>}>
               <ConditionsTab conditions={patientData.conditions} />
             </Tab>

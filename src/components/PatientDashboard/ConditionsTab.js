@@ -1,5 +1,8 @@
 import React from "react";
 import { Card, Table } from "react-bootstrap";
+import ObservationGraph from "./ObservationGraph"; // Adjust the path as needed
+
+
 
 function ConditionsTab({ conditions }) {
   return (
@@ -17,6 +20,7 @@ function ConditionsTab({ conditions }) {
           </Card.Text>
         </Card.Body>
       </Card>
+   
       <Table striped bordered hover className="mt-4">
         <thead>
           <tr>

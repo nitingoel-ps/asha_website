@@ -79,6 +79,7 @@ function DiagnosticReportsTab({ diagnosticReports }) {
                             <tr>
                             <th style={{ width: "20%" }}>Observation</th>
                             <th style={{ width: "15%" }}>Value</th>
+                            <th style={{ width: "15%" }}>Date</th>
                             <th style={{ width: "10%", textAlign: "center" }}>Is Normal</th>
                             <th style={{ width: "55%" }}>Explanation</th>                          
                             </tr>
@@ -89,6 +90,7 @@ function DiagnosticReportsTab({ diagnosticReports }) {
                                 {/* Observation Name with Tooltip */}
                                 <td>{obs.name || "N/A"}</td>
                                 <td>{obs.value || "N/A"}</td>
+                                <td>{formatDate(obs.observation_date)}</td>
                                 <td align="center">
                                   {obs.is_normal ? (
                                     <FaCheckCircle style={{ color: "green" }} title="Normal" />
