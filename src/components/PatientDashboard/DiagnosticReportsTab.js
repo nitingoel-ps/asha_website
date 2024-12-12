@@ -18,6 +18,13 @@ function DiagnosticReportsTab({ diagnosticReports }) {
     return date.toLocaleDateString("en-US", options);
   };
 
+  // Sort reports by date, latest first
+  const sortedReports = [...diagnosticReports.list].sort((a, b) => {
+    const dateA = new Date(a.report_date);
+    const dateB = new Date(b.report_date);
+    return dateB - dateA; // Descending order
+  });
+
   return (
     <>
       {/* Diagnostic Reports Summary */}
@@ -49,7 +56,7 @@ function DiagnosticReportsTab({ diagnosticReports }) {
           </tr>
         </thead>
         <tbody>
-          {diagnosticReports.list.map((report) => (
+          {sortedReports.map((report) => (
             <React.Fragment key={report.id}>
               <tr>
                 <td>
