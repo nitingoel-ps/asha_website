@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Card, Table, Button, Collapse, OverlayTrigger, Tooltip } from "react-bootstrap";
 import { FaCheckCircle, FaExclamationTriangle } from "react-icons/fa"; // Import icons from Font Awesome
+import "./DiagnosticReportsTab.css";
 
 function DiagnosticReportsTab({ diagnosticReports }) {
   const [expandedReportId, setExpandedReportId] = useState(null);
@@ -96,7 +97,28 @@ function DiagnosticReportsTab({ diagnosticReports }) {
                               <tr key={obs.id}>
                                 {/* Observation Name with Tooltip */}
                                 <td>{obs.name || "N/A"}</td>
-                                <td>{obs.value || "N/A"}</td>
+                                <td>
+                                  {obs.value !== null && obs.value !== undefined ? (
+                                    obs.value
+                                  ) : obs.value_str ? (
+                                    <OverlayTrigger
+                                      trigger="click"
+                                      placement="top"
+                                      rootClose // Ensures tooltip closes when clicking outside
+                                      overlay={
+                                        <Tooltip id={`tooltip-${obs.id}`} className="custom-tooltip">
+                                          {obs.value_str}
+                                        </Tooltip>
+                                      }
+                                    >
+                                      <Button variant="link" className="p-0" style={{ textDecoration: "underline", cursor: "pointer" }}>
+                                        Report
+                                      </Button>
+                                    </OverlayTrigger>
+                                  ) : (
+                                    "N/A"
+                                  )}
+                                </td>                                
                                 <td>{formatDate(obs.observation_date)}</td>
                                 <td align="center">
                                   {obs.is_normal ? (

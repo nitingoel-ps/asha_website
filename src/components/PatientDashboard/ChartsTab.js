@@ -14,11 +14,9 @@ function ChartsTab({ charts }) {
     referenceRange: chartData.referenceRange,
   });
 
-  // Consolidated data list
-  const chartDataList = []
-  if (charts.list.charts) {
-    charts.list.charts.map(transformChartData)
-  }
+  console.log("Received charts:", charts);
+
+  const chartDataList = charts?.charts?.map(transformChartData) || [];
 
   return (
     <Container fluid className="mt-4">

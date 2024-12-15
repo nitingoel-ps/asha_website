@@ -3,6 +3,7 @@ import ReactMarkdown from "react-markdown";
 import { Card, InputGroup, Form, Button } from "react-bootstrap";
 import "./ChatTab.css";
 import { useMemo } from "react";
+import { fetchWithAuth } from "../../utils/fetchWithAuth";
 
 function ChatTab({ suggestedQuestions }) {
   const [chatMessages, setChatMessages] = useState([
@@ -80,14 +81,19 @@ const renderers = useMemo(
     hasScrolledRef.current = false; // Reset scrolling flag
 
     try {
-    // Use fetch with ReadableStream for streaming responses
-      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/chat/`, {
+    // Transform chatMessages into OpenAI's messages format
+    const formattedMessages = [
+      ...chatMessages.map((msg) => ({
+        role: msg.type === "user" ? "user" : "assistant",
+        content: msg.text,
+      })),
+      { role: "user", content: message }, // Include the new user question
+    ];
+
+    const response = await fetchWithAuth("/chat/", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-        },
-        body: JSON.stringify({ question: message }),
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ messages: formattedMessages }), // Send formatted history
       });
 
     if (!response.ok) {

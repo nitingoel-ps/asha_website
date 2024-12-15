@@ -10,7 +10,7 @@
 .chat-message {
   padding: 10px 15px;
   border-radius: 10px;
-  max-width: 75%; /* Limit bubble width */
+  max-width: 85%; /* Limit bubble width */
   word-wrap: break-word;
   word-break: break-word;
   white-space: normal;/*pre-wrap; -- good ones are normal, inherit, */
@@ -119,8 +119,7 @@
 }
 
 .markdown-li {
-    margin-bottom: 1.5rem; /* Adjust spacing between items */
-    padding-left: 1.5rem; /* Space between bullet and text */
+    margin: 5px; /* Adjust spacing between items */
     list-style-position: inside;
     font-size: 1rem; /* Adjust font size if needed */
     text-align: left;
@@ -134,8 +133,8 @@
 
 .chat-message li {
   margin-bottom: 0.5rem;
-  margin-top: 1.0rem;
-  padding-left: 10; /* Reset padding for bullets or numbers */
+  margin-top: 0.5rem;
+  padding-left: 5px; /* Reset padding for bullets or numbers */
   list-style-position: outside; /* Ensure marker is outside */
 }
 
@@ -144,6 +143,12 @@
   display: inline; /* Align text inline with the bullet */
 }
 
-.chat-message h1 h2 h3 h4 {
+.chat-message.text-start  h3 {
   margin-top: 1.0rem; /* Remove margins from the <p> inside <li> */
+  font-size: larger;
+}
+
+.chat-message.text-start  h4 {
+  margin-top: 1.0rem; /* Remove margins from the <p> inside <li> */
+  font-size: large;
 }

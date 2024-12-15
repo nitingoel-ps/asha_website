@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import axiosInstance from "../utils/axiosInstance";
 import { useNavigate } from "react-router-dom";
 import { Container, Card, Button, Navbar, Nav, Form, Table } from "react-bootstrap";
-import { format, parseISO } from "date-fns"; // Import date-fns functions
+import { format, parseISO, formatDistanceToNow } from "date-fns"; // Import date-fns functions
 
 function AddProviders() {
   const [message, setMessage] = useState("");
@@ -54,13 +54,13 @@ function AddProviders() {
       });
   }, []);
 
-  const handleConnectProvider = async () => {
+  const handleConnectProvider = async (providerId) => {
     try {
-      if (!selectedProvider) {
+      if (!providerId) {
         alert("Please select a provider.");
         return;
       }
-      const response = await axiosInstance.get(`/oauth/authorize-url?provider=${selectedProvider}`);
+      const response = await axiosInstance.get(`/oauth/authorize-url?provider=${providerId}`);
       const oauthUrl = response.data.url;
         // Open the OAuth URL in a popup window
       const width = 600;
@@ -112,6 +112,17 @@ function AddProviders() {
     }
   };
 
+  const getStatusDisplay = (status, lastFetchedAt) => {
+    if (status !== "SUCCESS") {
+      return status; // Show the status if it's not SUCCESS
+    }
+    if (!lastFetchedAt) {
+      return "Unknown last fetch time";
+    }
+    const lastFetchedTime = parseISO(lastFetchedAt);
+    return `Last fetched data ${formatDistanceToNow(lastFetchedTime)} ago`; // Calculate "time ago"
+  };
+
   return (
     <>
       <Container className="mt-5">
@@ -132,10 +143,9 @@ function AddProviders() {
               <thead>
                 <tr>
                   <th>Provider</th>
-                  <th>Created At</th>
-                  <th>Last Fetched</th>
-                  <th>Access Expires At</th>                  
+                  <th>Connected on</th>
                   <th>Status</th>
+                  <th>Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -143,9 +153,17 @@ function AddProviders() {
                   <tr key={connection.id}>
                     <td>{connection.provider}</td>
                     <td>{formatDateTime(connection.created_at)}</td>
-                    <td>{formatDateTime(connection.last_fetched_at)}</td>
-                    <td>{formatDateTime(connection.expires_at)}</td>
-                    <td>{connection.last_fetch_status || "N/A"}</td>
+                      <td>{getStatusDisplay(connection.last_fetch_status, connection.last_fetched_at)}</td>
+                      <td>
+                        {/* Conditional Button for Refresh */}
+                        <Button
+                          variant="primary"
+                          disabled={connection.last_fetch_status === "PENDING"}
+                          onClick={() => handleConnectProvider(connection.id)}
+                        >
+                          Refresh
+                        </Button>
+                      </td>
                   </tr>
                 ))}
               </tbody>
@@ -175,7 +193,7 @@ function AddProviders() {
                 ))}
               </Form.Control>
             </Form.Group>
-            <Button variant="primary" onClick={handleConnectProvider}>
+            <Button variant="primary" onClick={() => handleConnectProvider(selectedProvider)}>
               Connect Provider
             </Button>
           </Card.Body>

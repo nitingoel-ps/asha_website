@@ -19,14 +19,19 @@ ChartJS.register(LineElement, PointElement, LinearScale, TimeScale, Title, Toolt
 function ObservationGraph({ data }) {
   const { observationName, points, uom, referenceRange } = data;
 
+  // Sort points by date before processing
+  const sortedPoints = points
+    .slice() // Create a shallow copy to avoid mutating the original array
+    .sort((a, b) => new Date(a.date) - new Date(b.date));
+
   // Prepare the data for Chart.js
   const chartData = {
-    labels: points.map((point) => point.date),
+    labels: sortedPoints.map((point) => point.date), // Sorted dates
     datasets: [
       // Reference range (background area)
       {
         label: "Reference Range",
-        data: points.map(() => referenceRange.high),
+        data: sortedPoints.map(() => referenceRange.high),
         backgroundColor: "rgba(231, 248, 231, 0.5)", // Light green fill
         borderWidth: 0, // No border for the reference range
         pointRadius: 0, // No points for this dataset
@@ -36,22 +41,22 @@ function ObservationGraph({ data }) {
       // Observation levels (line and points)
       {
         label: `${observationName} (${uom})`,
-        data: points.map((point) => point.value),
-        borderColor: "#007bff", // Line color (blue)
+        data: sortedPoints.map((point) => point.value),
+        borderColor: "#007bff",
         borderWidth: 2,
-        pointBackgroundColor: points.map((point) =>
-          point.value < referenceRange.low || point.value > referenceRange.high ? "red" : "green"
-        ), // Red for out-of-range points, green for in-range points
-        pointBorderColor: points.map((point) =>
+        pointBackgroundColor: sortedPoints.map((point) =>
           point.value < referenceRange.low || point.value > referenceRange.high ? "red" : "green"
         ),
-        pointRadius: points.map((point) =>
+        pointBorderColor: sortedPoints.map((point) =>
+          point.value < referenceRange.low || point.value > referenceRange.high ? "red" : "green"
+        ),
+        pointRadius: sortedPoints.map((point) =>
           point.value < referenceRange.low || point.value > referenceRange.high ? 6 : 4
-        ), // Larger radius for out-of-range points
-        pointStyle: points.map((point) =>
+        ),
+        pointStyle: sortedPoints.map((point) =>
           point.value < referenceRange.low || point.value > referenceRange.high ? "rect" : "circle"
-        ), // Rect for out-of-range, circle for in-range
-        order: 1, // Render above the reference range
+        ),
+        order: 1,
       },
     ],
   };
