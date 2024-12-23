@@ -6,6 +6,7 @@ function ChartsTab({ charts }) {
   // Ensure points have the correct structure for the chart
   const transformChartData = (chartData) => ({
     observationName: chartData.observationName,
+    explanation: chartData.explanation,
     uom: chartData.uom,
     points: chartData.points.map((point) => ({
       date: new Date(point.observationDate), // Convert string to Date object

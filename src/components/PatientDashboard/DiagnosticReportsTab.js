@@ -46,14 +46,14 @@ function DiagnosticReportsTab({ diagnosticReports }) {
       </Card>
 
       {/* Diagnostic Reports Table */}
-      <Table striped bordered hover className="mt-4">
+      <Table striped bordered hover className="mt-4" style={{ tableLayout: "fixed" }}>
         <thead>
           <tr>
-            <th>Report</th>
-            <th>Source</th>
-            <th>Issued Date</th>
-            <th>Category</th>
-            <th>Conclusion</th>
+            <th style={{ width: "15%" }}>Report</th>
+            <th style={{ width: "15%" }}>Source</th>
+            <th style={{ width: "10%" }}>Issued Date</th>
+            <th style={{ width: "10%" }}>Category</th>
+            <th style={{ width: "50%" }}>Conclusion</th>
           </tr>
         </thead>
         <tbody>
