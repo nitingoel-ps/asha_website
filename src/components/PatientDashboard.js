@@ -6,7 +6,9 @@ import ChartsTab from "./PatientDashboard/ChartsTab";
 import ProceduresTab from "./PatientDashboard/ProceduresTab";
 import MedicationsTab from "./PatientDashboard/MedicationsTab";
 import DiagnosticReportsTab from "./PatientDashboard/DiagnosticReportsTab";
+import ObservationsTab from "./PatientDashboard/ObservationsTab";
 import ChatTab from "./PatientDashboard/ChatTab";
+import EncountersTab from "./PatientDashboard/EncountersTab";
 import axiosInstance from "../utils/axiosInstance";
 import { useNavigate } from "react-router-dom";
 
@@ -84,6 +86,12 @@ function PatientDashboard() {
             </Tab>
             <Tab eventKey="diagnostic-reports" title={<><Microscope size={16} /> Diagnostic Reports</>}>
               <DiagnosticReportsTab diagnosticReports={patientData.diagnostic_reports} />
+            </Tab>
+            <Tab eventKey="observations" title={<><Microscope size={16} /> All Labs</>}>
+              <ObservationsTab observations={patientData.all_observations} />
+            </Tab>
+            <Tab eventKey="encounters" title={<><Microscope size={16} /> Encounters</>}>
+              <EncountersTab encounters={patientData.encounters} />
             </Tab>
           </Tabs>
         </Card.Body>

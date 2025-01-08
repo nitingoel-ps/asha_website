@@ -1,0 +1,77 @@
+.custom-modal .modal-dialog {
+  max-width: 800px !important;
+}
+.encounters-tab {
+    padding: 10px;
+  }
+  
+  .encounter-card {
+    border-left: 4px solid #007bff;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  }
+  
+  .encounter-date {
+    text-align: center;
+    background-color: #f7f7f7;
+    padding: 15px;
+    border-right: 1px solid #ddd;
+  }
+  
+  .date-section {
+    text-align: center;
+  }
+  
+  .date-section .month {
+    font-size: 14px;
+    font-weight: bold;
+    color: #555;
+  }
+  
+  .date-section .day {
+    font-size: 28px;
+    font-weight: bold;
+    color: #007bff;
+  }
+  
+  .date-section .year {
+    font-size: 12px;
+    color: #888;
+  }
+  
+  .encounter-details {
+    padding: 15px;
+  }
+  
+  .encounter-type {
+    font-size: 18px;
+    font-weight: bold;
+  }
+  
+  .encounter-location {
+    font-size: 14px;
+    color: #666;
+  }
+  
+  .encounter-summary {
+    margin-top: 10px;
+    font-size: 14px;
+    color: #333;
+  }
+  
+  .encounter-datetime {
+    font-size: 14px;
+    margin-top: 10px;
+    color: #444;
+  }
+  
+  .encounter-documents .document-button {
+    padding: 0;
+    margin-right: 10px;
+    font-size: 14px;
+    color: #007bff;
+    text-decoration: underline;
+  }
+  
+  .encounter-documents .document-button:hover {
+    text-decoration: none;
+  }

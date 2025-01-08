@@ -1,10 +1,12 @@
 import React, { useState } from "react";
-import { Card, Table, Button, Collapse, OverlayTrigger, Tooltip } from "react-bootstrap";
-import { FaCheckCircle, FaExclamationTriangle } from "react-icons/fa"; // Import icons from Font Awesome
+import { Card, Table, Button, Collapse, OverlayTrigger, Tooltip, FormControl, InputGroup } from "react-bootstrap";
+import { FaCheckCircle, FaExclamationTriangle, FaSort, FaSortUp, FaSortDown } from "react-icons/fa"; // Import icons from Font Awesome
 import "./DiagnosticReportsTab.css";
 
 function DiagnosticReportsTab({ diagnosticReports }) {
   const [expandedReportId, setExpandedReportId] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortConfig, setSortConfig] = useState({ key: "report_date", direction: "desc" });
 
   // Function to toggle a report's observations
   const toggleObservations = (reportId) => {
@@ -19,17 +21,43 @@ function DiagnosticReportsTab({ diagnosticReports }) {
     return date.toLocaleDateString("en-US", options);
   };
 
-  // Sort reports by date, latest first
-  const sortedReports = [...diagnosticReports.list].sort((a, b) => {
-    const dateA = new Date(a.report_date);
-    const dateB = new Date(b.report_date);
-    return dateB - dateA; // Descending order
-  });
+  const handleSearch = (event) => {
+    setSearchTerm(event.target.value);
+  };
+
+  const handleSort = (key) => {
+    let direction = "asc";
+    if (sortConfig.key === key && sortConfig.direction === "asc") {
+      direction = "desc";
+    }
+    setSortConfig({ key, direction });
+  };
+
+  const sortedReports = [...diagnosticReports.list]
+    .filter((report) => report.report_name.toLowerCase().includes(searchTerm.toLowerCase()))
+    .sort((a, b) => {
+      if (sortConfig.key === "report_date") {
+        const dateA = new Date(a[sortConfig.key]);
+        const dateB = new Date(b[sortConfig.key]);
+        return sortConfig.direction === "asc" ? dateA - dateB : dateB - dateA;
+      } else {
+        const valueA = a[sortConfig.key] || "";
+        const valueB = b[sortConfig.key] || "";
+        return sortConfig.direction === "asc" ? valueA.localeCompare(valueB) : valueB.localeCompare(valueA);
+      }
+    });
+
+  const getSortIcon = (key) => {
+    if (sortConfig.key === key) {
+      return sortConfig.direction === "asc" ? <FaSortUp /> : <FaSortDown />;
+    }
+    return <FaSort />;
+  };
 
   return (
     <>
       {/* Diagnostic Reports Summary */}
-      <Card className="mt-4">
+      <Card className="mt-4 mb-3"> {/* Added mb-3 to create a gap below the summary */}
         <Card.Body>
           <Card.Title>Diagnostic Reports Summary</Card.Title>
           <Card.Text
@@ -44,16 +72,33 @@ function DiagnosticReportsTab({ diagnosticReports }) {
           </Card.Text>
         </Card.Body>
       </Card>
+      
+      {/* Search Bar */}
+      <InputGroup className="mb-2"> {/* Reduced mb-3 to mb-2 to reduce space */}
+        <FormControl
+          placeholder="Search by report name"
+          value={searchTerm}
+          onChange={handleSearch}
+        />
+      </InputGroup>
 
       {/* Diagnostic Reports Table */}
-      <Table striped bordered hover className="mt-4" style={{ tableLayout: "fixed" }}>
+      <Table striped bordered hover className="mt-2" style={{ tableLayout: "fixed" }}>
         <thead>
           <tr>
-            <th style={{ width: "15%" }}>Report</th>
-            <th style={{ width: "15%" }}>Source</th>
-            <th style={{ width: "10%" }}>Issued Date</th>
-            <th style={{ width: "10%" }}>Category</th>
-            <th style={{ width: "50%" }}>Conclusion</th>
+            <th style={{ width: "20%" }} onClick={() => handleSort("report_name")}>
+              Report {getSortIcon("report_name")}
+            </th>
+            <th style={{ width: "20%" }} onClick={() => handleSort("source")}>
+              Source {getSortIcon("source")}
+            </th>
+            <th style={{ width: "15%" }} onClick={() => handleSort("report_date")}>
+              Issued Date {getSortIcon("report_date")}
+            </th>
+            <th style={{ width: "15%" }} onClick={() => handleSort("report_type")}>
+              Category {getSortIcon("report_type")}
+            </th>
+            <th style={{ width: "30%" }}>Conclusion</th>
           </tr>
         </thead>
         <tbody>
@@ -86,10 +131,10 @@ function DiagnosticReportsTab({ diagnosticReports }) {
                           <thead>
                             <tr>
                             <th style={{ width: "20%" }}>Observation</th>
-                            <th style={{ width: "15%" }}>Value</th>
-                            <th style={{ width: "15%" }}>Date</th>
+                            <th style={{ width: "25%" }}>Value</th>
+                            <th style={{ width: "10%" }}>Date</th>
                             <th style={{ width: "10%", textAlign: "center" }}>Is Normal</th>
-                            <th style={{ width: "55%" }}>Explanation</th>                          
+                            <th style={{ width: "35%" }}>Explanation</th>                          
                             </tr>
                           </thead>
                           <tbody>
