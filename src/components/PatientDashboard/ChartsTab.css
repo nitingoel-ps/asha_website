@@ -1,0 +1,154 @@
+/* Main container styling */
+.charts-tab {
+  padding: 20px;
+}
+
+/* Grid layout for KPI cards - adjust minmax() for card width */
+.charts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); /* Reduced from 240px */
+  gap: 12px; /* Reduced from 16px */
+  margin-bottom: 24px;
+}
+
+/* Individual KPI card styling */
+.chart-card {
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  min-height: 100px; /* Further reduced from 120px */
+  border: none;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Hover effects for cards that can show graphs */
+.chart-card:hover,
+.chart-card.chartable:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Styling for cards that don't have graph data */
+.chart-card.non-chartable {
+  background: #fafafa;
+  opacity: 0.9;
+}
+
+.chart-card.non-chartable:hover {
+  transform: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+/* Card internal layout */
+.chart-card .card-body {
+  padding: 8px; /* Further reduced from 12px */
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  gap: 6px; /* Further reduced from 8px */
+}
+
+/* Header section of KPI cards (contains title and date) */
+.chart-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0;
+}
+
+/* Title and date container */
+.chart-title-container {
+  display: flex;
+  justify-content: space-between; /* Changed from align-items */
+  align-items: baseline;
+  width: 100%;
+}
+
+/* Observation name styling - updated with more specific selectors */
+.charts-tab .chart-card .card-body .chart-title-container .card-title {
+  font-size: 0.8rem !important; /* Make even smaller and ensure override */
+  font-weight: 500;
+  margin: 0;
+  color: #374151;
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: left;
+}
+
+/* Date styling */
+.chart-date {
+  font-size: 0.7rem;
+  color: #6b7280;
+  white-space: nowrap;
+  margin-left: 8px; /* Add spacing between title and date */
+  text-align: right; /* Ensure right alignment */
+}
+
+/* Value display section */
+.chart-reading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 8px;
+}
+
+/* Icon styling */
+.chart-icon {
+  font-size: 1.1rem; /* Further reduced from 1.25rem */
+  color: #2563eb;
+  opacity: 0.9;
+  margin-bottom: 4px;
+}
+
+.chart-card.non-chartable .chart-icon {
+  opacity: 0.7;
+}
+
+/* Main value display */
+.chart-value {
+  font-size: 1.25rem; /* Further reduced from 1.5rem */
+  color: #1e40af;
+  font-weight: 600;
+  margin: 0;
+  line-height: 1;
+}
+
+/* Unit of measurement */
+.chart-unit {
+  font-size: 0.7rem; /* Further reduced from 0.75rem */
+  color: #6b7280;
+  font-weight: normal;
+  margin-top: 2px;
+}
+
+/* Graph container styling */
+.graph-container {
+  width: 80%;
+  margin: 20px auto;
+  padding: 20px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Summary section styling */
+.charts-tab .card-title {
+  color: #374151;
+  font-size: 1.1rem;
+  margin-bottom: 0.75rem;
+}
+
+.charts-tab .card-text {
+  color: #4b5563;
+  line-height: 1.5;
+}
+
+/* Update the summary card title separately */
+.charts-tab .mb-4 .card-title {
+  font-size: 1.1rem;
+  margin-bottom: 0.75rem;
+  color: #374151;
+}

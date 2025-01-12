@@ -101,7 +101,7 @@ function PatientDashboard() {
           setIsThinking={setIsThinking}
         />;
       case "charts":
-        return <ChartsTab charts={patientData.important_charts} />;
+        return <ChartsTab chartData={patientData.important_charts} />;
       case "conditions":
         return <ConditionsTab conditions={patientData.conditions} />;
       case "procedures":
@@ -144,7 +144,7 @@ function PatientDashboard() {
               <Activity size={16} /> Chat
             </div>
             <div className={`nav-item ${activeTab === "charts" ? "active" : ""}`} onClick={() => setActiveTab("charts")}>
-              <Clipboard size={16} /> Charts
+              <Clipboard size={16} /> Key Lab Results
             </div>
             <div className={`nav-item ${activeTab === "conditions" ? "active" : ""}`} onClick={() => setActiveTab("conditions")}>
               <Clipboard size={16} /> Conditions

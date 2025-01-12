@@ -1,11 +1,20 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { Card, ListGroup, Button, Row, Col } from "react-bootstrap";
 import axiosInstance from "../../utils/axiosInstance";
 import { format } from "date-fns";
 import './EncountersTab.css';
+import HorizontalTimeline from './HorizontalTimeline';
 
 function EncountersTab({ encounters = [], onNavigateToReport }) {
   const [contentType, setContentType] = useState("");
+  const encounterRefs = useRef({});
+
+  const scrollToEncounter = (encounterId) => {
+    encounterRefs.current[encounterId]?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'center'
+    });
+  };
 
   const handleDocumentClick = async (attachment) => {
     const binaryId = attachment.replace("Binary/", "");
@@ -54,10 +63,19 @@ function EncountersTab({ encounters = [], onNavigateToReport }) {
 
   return (
     <div className="encounters-tab">
+      <HorizontalTimeline 
+        encounters={encounters}
+        onPointClick={scrollToEncounter}
+        title="Patient Encounters Timeline"
+      />
       {(encounters || [])
         .sort((a, b) => parseDate(b.start) - parseDate(a.start))
         .map((encounter) => (
-          <Card key={encounter.id} className="mb-4 encounter-card">
+          <Card 
+            key={encounter.id} 
+            className="mb-4 encounter-card"
+            ref={el => encounterRefs.current[encounter.id] = el}
+          >
           <Card.Body>
               <Row>
                 <Col md={2} className="encounter-date">
