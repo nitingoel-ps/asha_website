@@ -152,3 +152,33 @@
   margin-top: 1.0rem; /* Remove margins from the <p> inside <li> */
   font-size: large;
 }
+
+/* Add these styles at the end of the file */
+.katex-display {
+  margin: 0.5em 0;
+  padding-top: 0.5em;
+  padding-bottom: 0.5em;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+.chat-message .katex-html {
+  max-width: 100%;
+  overflow-wrap: break-word;
+  white-space: normal;
+}
+
+.chat-message .katex {
+  font-size: 1.1em;
+  line-height: 1.2;
+  max-width: 100%;
+  display: inline-block;
+}
+
+/* Make sure the math container doesn't overflow */
+.chat-message .katex-display > .katex {
+  max-width: 100%;
+  display: block;
+}

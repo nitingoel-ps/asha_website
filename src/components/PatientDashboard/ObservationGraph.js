@@ -53,24 +53,38 @@ function ObservationGraph({ data }) {
         label: `${observationName} (${uom})`,
         data: sortedPoints.map((point) => ({
           x: point.date,
-          y: point.value
+          y: observationName === "Blood Pressure" ? point.value.split("/")[0] : point.value
         })),
         borderColor: "#007bff",
         borderWidth: 2,
         pointBackgroundColor: sortedPoints.map((point) =>
-          point.value < referenceRange?.low || point.value > referenceRange?.high ? "red" : "green"
+          observationName === "Blood Pressure" ? "blue" : (point.value < referenceRange?.low || point.value > referenceRange?.high ? "red" : "green")
         ),
         pointBorderColor: sortedPoints.map((point) =>
-          point.value < referenceRange?.low || point.value > referenceRange?.high ? "red" : "green"
+          observationName === "Blood Pressure" ? "blue" : (point.value < referenceRange?.low || point.value > referenceRange?.high ? "red" : "green")
         ),
         pointRadius: sortedPoints.map((point) =>
-          point.value < referenceRange?.low || point.value > referenceRange?.high ? 6 : 4
+          observationName === "Blood Pressure" ? 4 : (point.value < referenceRange?.low || point.value > referenceRange?.high ? 6 : 4)
         ),
         pointStyle: sortedPoints.map((point) =>
-          point.value < referenceRange?.low || point.value > referenceRange?.high ? "rect" : "circle"
+          observationName === "Blood Pressure" ? "circle" : (point.value < referenceRange?.low || point.value > referenceRange?.high ? "rect" : "circle")
         ),
         order: 1,
       },
+      observationName === "Blood Pressure" ? {
+        label: `${observationName} Diastolic (${uom})`,
+        data: sortedPoints.map((point) => ({
+          x: point.date,
+          y: point.value.split("/")[1]
+        })),
+        borderColor: "#ff0000",
+        borderWidth: 2,
+        pointBackgroundColor: "red",
+        pointBorderColor: "red",
+        pointRadius: 4,
+        pointStyle: "circle",
+        order: 1,
+      } : null,
     ].filter(Boolean), // Filter out null datasets
   };
 
@@ -156,21 +170,26 @@ function ObservationGraph({ data }) {
             size: 13,
           },
         },
-        suggestedMin: Math.min(referenceRange?.low - 1, ...points.map((p) => p.value)),
-        suggestedMax: Math.max(referenceRange?.high + 1, ...points.map((p) => p.value)),
+        suggestedMin: Math.min(
+          referenceRange?.low - 1 || 0,
+          ...points.map((p) => {
+            if (!p.value) return 0;
+            return p.value.split ? Math.min(...p.value.split("/").map(Number)) : Number(p.value);
+          })
+        ),
+        suggestedMax: Math.max(
+          referenceRange?.high + 1 || 100,
+          ...points.map((p) => {
+            if (!p.value) return 0;
+            return p.value.split ? Math.max(...p.value.split("/").map(Number)) : Number(p.value);
+          })
+        ),
       },
     },
   };
 
   return (
     <div style={{ padding: "10px" }}>
-      {/*
-      <div style={{ marginBottom: "10px", textAlign: "left" }}>
-        <h5 style={{ margin: 0 }}> {observationName}</h5>
-        <small>
-          Normal range: {referenceRange.low} - {referenceRange.high} ( {uom} )
-        </small>
-      </div> */}
       <Line data={chartData} options={options} />
     </div>
   );

@@ -1,0 +1,52 @@
+.dashboard-container {
+  display: flex;
+  height: 100vh;
+  width: 100vw; /* Make the dashboard occupy the full width of the window */
+}
+
+.left-nav {
+  flex: 0 0 250px; /* Ensure the left-nav maintains its width */
+  background-color: #f8f9fa;
+  border-right: 1px solid #dee2e6;
+  padding: 20px;
+}
+
+.left-nav .nav-item {
+  margin-bottom: 15px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.left-nav .nav-item:hover {
+  background-color: #e9ecef;
+  border-radius: 5px;
+}
+
+.left-nav .nav-item.active {
+  background-color: #007bff;
+  color: white;
+  border-radius: 5px;
+}
+
+.left-nav .nav-item.active svg {
+  color: white;
+}
+
+.left-nav .nav-item svg {
+  margin-right: 10px;
+}
+
+.main-display {
+  flex-grow: 1;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.card {
+  width: 100%; /* Ensure the card occupies the full width */
+}
+
+.full-width-card {
+  width: 100%; /* Ensure the card occupies the full width */
+}

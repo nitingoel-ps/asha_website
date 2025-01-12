@@ -1,0 +1,73 @@
+.summary-tab {
+  padding: 20px;
+}
+
+.vital-summary-card {
+  height: 100%;
+  transition: transform 0.2s;
+}
+
+.vital-summary-card:hover {
+  transform: translateY(-2px);
+}
+
+.vital-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.vital-reading-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.vital-icon {
+  font-size: 24px;
+  color: #0d6efd;
+}
+
+.vital-reading {
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.vital-date {
+  font-size: 0.9rem;
+  color: #6c757d;
+}
+
+.medications-list {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.medication-item {
+  padding: 10px 0;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.medication-item:last-child {
+  border-bottom: none;
+}
+
+.medication-dosage {
+  color: #6c757d;
+  font-size: 0.9rem;
+  margin-top: 4px;
+}
+
+.insights-list {
+  list-style: none;
+  padding: 0;
+}
+
+.insight-item {
+  padding: 10px 15px;
+  margin-bottom: 10px;
+  background-color: #f8f9fa;
+  border-left: 4px solid #0d6efd;
+  border-radius: 4px;
+}

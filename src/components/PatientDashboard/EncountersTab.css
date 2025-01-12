@@ -75,3 +75,27 @@
   .encounter-documents .document-button:hover {
     text-decoration: none;
   }
+
+.encounter-section {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid #eee;
+}
+
+.section-title {
+  font-weight: 600;
+  color: #555;
+  margin-bottom: 10px;
+}
+
+.encounter-reports {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.encounter-documents {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}

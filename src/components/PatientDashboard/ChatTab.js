@@ -4,17 +4,17 @@ import { Card, InputGroup, Form, Button } from "react-bootstrap";
 import "./ChatTab.css";
 import { useMemo } from "react";
 import { fetchWithAuth } from "../../utils/fetchWithAuth";
+import 'katex/dist/katex.min.css';
+import { InlineMath, BlockMath } from 'react-katex';
 
-function ChatTab({ suggestedQuestions }) {
-  const [chatMessages, setChatMessages] = useState([
-    {
-      type: "ai",
-      text: "Welcome to your healthcare assistant! How can I help you today?",
-      isStreaming: false,
-    },
-  ]);  
+function ChatTab({ 
+  suggestedQuestions, 
+  chatMessages, 
+  setChatMessages, 
+  isThinking, 
+  setIsThinking 
+}) {
   const [currentMessage, setCurrentMessage] = useState("");
-  const [isThinking, setIsThinking] = useState(false);
   const chatContainerRef = useRef(null);
   const lastUserMessageRef = useRef(null);
   const hasScrolledRef = useRef(false); // To ensure scroll happens only once per message
@@ -22,6 +22,12 @@ function ChatTab({ suggestedQuestions }) {
     ol: ({ children }) => <ol className="markdown-ol">{children}</ol>,
     ul: ({ children }) => <ul className="markdown-ul">{children}</ul>,
     li: ({ children }) => <li className="markdown-li">{children}</li>,
+    p: ({ children }) => {
+      if (typeof children === 'string') {
+        return <p>{processText(children)}</p>;
+      }
+      return <p>{children}</p>;
+    },
   };
   /*
 
@@ -153,6 +159,23 @@ const renderers = useMemo(
     }
   };
 
+  // Add this function to process text with math expressions
+  const processText = (text) => {
+    const parts = text.split(/(\[.*?\])/);
+    return parts.map((part, index) => {
+      if (part.startsWith('[') && part.endsWith(']')) {
+        // Extract the math expression without the brackets
+        const mathExpression = part.slice(1, -1);
+        return (
+          <BlockMath key={index}>
+            {mathExpression}
+          </BlockMath>
+        );
+      }
+      return part;
+    });
+  };
+
   return (
     <>
       <Card className="chat-interface mb-4">
@@ -164,9 +187,11 @@ const renderers = useMemo(
                 className={`chat-message ${
                   message.type === "user" ? "text-end" : "text-start"
                 }`}
-                        ref={message.type === "user" ? lastUserMessageRef : null} // Attach ref to the user's message
+                ref={message.type === "user" ? lastUserMessageRef : null}
               >
-                <ReactMarkdown components={renderers}>{message.text}</ReactMarkdown>
+                <ReactMarkdown components={renderers}>
+                  {message.text}
+                </ReactMarkdown>
               </div>
             ))}
             {isThinking && (

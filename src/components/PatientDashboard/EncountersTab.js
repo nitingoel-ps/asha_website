@@ -4,7 +4,7 @@ import axiosInstance from "../../utils/axiosInstance";
 import { format } from "date-fns";
 import './EncountersTab.css';
 
-function EncountersTab({ encounters }) {
+function EncountersTab({ encounters = [], onNavigateToReport }) {
   const [contentType, setContentType] = useState("");
 
   const handleDocumentClick = async (attachment) => {
@@ -54,7 +54,7 @@ function EncountersTab({ encounters }) {
 
   return (
     <div className="encounters-tab">
-      {encounters
+      {(encounters || [])
         .sort((a, b) => parseDate(b.start) - parseDate(a.start))
         .map((encounter) => (
           <Card key={encounter.id} className="mb-4 encounter-card">
@@ -72,18 +72,44 @@ function EncountersTab({ encounters }) {
                   <h6><span className="encounter-location">{encounter.participant}</span></h6>
                   <h6><span className="encounter-location">{encounter.location}</span></h6>
                   <p className="encounter-summary">{encounter.encounter_summary}</p>
-                  <div className="encounter-documents">
-              {encounter.documents.map((doc) => (
-                      <Button
-                        key={doc.id}
-                        variant="link"
-                        onClick={() => handleDocumentClick(doc.content[0]?.attachment)}
-                        className="document-button"
-                      >
-                        {doc.type} ({doc.category})
+                  
+                  {/* Documents Section */}
+                  {encounter.documents && encounter.documents.length > 0 && (
+                    <div className="encounter-section">
+                      <h6 className="section-title">Documents</h6>
+                      <div className="encounter-documents">
+                        {encounter.documents.map((doc) => (
+                          <Button
+                            key={doc.id}
+                            variant="link"
+                            onClick={() => handleDocumentClick(doc.content[0]?.attachment)}
+                            className="document-button"
+                          >
+                            {doc.type} ({doc.category})
                           </Button>
                         ))}
                       </div>
+                    </div>
+                  )}
+
+                  {/* Lab Reports Section */}
+                  {encounter.reports && encounter.reports.length > 0 && (
+                    <div className="encounter-section">
+                      <h6 className="section-title">Lab Reports</h6>
+                      <div className="encounter-reports">
+                        {encounter.reports.map((report) => (
+                          <Button
+                            key={report.id}
+                            variant="link"
+                            onClick={() => onNavigateToReport(report.id)}
+                            className="document-button"
+                          >
+                            {report.report_name}
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </Col>
               </Row>
           </Card.Body>

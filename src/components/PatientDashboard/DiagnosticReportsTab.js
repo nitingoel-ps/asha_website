@@ -1,11 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, Table, Button, Collapse, OverlayTrigger, Tooltip, FormControl, InputGroup } from "react-bootstrap";
 import { FaCheckCircle, FaExclamationTriangle, FaSort, FaSortUp, FaSortDown } from "react-icons/fa"; // Import icons from Font Awesome
 import "./DiagnosticReportsTab.css";
 
-function DiagnosticReportsTab({ diagnosticReports }) {
-  const [expandedReportId, setExpandedReportId] = useState(null);
-  const [searchTerm, setSearchTerm] = useState("");
+function DiagnosticReportsTab({ diagnosticReports, initialReportId }) {
+  const [expandedReportId, setExpandedReportId] = useState(initialReportId || null);
+  const [searchTerm, setSearchTerm] = useState(initialReportId ? initialReportId.toString() : "");
   const [sortConfig, setSortConfig] = useState({ key: "report_date", direction: "desc" });
 
   // Function to toggle a report's observations
@@ -33,9 +33,30 @@ function DiagnosticReportsTab({ diagnosticReports }) {
     setSortConfig({ key, direction });
   };
 
+  // Add useEffect to handle initialReportId changes
+  useEffect(() => {
+    if (initialReportId) {
+      setExpandedReportId(initialReportId);
+      setSearchTerm(initialReportId.toString());
+      
+      // Find the report and scroll it into view
+      const reportElement = document.getElementById(`report-${initialReportId}`);
+      if (reportElement) {
+        reportElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+  }, [initialReportId]);
+
+  // Modify the sorting and filtering logic to prioritize the selected report
   const sortedReports = [...diagnosticReports.list]
-    .filter((report) => report.report_name.toLowerCase().includes(searchTerm.toLowerCase()))
     .sort((a, b) => {
+      // If there's an initialReportId, put that report first
+      if (initialReportId) {
+        if (a.id === initialReportId) return -1;
+        if (b.id === initialReportId) return 1;
+      }
+      
+      // ...rest of your existing sort logic...
       if (sortConfig.key === "report_date") {
         const dateA = new Date(a[sortConfig.key]);
         const dateB = new Date(b[sortConfig.key]);
@@ -45,6 +66,12 @@ function DiagnosticReportsTab({ diagnosticReports }) {
         const valueB = b[sortConfig.key] || "";
         return sortConfig.direction === "asc" ? valueA.localeCompare(valueB) : valueB.localeCompare(valueA);
       }
+    })
+    .filter((report) => {
+      if (initialReportId && report.id === initialReportId) return true;
+      const searchLower = searchTerm.toLowerCase();
+      return report.report_name.toLowerCase().includes(searchLower) || 
+             report.id.toString().includes(searchLower);
     });
 
   const getSortIcon = (key) => {
@@ -53,6 +80,14 @@ function DiagnosticReportsTab({ diagnosticReports }) {
     }
     return <FaSort />;
   };
+
+  // Expand the initial report when component mounts
+  React.useEffect(() => {
+    if (initialReportId) {
+      setExpandedReportId(initialReportId);
+      setSearchTerm(initialReportId.toString());
+    }
+  }, [initialReportId]);
 
   return (
     <>
@@ -76,7 +111,7 @@ function DiagnosticReportsTab({ diagnosticReports }) {
       {/* Search Bar */}
       <InputGroup className="mb-2"> {/* Reduced mb-3 to mb-2 to reduce space */}
         <FormControl
-          placeholder="Search by report name"
+          placeholder="Search by report name or ID"
           value={searchTerm}
           onChange={handleSearch}
         />
@@ -104,7 +139,7 @@ function DiagnosticReportsTab({ diagnosticReports }) {
         <tbody>
           {sortedReports.map((report) => (
             <React.Fragment key={report.id}>
-              <tr>
+              <tr id={`report-${report.id}`}>
                 <td>
                   {/* Clicking the report toggles observations */}
                   <Button

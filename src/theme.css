@@ -57,7 +57,7 @@
   }
 
   .dashboard-container {
-    max-width: 1200px; /* Adjust width as per your needs */
+    max-width: 1600px; /* Adjust width as per your needs */
     margin: 0 auto; /* Center align */
     padding: 1.5rem; /* Add some consistent padding */
     box-sizing: border-box; /* Ensures padding does not exceed max-width */

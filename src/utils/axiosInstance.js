@@ -25,47 +25,69 @@ axiosInstance.interceptors.response.use(
   async function (error) {
     const originalRequest = error.config;
 
-    if (typeof error.response === 'undefined') {
-      alert(
-        'A server/network error occurred. ' +
-          'Looks like CORS might be the problem. ' +
-          'Sorry about this - we will get it fixed shortly.'
-      );
-      return Promise.reject(error);
+    // Handle network errors or server not reachable
+    if (!error.response) {
+      console.error('Network Error:', error);
+      throw new Error('Unable to connect to the server. Please check your internet connection.');
     }
 
-    if (
-      error.response.status === 401 &&
-      originalRequest.url === apiBaseURL + '/token/refresh/'
-    ) {
-      // Redirect to login page
-      window.location.href = '/login/';
-      return Promise.reject(error);
-    }
+    // Handle refresh token flow
+    if (error.response.status === 401) {
+      // If refresh token request fails, redirect to login
+      if (originalRequest.url === apiBaseURL + '/token/refresh/') {
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
+        alert('Your session has expired. Please login again.');
+        window.location.href = '/login/';
+        return Promise.reject(error);
+      }
 
-    if (
-      error.response.status === 401 &&
-      !originalRequest._retry
-    ) {
-      originalRequest._retry = true;
-      const refreshToken = localStorage.getItem('refresh_token');
+      // Try to refresh token
+      if (!originalRequest._retry) {
+        try {
+          originalRequest._retry = true;
+          const refreshToken = localStorage.getItem('refresh_token');
 
-      return axios
-        .post(apiBaseURL + '/token/refresh/', { refresh: refreshToken })
-        .then((response) => {
-          localStorage.setItem('access_token', response.data.access);
-          axiosInstance.defaults.headers['Authorization'] =
-            'Bearer ' + response.data.access;
-          originalRequest.headers['Authorization'] =
-            'Bearer ' + response.data.access;
+          if (!refreshToken) {
+            throw new Error('No refresh token available');
+          }
+
+          const response = await axios.post(apiBaseURL + '/token/refresh/', {
+            refresh: refreshToken
+          });
+
+          const newAccessToken = response.data.access;
+          localStorage.setItem('access_token', newAccessToken);
+          axiosInstance.defaults.headers['Authorization'] = `Bearer ${newAccessToken}`;
+          originalRequest.headers['Authorization'] = `Bearer ${newAccessToken}`;
+          
           return axiosInstance(originalRequest);
-        })
-        .catch((err) => {
-          console.log(err);
-        });
+        } catch (refreshError) {
+          console.error('Error refreshing token:', refreshError);
+          localStorage.removeItem('access_token');
+          localStorage.removeItem('refresh_token');
+          alert('Your session has expired. Please login again.');
+          window.location.href = '/login/';
+          return Promise.reject(refreshError);
+        }
+      }
     }
 
-    return Promise.reject(error);
+    // Handle other specific error codes
+    switch (error.response.status) {
+      case 403:
+        console.error('Forbidden:', error);
+        throw new Error('You do not have permission to perform this action');
+      case 404:
+        console.error('Not Found:', error);
+        throw new Error('The requested resource was not found');
+      case 500:
+        console.error('Server Error:', error);
+        throw new Error('An internal server error occurred. Please try again later');
+      default:
+        console.error('API Error:', error);
+        throw error;
+    }
   }
 );
 
