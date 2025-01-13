@@ -1,4 +1,3 @@
-// src/components/AddProviders.js
 import React, { useEffect, useState } from "react";
 import axiosInstance from "../utils/axiosInstance";
 import { useNavigate } from "react-router-dom";
@@ -105,7 +104,11 @@ function AddProviders() {
     if (!isoString) return "N/A"; // Handle missing or invalid dates
     try {
       const date = parseISO(isoString); // Parse the ISO date
-      return format(date, "PPpp"); // Format to human-readable date/time
+      if (isoString.includes("T")) {
+        return format(date, "PPpp"); // Format to human-readable date/time
+      } else {
+        return format(date, "PP"); // Format to human-readable date only
+      }
     } catch (error) {
       console.error("Error formatting date:", error);
       return "Invalid date";
