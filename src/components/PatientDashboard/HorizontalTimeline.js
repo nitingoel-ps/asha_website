@@ -17,22 +17,33 @@ import {
   faUndo,
   faChevronLeft,
   faBook,
+  faProcedures,
   faChevronRight
 } from '@fortawesome/free-solid-svg-icons';
 import './HorizontalTimeline.css';
 
+const PRIORITY_ENCOUNTER_TYPES = [
+  'Surgery',
+  'Urgent Care Office Visit',
+  'Emergency Department Visit',
+  'Hospital Encounter',
+  'Outpatient Ambulatory Surgery',
+];
+
 const encounterTypeIcons = {
-  'Office Visit': { icon: faStethoscope, color: '#4CAF50' },
-  'Telephone': { icon: faPhone, color: '#2196F3' },
-  'Urgent Care Office Visit': { icon: faHospitalAlt, color: '#FF5722' },
-  'Video Visit': { icon: faVideo, color: '#9C27B0' },
-  'AACC Telephone': { icon: faPhone, color: '#2196F3' },
-  'Telephone Appointment Visit': { icon: faPhone, color: '#2196F3' },
-  'AACC Member Call History': { icon: faPhone, color: '#2196F3' },
-  'Clinical Documentation': { icon: faBookMedical, color: '#607D8B' },
-  'Allied Health/Nurse Visit': { icon: faUserNurse, color: '#00BCD4' },
-  'Ancillary Visit': { icon: faFlask, color: '#795548' },
-  'Education': { icon: faBook, color: '#009688' }
+  'Office Visit': { icon: faStethoscope, color: '#4CAF50', priority: false },
+  'Telephone': { icon: faPhone, color: '#2196F3', priority: false },
+  'Urgent Care Office Visit': { icon: faHospitalAlt, color: '#FF5722', priority: true },
+  'Video Visit': { icon: faVideo, color: '#9C27B0', priority: false },
+  'AACC Telephone': { icon: faPhone, color: '#2196F3', priority: false },
+  'Telephone Appointment Visit': { icon: faPhone, color: '#2196F3', priority: false },
+  'AACC Member Call History': { icon: faPhone, color: '#2196F3', priority: false },
+  'Clinical Documentation': { icon: faBookMedical, color: '#607D8B', priority: false },
+  'Allied Health/Nurse Visit': { icon: faUserNurse, color: '#00BCD4', priority: false },
+  'Ancillary Visit': { icon: faFlask, color: '#795548', priority: false },
+  'Education': { icon: faBook, color: '#009688', priority: false },
+  'Surgery': { icon: faProcedures, color: '#FF5722', priority: true },
+  'Outpatient Ambulatory Surgery': { icon: faProcedures, color: '#FF5722', priority: true },
 };
 
 const HorizontalTimeline = ({ encounters, onPointClick, title }) => {
@@ -43,6 +54,11 @@ const HorizontalTimeline = ({ encounters, onPointClick, title }) => {
   const [dragEnd, setDragEnd] = useState(null);
   const timelineRef = useRef(null);
   
+  console.log('Unique encounter types:', 
+    [...new Set(encounters.map(e => e.type))]
+  );
+
+
   const sortedEncounters = [...encounters].sort((a, b) => 
     new Date(a.start) - new Date(b.start)
   );
@@ -70,6 +86,11 @@ const HorizontalTimeline = ({ encounters, onPointClick, title }) => {
   };
 
   const handleMouseDown = (e) => {
+    // Ignore if clicking directly on an icon
+    if (e.target.closest('.timeline-point-icon')) {
+      return;
+    }
+
     const rect = timelineRef.current.getBoundingClientRect();
     const position = ((e.clientX - rect.left) / rect.width) * 100;
     setIsDragging(true);
@@ -91,7 +112,7 @@ const HorizontalTimeline = ({ encounters, onPointClick, title }) => {
       const end = Math.max(dragStart, dragEnd);
       
       // Only zoom if selection is at least 10% of timeline
-      if (end - start >= 10) {
+      if (end - start >= 5) {
         // Calculate precise zoom range based on current view
         const currentWidth = zoomRange.end - zoomRange.start;
         const newStart = zoomRange.start + (start * currentWidth / 100);
@@ -220,16 +241,16 @@ const HorizontalTimeline = ({ encounters, onPointClick, title }) => {
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseUp}
       >
-        {isDragging && dragStart !== null && dragEnd !== null && (
-          <div 
-            className="selection-overlay"
-            style={{
-              left: `${Math.min(dragStart, dragEnd)}%`,
-              width: `${Math.abs(dragEnd - dragStart)}%`
-            }}
-          />
-        )}
         <div className="timeline-line">
+          {isDragging && dragStart !== null && dragEnd !== null && (
+            <div 
+              className="selection-overlay"
+              style={{
+                left: `${Math.min(dragStart, dragEnd)}%`,
+                width: `${Math.abs(dragEnd - dragStart)}%`
+              }}
+            />
+          )}
           {generateTimelineTicks().map((tick, index, array) => (
             <div
               key={`tick-${index}`}
@@ -242,14 +263,17 @@ const HorizontalTimeline = ({ encounters, onPointClick, title }) => {
           {sortedEncounters.map((encounter) => {
             const position = getPositionOnTimeline(encounter.start);
             const iconConfig = encounterTypeIcons[encounter.type] || 
-              { icon: faClinicMedical, color: '#666' };
+              { icon: faClinicMedical, color: '#666', priority: false };
+            
+            const isPriority = iconConfig.priority || PRIORITY_ENCOUNTER_TYPES.includes(encounter.type);
 
             return (
               <div
                 key={encounter.id}
-                className="timeline-point"
-                style={{ left: `${position}%` }}
-                onClick={() => onPointClick(encounter.id)}
+                className={`timeline-point ${isPriority ? 'priority-point' : ''}`}
+                style={{ 
+                  left: `${position}%`,
+                }}
                 data-tip
                 data-for={`encounter-${encounter.id}`}
               >
@@ -257,10 +281,20 @@ const HorizontalTimeline = ({ encounters, onPointClick, title }) => {
                   <div>{format(new Date(encounter.start), 'MMM dd, yyyy')}</div>
                   <div>{encounter.type}</div>
                 </div>
-                <FontAwesomeIcon 
-                  icon={iconConfig.icon} 
-                  style={{ color: iconConfig.color }}
-                />
+                <div 
+                  className={`timeline-point-icon ${isPriority ? 'priority-icon' : ''}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onPointClick(encounter.id);
+                  }}
+                >
+                  <FontAwesomeIcon 
+                    icon={iconConfig.icon} 
+                    style={{ 
+                      color: iconConfig.color,
+                    }}
+                  />
+                </div>
               </div>
             );
           })}

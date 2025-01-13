@@ -21,12 +21,23 @@
   z-index: 0;
 }
 
+/* Add this new style to create an invisible overlay that covers the entire area */
+.timeline-interaction-area {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 45px;
+  z-index: 4;
+  cursor: crosshair;
+}
+
 .timeline-line {
   height: 5px;
   background-color: #ddd;
   position: relative;
-  margin: 80px 0 20px 0;
-  cursor: zoom-in;
+  margin: 80px 0 30px 0;
+  cursor: crosshair;
   transition: transform 0.3s ease;
   z-index: 2;
 }
@@ -34,10 +45,10 @@
 .timeline-point {
   position: absolute;
   transform: translate(-50%, -50%);
-  cursor: pointer;
   transition: transform 0.2s;
   bottom: 21px;
-  z-index: 3;
+  z-index: 5;
+  pointer-events: none;
 }
 
 .timeline-point::after {
@@ -80,7 +91,7 @@
 .timeline-labels {
   position: relative;
   height: 40px;
-  margin-top: 16px;
+  margin-top: 30px;
   overflow: visible;
 }
 
@@ -108,7 +119,8 @@
   font-size: 12px;
   white-space: nowrap;
   margin-bottom: 5px;
-  z-index: 1002;
+  z-index: 7;
+  pointer-events: none;
 }
 
 .tooltip-content::after {
@@ -132,11 +144,11 @@
 .selection-overlay {
   position: absolute;
   top: 0;
-  bottom: 0;
+  height: 140px;
   background-color: rgba(0, 123, 255, 0.1);
   border: 1px solid rgba(0, 123, 255, 0.3);
   pointer-events: none;
-  z-index: 1;
+  z-index: 3;
 }
 
 .reset-button {
@@ -214,4 +226,36 @@
 
 .scroll-right {
   right: -16px;
+}
+
+/* Add new style for the clickable icon wrapper */
+.timeline-point-icon {
+  pointer-events: auto;
+  cursor: pointer;
+  position: relative;
+  z-index: 6;
+}
+
+/* Add styles for priority points */
+.timeline-point.priority-point {
+  bottom: 51px; /* Increased from 41px to 51px to raise them higher */
+}
+
+.timeline-point.priority-point::before {
+  height: 50px; /* Increased from 40px to 50px to match the new height */
+  bottom: -55px;
+}
+
+.timeline-point.priority-point::after {
+  bottom: -65px;
+}
+
+.timeline-point-icon.priority-icon {
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+  /* Removed the transform: scale(1.2) */
+}
+
+/* Update tooltip position for priority points */
+.timeline-point.priority-point .tooltip-content {
+  bottom: 200%; /* Increased from 180% to 200% to match new height */
 }

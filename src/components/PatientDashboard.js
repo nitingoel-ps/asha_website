@@ -133,7 +133,9 @@ function PatientDashboard() {
     <div className="dashboard-container">
       <Card className="full-width-card">
         <Card.Header>
-          <Card.Title>Patient Dashboard</Card.Title>
+          <Card.Title>
+            {patientData?.demographics?.[0]?.name || 'Patient'}'s Dashboard
+          </Card.Title>
         </Card.Header>
         <Card.Body className="d-flex p-0" style={{ width: '100%', height: '100%' }}>
           <div className="left-nav">
