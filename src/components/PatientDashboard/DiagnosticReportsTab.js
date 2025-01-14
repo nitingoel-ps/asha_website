@@ -18,7 +18,11 @@ function DiagnosticReportsTab({ diagnosticReports, initialReportId }) {
     const options = { day: "numeric", month: "short", year: "numeric" };
     const date = new Date(dateString);
     if (isNaN(date)) return "N/A"; // Handle invalid dates
-    return date.toLocaleDateString("en-US", options);
+    if (dateString.includes("T")) {
+      return date.toLocaleDateString("en-US", options);
+    } else {
+      return date.toLocaleDateString("en-US", options);
+    }
   };
 
   const handleSearch = (event) => {

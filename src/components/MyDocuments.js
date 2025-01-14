@@ -108,9 +108,13 @@ const MyDocuments = () => {
   const formatDate = (dateString) => {
     if (!dateString) return "N/A"; // Return "N/A" if date is missing
     const options = { day: "numeric", month: "short", year: "numeric" };
-    return new Date(dateString).toLocaleDateString("en-US", options);
+    const date = new Date(dateString);
+    if (dateString.includes("T")) {
+      return date.toLocaleDateString("en-US", options);
+    } else {
+      return date.toLocaleDateString("en-US", options);
+    }
   };
-
 
   // Filter documents based on selection
   const filterDocuments = () => {
