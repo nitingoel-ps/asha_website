@@ -69,7 +69,7 @@ function AddProviders() {
       const popupWindow = window.open(
         oauthUrl,
         "OAuthPopup",
-        `width=${width},height=${height},top=${top},left=${left},resizable,scrollbars=yes`
+        `width=${width},height=${height},top=${top},left=${left},resizable,scrollbars=yes,noopener,noreferrer`
       );
   
       const pollTimer = setInterval(() => {
@@ -188,6 +188,7 @@ function AddProviders() {
                 as="select"
                 value={selectedProvider}
                 onChange={(e) => setSelectedProvider(e.target.value)}
+                autoComplete="off"
               >
                 {providers.map((provider) => (
                   <option key={provider.id} value={provider.id}>
