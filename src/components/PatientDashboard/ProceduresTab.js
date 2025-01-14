@@ -1,6 +1,20 @@
 import React from "react";
 import { Card, Table } from "react-bootstrap";
 
+function formatDate(dateString) {
+  if (!dateString) return "N/A";
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return "N/A";
+  return date.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZoneName: 'short'
+  });
+}
+
 function ProceduresTab({ procedures }) {
   return (
     <>
@@ -30,7 +44,7 @@ function ProceduresTab({ procedures }) {
           {procedures.list.map((procedure) => (
             <tr key={procedure.id}>
               <td>{procedure.text}</td>
-              <td>{procedure.performedDateTime || procedure.start || "N/A"}</td>
+              <td>{formatDate(procedure.performedDateTime || procedure.start)}</td>
               <td>{procedure.reason || "N/A"}</td>
               <td>{procedure.status}</td>
             </tr>

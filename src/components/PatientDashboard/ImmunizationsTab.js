@@ -1,10 +1,10 @@
 import React from 'react';
 import { Table, Card } from 'react-bootstrap';
-import { format } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 
 function ImmunizationsTab({ immunizations }) {
   const sortedImmunizations = [...(immunizations || [])].sort((a, b) => 
-    new Date(b.administration_date) - new Date(a.administration_date)
+    parseISO(b.administration_date) - parseISO(a.administration_date)
   );
 
   return (
@@ -27,7 +27,7 @@ function ImmunizationsTab({ immunizations }) {
           <tbody>
             {sortedImmunizations.map((immunization) => (
               <tr key={immunization.id}>
-                <td>{format(new Date(immunization.administration_date), 'MMM dd, yyyy')}</td>
+                <td>{format(parseISO(immunization.administration_date), 'MMM dd, yyyy')}</td>
                 <td>{immunization.vaccine_name}</td>
                 <td>{immunization.status}</td>
                 <td>{immunization.route || 'N/A'}</td>
