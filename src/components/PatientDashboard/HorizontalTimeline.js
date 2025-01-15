@@ -111,7 +111,7 @@ const HorizontalTimeline = ({ encounters, onPointClick, title }) => {
       const start = Math.min(dragStart, dragEnd);
       const end = Math.max(dragStart, dragEnd);
       
-      // Only zoom if selection is at least 10% of timeline
+      // Only zoom if selection is at least 5% of timeline
       if (end - start >= 5) {
         // Calculate precise zoom range based on current view
         const currentWidth = zoomRange.end - zoomRange.start;
