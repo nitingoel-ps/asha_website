@@ -18,6 +18,8 @@ const MyDocuments = () => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const [loadingFileId, setLoadingFileId] = useState(null);
+  const [searchResponse, setSearchResponse] = useState({ message: "", citations: [] });
+  const [citedFileIds, setCitedFileIds] = useState(new Set());
 
   // Fetch documents
   const fetchDocuments = async () => {
@@ -120,22 +122,22 @@ const MyDocuments = () => {
   const filterDocuments = () => {
     let filtered = documents;
 
-    if (selectedCategory) {
-      filtered = filtered.filter((doc) => (doc.ai_category || "Uncategorized") === selectedCategory);
-    }
+    // If we have cited files, only show those
+    if (citedFileIds.size > 0) {
+      filtered = filtered.filter(doc => citedFileIds.has(doc.id));
+    } else {
+      // Apply normal category/year filters only if no search results
+      if (selectedCategory) {
+        filtered = filtered.filter((doc) => (doc.ai_category || "Uncategorized") === selectedCategory);
+      }
 
-    if (selectedYear) {
-      filtered = filtered.filter((doc) => {
-        const date = doc.ai_document_date ? new Date(doc.ai_document_date) : null;
-        const year = date && !isNaN(date) ? date.getFullYear().toString() : "Unknown";
-        return year === selectedYear;
-      });
-    }
-
-    if (searchQuery) {
-      filtered = filtered.filter((doc) =>
-        doc.file_name.toLowerCase().includes(searchQuery.toLowerCase())
-      );
+      if (selectedYear) {
+        filtered = filtered.filter((doc) => {
+          const date = doc.ai_document_date ? new Date(doc.ai_document_date) : null;
+          const year = date && !isNaN(date) ? date.getFullYear().toString() : "Unknown";
+          return year === selectedYear;
+        });
+      }
     }
 
     // Sort by document date, NA dates on top
@@ -152,14 +154,79 @@ const MyDocuments = () => {
   const handleSearch = async () => {
     setIsLoading(true);
     try {
-      const response = await axiosInstance.get(`/list-files/?search=${searchQuery}`);
-      const files = response.data || [];
-      setFilteredDocuments(files);
+      const response = await axiosInstance.get(`/search-files/?search=${searchQuery}`);
+      setSearchResponse({
+        message: response.data.message,
+        citations: response.data.citations || []
+      });
+      
+      // Extract unique file IDs from citations
+      const fileIds = new Set(response.data.citations.map(citation => citation.id));
+      setCitedFileIds(fileIds);
+      
+      // Filter documents to show only cited files
+      if (fileIds.size > 0) {
+        const citedDocs = documents.filter(doc => fileIds.has(doc.id));
+        setFilteredDocuments(citedDocs);
+      }
     } catch (error) {
       console.error("Failed to search files:", error);
+      setSearchResponse({
+        message: "An error occurred while searching.",
+        citations: []
+      });
+      setCitedFileIds(new Set());
+      setFilteredDocuments([]);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Add a new function to handle citation clicks
+  const handleCitationClick = (fileId) => {
+    const file = documents.find(doc => doc.id === fileId);
+    if (file) {
+      handleFileClick(file);
+    }
+  };
+
+  // Update the search results rendering
+  const renderSearchResults = () => {
+    if (!searchResponse.message) return null;
+
+    return (
+      <div className="search-results-box">
+        <div dangerouslySetInnerHTML={{ 
+          __html: searchResponse.message.replace(/\[\d+\]/g, (match) => {
+            const index = parseInt(match.slice(1, -1));
+            return `<sup>[${index + 1}]</sup>`;
+          })
+        }} />
+        
+        {searchResponse.citations.length > 0 && (
+          <div className="citations-list mt-3">
+            <hr />
+            <h6>References:</h6>
+            <ol>
+              {searchResponse.citations.map((citation, index) => (
+                <li key={index}>
+                  <a
+                    href="#!"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleCitationClick(citation.file_id);
+                    }}
+                    className="file-link"
+                  >
+                    {citation.file_name}
+                  </a>
+                </li>
+              ))}
+            </ol>
+          </div>
+        )}
+      </div>
+    );
   };
 
   // Handle file click to view document
@@ -195,6 +262,21 @@ const MyDocuments = () => {
     } finally {
       // Clear loading state
       setLoadingFileId(null);
+    }
+  };
+
+  // Add this function near other handlers
+  const handleClearSearch = () => {
+    setSearchQuery("");
+    setSearchResponse({ message: "", citations: [] });
+    setCitedFileIds(new Set());
+    setFilteredDocuments(documents);
+  };
+
+  // Add this new handler
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      handleSearch();
     }
   };
 
@@ -273,7 +355,7 @@ const MyDocuments = () => {
           </thead>
           <tbody>
             {sortedFiles.map((file) => (
-              <tr key={file.id}>
+              <tr key={file.id} className={citedFileIds.has(file.id) ? 'cited-file-row' : ''}>
                 <td>
                     <div className="file-link-container">
                         <a
@@ -373,6 +455,7 @@ const MyDocuments = () => {
                   placeholder="Search files..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyPress={handleKeyPress}
                 />
               </div>
               <Button 
@@ -383,7 +466,18 @@ const MyDocuments = () => {
               >
                 {isLoading ? <Spinner animation="border" size="sm" /> : "Search"}
               </Button>
+              {searchResponse.message && (
+                <Button 
+                  variant="outline-secondary"
+                  onClick={handleClearSearch}
+                  className="clear-search-button"
+                >
+                  Clear Search
+                </Button>
+              )}
             </div>
+
+            {renderSearchResults()}
 
             <div className="files-card">
               <div className="files-header">

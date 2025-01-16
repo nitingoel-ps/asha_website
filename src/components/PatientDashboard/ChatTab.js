@@ -12,7 +12,8 @@ function ChatTab({
   chatMessages, 
   setChatMessages, 
   isThinking, 
-  setIsThinking 
+  setIsThinking,
+  openInNewWindow = false // true for new window, false for new tab
 }) {
   const [currentMessage, setCurrentMessage] = useState("");
   const chatContainerRef = useRef(null);
@@ -28,6 +29,19 @@ function ChatTab({
       }
       return <p>{children}</p>;
     },
+    a: ({ children, href }) => (
+      <a 
+        href={href}
+        target={openInNewWindow ? "_blank" : "_blank"}
+        rel="noopener noreferrer"
+        onClick={(e) => {
+          e.preventDefault();
+          window.open(href, '_blank', openInNewWindow ? 'noopener,noreferrer' : '');
+        }}
+      >
+        {children}
+      </a>
+    ),
   };
   /*
 

@@ -73,6 +73,17 @@
     gap: 1rem;
   }
 
+  .search-results-box {
+    background-color: var(--card-background);
+    padding: 1rem;
+    border-radius: 0.7rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    margin-bottom: 1rem;
+    white-space: pre-wrap;
+    line-height: 1.5;
+    color: var(--text-primary);
+  }
+
   .filters-header {
     display: flex;
     align-items: center;  /* Vertically centers all items */
@@ -181,6 +192,10 @@
   }
   
   .search-button {
+    min-width: 100px;
+  }
+
+  .clear-search-button {
     min-width: 100px;
   }
   
@@ -318,4 +333,38 @@
     .search-button {
       width: 100%;
     }
+
+    .clear-search-button {
+      width: 100%;
+      margin-top: 0.5rem;
+    }
+  }
+
+  .citations-list {
+    margin-top: 1rem;
+    font-size: 0.9rem;
+  }
+  
+  .citations-list ol {
+    padding-left: 1.5rem;
+    margin-top: 0.5rem;
+  }
+  
+  .citations-list li {
+    margin-bottom: 0.5rem;
+  }
+  
+  .search-results-box sup {
+    color: var(--primary-color);
+    font-weight: 500;
+    margin: 0 2px;
+  }
+
+  .cited-file-row {
+    background-color: rgba(37, 99, 235, 0.05) !important;
+    border-left: 3px solid var(--primary-color);
+  }
+  
+  .cited-file-row:hover {
+    background-color: rgba(37, 99, 235, 0.1) !important;
   }

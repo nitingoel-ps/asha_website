@@ -72,10 +72,14 @@ function DiagnosticReportsTab({ diagnosticReports, initialReportId }) {
       }
     })
     .filter((report) => {
+      if (!report) return false; // Skip null reports
       if (initialReportId && report.id === initialReportId) return true;
+      
       const searchLower = searchTerm.toLowerCase();
-      return report.report_name.toLowerCase().includes(searchLower) || 
-             report.id.toString().includes(searchLower);
+      const reportId = report.id ? report.id.toString() : '';
+      const reportName = report.report_name ? report.report_name.toLowerCase() : '';
+      
+      return reportName.includes(searchLower) || reportId.includes(searchLower);
     });
 
   const getSortIcon = (key) => {
