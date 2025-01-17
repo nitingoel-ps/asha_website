@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
 import axiosInstance from "../utils/axiosInstance";
 import { useNavigate } from "react-router-dom";
-import { Container, Card, Button, Navbar, Nav, Form, Table } from "react-bootstrap";
-import { format, parseISO, formatDistanceToNow } from "date-fns"; // Import date-fns functions
+import { Container, Card, Button, Form, Table, Alert } from "react-bootstrap";
+import { format, parseISO, formatDistanceToNow } from "date-fns";
+import './AddProviders.css';
 
 function AddProviders() {
   const [message, setMessage] = useState("");
@@ -12,6 +13,12 @@ function AddProviders() {
   const [connections, setConnections] = useState([]); // To store existing connections
   const [loadingConnections, setLoadingConnections] = useState(true); // Track loading of connections
   const [errorConnections, setErrorConnections] = useState(""); // Track errors fetching connections
+  // Add new state variables for search
+  const [searchType, setSearchType] = useState("name");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchError, setSearchError] = useState("");
 
   useEffect(() => {
     axiosInstance
@@ -126,14 +133,41 @@ function AddProviders() {
     return `Last fetched data ${formatDistanceToNow(lastFetchedTime)} ago`; // Calculate "time ago"
   };
 
+  // Add search handler function
+  const handleSearch = async (e) => {
+    e.preventDefault();
+    if (!searchQuery.trim()) {
+      setSearchError("Please enter a search term");
+      return;
+    }
+
+    setIsSearching(true);
+    setSearchError("");
+    setSearchResults([]);
+
+    try {
+      const response = await axiosInstance.get('/search-health-organizations', {
+        params: {
+          type: searchType,
+          query: searchQuery
+        }
+      });
+      setSearchResults(response.data.results || []); // Update to use results array
+    } catch (error) {
+      console.error("Search failed:", error);
+      setSearchError("Failed to search for healthcare providers. Please try again.");
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
   return (
-    <>
-      <Container className="mt-5">
-        <h2 className="mb-4">Connect to Providers</h2>
+    <Container className="providers-container">
+      <h2 className="mb-4">Connect to Providers</h2>
 
       {/* Display Current Connections */}
-        <Card className="mb-3">
-          <Card.Body>
+      <Card className="card">
+        <Card.Body>
           <Card.Title>Current Connections</Card.Title>
           {loadingConnections ? (
             <p>Loading connections...</p>
@@ -176,8 +210,8 @@ function AddProviders() {
         </Card>
 
       {/* Connect to a New Provider */}
-        <Card>
-          <Card.Body>
+      <Card className="card">
+        <Card.Body>
             <Card.Title>Connect to a Provider</Card.Title>
             <Card.Text>
               Please select a provider to connect your health data.
@@ -202,8 +236,100 @@ function AddProviders() {
             </Button>
           </Card.Body>
         </Card>
-      </Container>
-    </>
+
+        {/* Add new search card */}
+        <Card className="search-card">
+          <Card.Body>
+            <Card.Title>Search Healthcare Providers</Card.Title>
+            <Form onSubmit={handleSearch}>
+              <Form.Group className="search-controls">
+                <Form.Label>Search Type</Form.Label>
+                <Form.Check
+                  className="search-type-radio mb-2"
+                  type="radio"
+                  label="Search by Name"
+                  name="searchType"
+                  checked={searchType === "name"}
+                  onChange={() => setSearchType("name")}
+                />
+                <Form.Check
+                  type="radio"
+                  label="Search by Address"
+                  name="searchType"
+                  checked={searchType === "address"}
+                  onChange={() => setSearchType("address")}
+                />
+              </Form.Group>
+
+              <Form.Group className="mb-3">
+                <Form.Label>
+                  {searchType === "name" ? "Provider Name" : "Address"}
+                </Form.Label>
+                <Form.Control
+                  type="text"
+                  placeholder={searchType === "name" ? "Enter provider name" : "Enter address"}
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </Form.Group>
+
+              <Button type="submit" variant="primary" disabled={isSearching}>
+                {isSearching ? "Searching..." : "Search"}
+              </Button>
+            </Form>
+
+            {searchError && (
+              <Alert variant="danger" className="mt-3">
+                {searchError}
+              </Alert>
+            )}
+
+            {searchResults.length > 0 && (
+              <div className="search-results">
+                <h5>Search Results</h5>
+                <div className="table-container">
+                  <Table striped bordered hover>
+                    <thead>
+                      <tr>
+                        <th>Organization Name</th>
+                        <th>Parent Organization</th>
+                        <th className="address-cell">Location</th>
+                        <th>EHR System</th>
+                        <th>Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {searchResults.map((org) => (
+                        <tr key={org.org_id}>
+                          <td>{org.name}</td>
+                          <td>{org.parent_name || 'N/A'}</td>
+                          <td className="address-cell">
+                            <div className="address-main">{org.std_address}</div>
+                            <div className="address-secondary">
+                              {org.city}, {org.state} {org.zip}
+                            </div>
+                          </td>
+                          <td>{org.EHR_system || 'N/A'}</td>
+                          <td>
+                            <Button
+                              variant="primary"
+                              size="sm"
+                              className="action-button"
+                              onClick={() => handleConnectProvider(org.org_id)}
+                            >
+                              Connect
+                            </Button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </Table>
+                </div>
+              </div>
+            )}
+          </Card.Body>
+        </Card>
+    </Container>
   );
 }
 

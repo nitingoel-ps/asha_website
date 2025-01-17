@@ -1,0 +1,62 @@
+.providers-container {
+    margin-top: 2rem;
+    margin-bottom: 2rem;
+}
+
+.card {
+    margin-bottom: 1.5rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.search-card {
+    margin-top: 1.5rem;
+}
+
+.search-results {
+    margin-top: 1rem;
+}
+
+.address-cell {
+    max-width: 300px;
+}
+
+.address-main {
+    margin-bottom: 0.25rem;
+}
+
+.address-secondary {
+    color: #6c757d;
+    font-size: 0.875rem;
+}
+
+.search-controls {
+    margin-bottom: 1rem;
+}
+
+.search-type-radio {
+    margin-bottom: 0.5rem;
+}
+
+.table-container {
+    margin-top: 1rem;
+    overflow-x: auto;
+}
+
+.action-button {
+    min-width: 80px;
+}
+
+.status-pending {
+    color: #856404;
+    background-color: #fff3cd;
+}
+
+.status-success {
+    color: #155724;
+    background-color: #d4edda;
+}
+
+.status-error {
+    color: #721c24;
+    background-color: #f8d7da;
+}

@@ -233,12 +233,12 @@ const renderers = useMemo(
 
               {/* Suggested Questions */}
       <div className="suggested-questions mb-4">
-        <h5>Suggested Questions:</h5>
+        <h6>Suggested Questions:</h6>
         {suggestedQuestions.map((question, index) => (
           <Button
             key={index}
             variant="outline-primary"
-            className="me-2 mb-2"
+            className="me-2 mb-2 small-text"
             onClick={() => handleSendMessage(question)}
                     disabled={isThinking} // Disable buttons when AI is thinking
           >

@@ -57,10 +57,12 @@
   }
 
   .dashboard-container {
-    max-width: 1600px; /* Adjust width as per your needs */
+    max-width: 2000px; /* Adjust width as per your needs */
+    height: calc(100vh - 60px); /* Adjust 60px based on your navbar height */
     margin: 0 auto; /* Center align */
     padding: 1.5rem; /* Add some consistent padding */
     box-sizing: border-box; /* Ensures padding does not exceed max-width */
+    overflow: hidden; /* Prevents container from scrolling */
   }
 
 
