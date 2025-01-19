@@ -46,18 +46,22 @@ const encounterTypeIcons = {
   'Outpatient Ambulatory Surgery': { icon: faProcedures, color: '#FF5722', priority: true },
 };
 
+const providerColors = [
+  '#FF5733', '#33FF57', '#3357FF', '#FF33A1', '#A133FF', '#33FFF5', '#FF8C33', '#8CFF33', '#338CFF'
+];
+
 const HorizontalTimeline = ({ encounters, onPointClick, title }) => {
   const [zoomLevel, setZoomLevel] = useState(1);
   const [zoomRange, setZoomRange] = useState({ start: 0, end: 100 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState(null);
   const [dragEnd, setDragEnd] = useState(null);
+  const [selectedProviders, setSelectedProviders] = useState([]);
   const timelineRef = useRef(null);
   
   console.log('Unique encounter types:', 
     [...new Set(encounters.map(e => e.type))]
   );
-
 
   const sortedEncounters = [...encounters].sort((a, b) => 
     new Date(a.start) - new Date(b.start)
@@ -206,6 +210,15 @@ const HorizontalTimeline = ({ encounters, onPointClick, title }) => {
     }
   };
 
+  const handleProviderChange = (e) => {
+    const { value, checked } = e.target;
+    setSelectedProviders((prevSelected) =>
+      checked ? [...prevSelected, value] : prevSelected.filter((provider) => provider !== value)
+    );
+  };
+
+  const uniqueProviders = [...new Set(encounters.map((e) => e.provider_name))];
+
   return (
     <div className="horizontal-timeline">
       {title && <h3 className="timeline-header">{title}</h3>}
@@ -233,6 +246,22 @@ const HorizontalTimeline = ({ encounters, onPointClick, title }) => {
           )}
         </>
       )}
+      <div className="provider-filter">
+        <h4>Filter by Provider</h4>
+        {uniqueProviders.map((provider, index) => (
+          <label key={provider}>
+            <input
+              type="checkbox"
+              value={provider}
+              checked={selectedProviders.includes(provider)}
+              onChange={handleProviderChange}
+            />
+            <span style={{ color: providerColors[index % providerColors.length] }}>
+              {provider}
+            </span>
+          </label>
+        ))}
+      </div>
       <div 
         className="timeline-container"
         ref={timelineRef}
@@ -260,44 +289,48 @@ const HorizontalTimeline = ({ encounters, onPointClick, title }) => {
               style={{ left: `${tick.position}%` }}
             />
           ))}
-          {sortedEncounters.map((encounter) => {
-            const position = getPositionOnTimeline(encounter.start);
-            const iconConfig = encounterTypeIcons[encounter.type] || 
-              { icon: faClinicMedical, color: '#666', priority: false };
-            
-            const isPriority = iconConfig.priority || PRIORITY_ENCOUNTER_TYPES.includes(encounter.type);
+          {sortedEncounters
+            .filter((encounter) => selectedProviders.length === 0 || selectedProviders.includes(encounter.provider_name))
+            .map((encounter) => {
+              const position = getPositionOnTimeline(encounter.start);
+              const iconConfig = encounterTypeIcons[encounter.type] || 
+                { icon: faClinicMedical, color: '#666', priority: false };
+              
+              const isPriority = iconConfig.priority || PRIORITY_ENCOUNTER_TYPES.includes(encounter.type);
+              const providerColor = providerColors[uniqueProviders.indexOf(encounter.provider_name) % providerColors.length];
 
-            return (
-              <div
-                key={encounter.id}
-                className={`timeline-point ${isPriority ? 'priority-point' : ''}`}
-                style={{ 
-                  left: `${position}%`,
-                }}
-                data-tip
-                data-for={`encounter-${encounter.id}`}
-              >
-                <div className="tooltip-content">
-                  <div>{format(new Date(encounter.start), 'MMM dd, yyyy')}</div>
-                  <div>{encounter.type}</div>
-                </div>
-                <div 
-                  className={`timeline-point-icon ${isPriority ? 'priority-icon' : ''}`}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onPointClick(encounter.id);
+              return (
+                <div
+                  key={encounter.id}
+                  className={`timeline-point ${isPriority ? 'priority-point' : ''}`}
+                  style={{ 
+                    left: `${position}%`,
                   }}
+                  data-tip
+                  data-for={`encounter-${encounter.id}`}
                 >
-                  <FontAwesomeIcon 
-                    icon={iconConfig.icon} 
-                    style={{ 
-                      color: iconConfig.color,
+                  <div className="tooltip-content">
+                    <div>{format(new Date(encounter.start), 'MMM dd, yyyy')}</div>
+                    <div>{encounter.type}</div>
+                    <div>{encounter.provider_name}</div>
+                  </div>
+                  <div 
+                    className={`timeline-point-icon ${isPriority ? 'priority-icon' : ''}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onPointClick(encounter.id);
                     }}
-                  />
+                  >
+                    <FontAwesomeIcon 
+                      icon={iconConfig.icon} 
+                      style={{ 
+                        color: providerColor,
+                      }}
+                    />
+                  </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
         </div>
         <div className="timeline-labels">
           {generateTimelineLabels().map((label, index) => (
