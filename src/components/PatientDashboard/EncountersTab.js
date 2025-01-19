@@ -64,7 +64,7 @@ function EncountersTab({ encounters = [], onNavigateToReport }) {
   return (
     <div className="encounters-tab">
       <HorizontalTimeline 
-        encounters={encounters}
+        encounters={encounters || []} // Ensure encounters is always an array
         onPointClick={scrollToEncounter}
         title="Patient Encounters Timeline"
       />
