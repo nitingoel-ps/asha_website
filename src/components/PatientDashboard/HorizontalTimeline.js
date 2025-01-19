@@ -223,6 +223,23 @@ const HorizontalTimeline = ({ encounters, onPointClick, title }) => {
     <div className="horizontal-timeline">
       {title && <h3 className="timeline-header">{title}</h3>}
       
+      <div className="provider-filter">
+        <h4 style={{ fontSize: '14px' }}>Filter by Provider</h4>
+        {uniqueProviders.map((provider, index) => (
+          <label key={provider}>
+            <input
+              type="checkbox"
+              value={provider}
+              checked={selectedProviders.includes(provider)}
+              onChange={handleProviderChange}
+            />
+            <span style={{ color: providerColors[index % providerColors.length] }}>
+              {provider}
+            </span>
+          </label>
+        ))}
+      </div>
+      
       {zoomLevel > 1 && (
         <>
           <button onClick={handleReset} className="reset-button">
@@ -246,22 +263,6 @@ const HorizontalTimeline = ({ encounters, onPointClick, title }) => {
           )}
         </>
       )}
-      <div className="provider-filter">
-        <h4>Filter by Provider</h4>
-        {uniqueProviders.map((provider, index) => (
-          <label key={provider}>
-            <input
-              type="checkbox"
-              value={provider}
-              checked={selectedProviders.includes(provider)}
-              onChange={handleProviderChange}
-            />
-            <span style={{ color: providerColors[index % providerColors.length] }}>
-              {provider}
-            </span>
-          </label>
-        ))}
-      </div>
       <div 
         className="timeline-container"
         ref={timelineRef}
