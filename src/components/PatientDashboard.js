@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Card, Container, Spinner } from "react-bootstrap";
-import { Activity, Pill, FileText, Clipboard, Microscope, Syringe } from "lucide-react";
+import { Activity, Pill, FileText, Clipboard, Microscope, Syringe, MessageCircle, BarChart2, Heart } from "lucide-react"; // Import new icons
 import ConditionsTab from "./PatientDashboard/ConditionsTab";
 import ChartsTab from "./PatientDashboard/ChartsTab";
 import ProceduresTab from "./PatientDashboard/ProceduresTab";
@@ -20,7 +20,7 @@ function PatientDashboard() {
   const [patientData, setPatientData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [activeTab, setActiveTab] = useState("summary");
+  const [activeTab, setActiveTab] = useState("summary"); // Set Chat as the default tab
   const [chatMessages, setChatMessages] = useState([
     {
       type: "ai",
@@ -83,15 +83,6 @@ function PatientDashboard() {
 
   const renderTabContent = () => {
     switch (activeTab) {
-      case "dashboard-summary":
-        return <SummaryTab 
-          vitals={patientData.vitals}
-          overallSummary={patientData.overall_summary}
-          medications={patientData.medication_requsts}
-          diagnosticReports={patientData.diagnostic_reports}
-          charts={patientData.important_charts}
-          onNavigateToReport={handleNavigateToReport} // Add this prop
-        />;
       case "summary":
         return <ChatTab 
           suggestedQuestions={patientData.suggested_questions?.research_topics || []} 
@@ -100,21 +91,16 @@ function PatientDashboard() {
           isThinking={isThinking}
           setIsThinking={setIsThinking}
         />;
-      case "charts":
-        return <ChartsTab chartData={patientData.important_charts} />;
-      case "conditions":
-        return <ConditionsTab conditions={patientData.conditions} />;
-      case "procedures":
-        return <ProceduresTab procedures={patientData.procedures} />;
-      case "medications":
-        return <MedicationsTab medications={patientData.medication_requsts} />;
-      case "diagnostic-reports":
-        return <DiagnosticReportsTab 
+      case "dashboard-summary":
+        return <SummaryTab 
+          vitals={patientData.vitals}
+          overallSummary={patientData.overall_summary}
+          medications={patientData.medication_requsts}
           diagnosticReports={patientData.diagnostic_reports}
-          initialReportId={selectedReportId} // Add this prop
+          charts={patientData.important_charts}
+          onNavigateToReport={handleNavigateToReport} // Add this prop
+          keyInsights={patientData.key_insights} // Add this prop
         />;
-      case "observations":
-        return <ObservationsTab observations={patientData.all_observations} />;
       case "encounters":
         return <EncountersTab 
           encounters={patientData.encounters} 
@@ -124,6 +110,19 @@ function PatientDashboard() {
         return <VitalSignsTab vitals={patientData.vitals} />;
       case "immunizations":
         return <ImmunizationsTab immunizations={patientData.immunizations} />;
+      case "diagnostic-reports":
+        return <DiagnosticReportsTab 
+          diagnosticReports={patientData.diagnostic_reports}
+          initialReportId={selectedReportId} // Add this prop
+        />;
+      case "charts":
+        return <ChartsTab chartData={patientData.important_charts} />;
+      case "procedures":
+        return <ProceduresTab procedures={patientData.procedures} />;
+      case "medications":
+        return <MedicationsTab medications={patientData.medication_requsts} />;
+      case "observations":
+        return <ObservationsTab observations={patientData.all_observations} />;
       default:
         return null;
     }
@@ -139,38 +138,36 @@ function PatientDashboard() {
         </Card.Header>
         <Card.Body className="d-flex p-0" style={{ width: '100%', height: '100%' }}>
           <div className="left-nav">
-            <div className={`nav-item ${activeTab === "dashboard-summary" ? "active" : ""}`} onClick={() => setActiveTab("dashboard-summary")}>
-              <Activity size={16} /> Summary
-            </div>
             <div className={`nav-item ${activeTab === "summary" ? "active" : ""}`} onClick={() => setActiveTab("summary")}>
-              <Activity size={16} /> Chat
+              <MessageCircle size={16} /> Chat {/* Change icon to MessageCircle */}
             </div>
-            <div className={`nav-item ${activeTab === "charts" ? "active" : ""}`} onClick={() => setActiveTab("charts")}>
-              <Clipboard size={16} /> Key Lab Results
-            </div>
-            <div className={`nav-item ${activeTab === "conditions" ? "active" : ""}`} onClick={() => setActiveTab("conditions")}>
-              <Clipboard size={16} /> Conditions
-            </div>
-            <div className={`nav-item ${activeTab === "procedures" ? "active" : ""}`} onClick={() => setActiveTab("procedures")}>
-              <FileText size={16} /> Procedures
-            </div>
-            <div className={`nav-item ${activeTab === "medications" ? "active" : ""}`} onClick={() => setActiveTab("medications")}>
-              <Pill size={16} /> Medications
-            </div>
-            <div className={`nav-item ${activeTab === "diagnostic-reports" ? "active" : ""}`} onClick={() => setActiveTab("diagnostic-reports")}>
-              <Microscope size={16} /> Diagnostic Reports
-            </div>
-            <div className={`nav-item ${activeTab === "observations" ? "active" : ""}`} onClick={() => setActiveTab("observations")}>
-              <Microscope size={16} /> All Labs
+            <div className={`nav-item ${activeTab === "dashboard-summary" ? "active" : ""}`} onClick={() => setActiveTab("dashboard-summary")}>
+              <BarChart2 size={16} /> Summary {/* Change icon to BarChart2 */}
             </div>
             <div className={`nav-item ${activeTab === "encounters" ? "active" : ""}`} onClick={() => setActiveTab("encounters")}>
               <Microscope size={16} /> Encounters
             </div>
             <div className={`nav-item ${activeTab === "vital-signs" ? "active" : ""}`} onClick={() => setActiveTab("vital-signs")}>
-              <Microscope size={16} /> Vital Signs
+              <Heart size={16} /> Vital Signs {/* Change icon to Heart */}
             </div>
             <div className={`nav-item ${activeTab === "immunizations" ? "active" : ""}`} onClick={() => setActiveTab("immunizations")}>
               <Syringe size={16} /> Immunizations
+            </div>
+            <div className={`nav-item ${activeTab === "diagnostic-reports" ? "active" : ""}`} onClick={() => setActiveTab("diagnostic-reports")}>
+              <Microscope size={16} /> Diagnostic Reports
+            </div>
+            <div className={`nav-item ${activeTab === "charts" ? "active" : ""}`} onClick={() => setActiveTab("charts")}>
+              <Clipboard size={16} /> Key Lab Results
+            </div>
+            <div className={`nav-item ${activeTab === "procedures" ? "active" : ""}`} onClick={() => setActiveTab("procedures")}>
+              <FileText size={16} /> Procedures
+            </div>
+            {/* Hide Conditions tab */}
+            {/* <div className={`nav-item ${activeTab === "conditions" ? "active" : ""}`} onClick={() => setActiveTab("conditions")}>
+              <Clipboard size={16} /> Conditions
+            </div> */}
+            <div className={`nav-item ${activeTab === "observations" ? "active" : ""}`} onClick={() => setActiveTab("observations")}>
+              <Microscope size={16} /> All Labs
             </div>
           </div>
           <div className="main-display">
