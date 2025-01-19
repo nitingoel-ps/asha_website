@@ -180,7 +180,7 @@ function AddProviders() {
               <thead>
                 <tr>
                   <th>Provider</th>
-                  <th>Connected on</th>
+                  <th>Patient Name</th> {/* Updated header */}
                   <th>Status</th>
                   <th>Action</th>
                 </tr>
@@ -189,7 +189,7 @@ function AddProviders() {
                 {connections.map((connection) => (
                   <tr key={connection.id}>
                     <td>{connection.provider}</td>
-                    <td>{formatDateTime(connection.created_at)}</td>
+                    <td>{connection.patient_name}</td> {/* Updated data cell */}
                       <td>{getStatusDisplay(connection.last_fetch_status, connection.last_fetched_at)}</td>
                       <td>
                         {/* Conditional Button for Refresh */}
