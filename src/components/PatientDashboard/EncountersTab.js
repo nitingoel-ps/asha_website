@@ -36,14 +36,19 @@ function EncountersTab({ encounters = [], onNavigateToReport }) {
   };
 
   const parseDate = (dateString) => {
+    if (!dateString) {
+      return new Date(); // Return current date as fallback
+    }
     if (dateString.includes("T")) {
       return new Date(dateString);
-    } else {
-      return new Date(`${dateString}T00:00:00`);
     }
+    return new Date(`${dateString}T00:00:00`);
   };
 
   const formatDateTime = (start, end) => {
+    if (!start || !end) {
+      return "Date not available";
+    }
     const startDate = parseDate(start);
     const endDate = parseDate(end);
     const formattedStartDate = format(startDate, "MMM dd, yyyy");

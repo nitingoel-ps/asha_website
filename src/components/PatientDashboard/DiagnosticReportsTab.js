@@ -209,11 +209,11 @@ function DiagnosticReportsTab({ diagnosticReports, initialReportId }) {
                                 </td>                                
                                 <td>{formatDate(obs.observation_date)}</td>
                                 <td align="center">
-                                  {obs.is_normal ? (
+                                  {obs.is_normal === true ? (
                                     <FaCheckCircle style={{ color: "green" }} title="Normal" />
-                                  ) : (
+                                  ) : obs.is_normal === false ? (
                                     <FaExclamationTriangle style={{ color: "red" }} title="Not Normal" />
-                                  )}
+                                  ) : null}
                                 </td>
                                 <td>{obs.explanation || "N/A"}</td>                                
                               </tr>

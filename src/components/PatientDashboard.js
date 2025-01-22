@@ -121,7 +121,9 @@ function PatientDashboard() {
         return <ProceduresTab procedures={patientData.procedures} />;
       case "medications":
         return <MedicationsTab medications={patientData.medication_requsts} />;
-      case "observations":
+      case "conditions":
+          return <ConditionsTab conditions={patientData.conditions} />;
+        case "observations":
         return <ObservationsTab observations={patientData.all_observations} />;
       default:
         return null;
@@ -162,10 +164,12 @@ function PatientDashboard() {
             <div className={`nav-item ${activeTab === "procedures" ? "active" : ""}`} onClick={() => setActiveTab("procedures")}>
               <FileText size={16} /> Procedures
             </div>
-            {/* Hide Conditions tab */}
-            {/* <div className={`nav-item ${activeTab === "conditions" ? "active" : ""}`} onClick={() => setActiveTab("conditions")}>
+            <div className={`nav-item ${activeTab === "medications" ? "active" : ""}`} onClick={() => setActiveTab("medications")}>
+              <Pill size={16} /> Medications
+            </div>
+            <div className={`nav-item ${activeTab === "conditions" ? "active" : ""}`} onClick={() => setActiveTab("conditions")}>
               <Clipboard size={16} /> Conditions
-            </div> */}
+            </div>
             <div className={`nav-item ${activeTab === "observations" ? "active" : ""}`} onClick={() => setActiveTab("observations")}>
               <Microscope size={16} /> All Labs
             </div>
