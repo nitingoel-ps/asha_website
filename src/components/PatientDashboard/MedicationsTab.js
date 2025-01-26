@@ -1,7 +1,14 @@
-import React from "react";
-import { Card, Table } from "react-bootstrap";
+import React, { useState } from "react";
+import { Card, Table, Accordion } from "react-bootstrap";
+import './MedicationsTab.css'; // Import the CSS file
 
 function MedicationsTab({ medications }) {
+  const [expandedRows, setExpandedRows] = useState({});
+
+  const toggleRow = (id) => {
+    setExpandedRows((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
+
   // Helper function to format dates
   const formatDate = (dateString) => {
     if (!dateString) return "N/A"; // Handle missing dates
@@ -30,14 +37,7 @@ function MedicationsTab({ medications }) {
       <Card className="mt-4">
         <Card.Body>
           <Card.Title>Medications Summary</Card.Title>
-          <Card.Text
-            style={{
-              whiteSpace: "pre-wrap", // Preserve line breaks and wrap long text
-            wordWrap: "break-word", // Prevent words from overflowing
-              maxHeight: "200px", // Set a maximum height for vertical scrolling
-              overflowY: "auto", // Enable vertical scrolling when content exceeds maxHeight
-            }}
-          >
+          <Card.Text className="medications-summary">
             {medications.summary}
           </Card.Text>
         </Card.Body>
@@ -46,20 +46,53 @@ function MedicationsTab({ medications }) {
         <thead>
           <tr>
             <th>Medication</th>
-            <th>Dosage</th>
-            <th>Prescribed On</th>
+            <th>Patient Instruction</th>
+            <th>Explanation</th>
+            <th>Authored On</th>
             <th>Status</th>
           </tr>
         </thead>
         <tbody>
           {sortedMedications.map((med) => {
+            const isExpanded = expandedRows[med.id];
+            const rowClass = med.status === "stopped" || med.status === "completed" ? "inactive-medication" : "";
+            const hasPastMedications = med.past_medications && med.past_medications.length > 0;
+
             return (
-              <tr key={med.id}>
-                <td>{med.medication}</td>
-                <td>{med.dosageInstruction || "N/A"}</td>
-                <td>{formatDate(med.authoredOn)}</td>
-                <td>{med.status}</td>
-              </tr>
+              <React.Fragment key={med.id}>
+                <tr className={rowClass} onClick={() => toggleRow(med.id)}>
+                  <td>
+                    {hasPastMedications && (
+                      <span className={`rolldown-icon ${isExpanded ? "expanded" : ""}`}>&gt;</span>
+                    )}
+                    {med.medication}
+                  </td>
+                  <td>{med.patient_instruction || "N/A"}</td>
+                  <td>{med.medication_explanation || "N/A"}</td>
+                  <td>{formatDate(med.authoredOn)}</td>
+                  <td>{med.status}</td>
+                </tr>
+                {isExpanded && hasPastMedications && (
+                  <tr>
+                    <td colSpan="5">
+                      <h5>Previous Prescriptions</h5>
+                      <Table striped bordered hover>
+                        <tbody>
+                          {med.past_medications.map((pastMed) => (
+                            <tr key={pastMed.id} className={pastMed.status === "stopped" || pastMed.status === "completed" ? "inactive-medication" : ""}>
+                              <td>{pastMed.medication}</td>
+                              <td>{pastMed.patient_instruction || "N/A"}</td>
+                              <td>{pastMed.medication_explanation || "N/A"}</td>
+                              <td>{formatDate(pastMed.authoredOn)}</td>
+                              <td>{pastMed.status}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </Table>
+                    </td>
+                  </tr>
+                )}
+              </React.Fragment>
             );
           })}
         </tbody>

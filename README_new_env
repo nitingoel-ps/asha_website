@@ -2,4 +2,36 @@ brew install node
 npm install
 npm start
 
+node -v
+v23.6.0
 
+npm -v
+10.9.2
+
+
+--- Notes from Moblile app development initial setup----
+---- Okay problem ---
+When I started my mobile app development, I learnt I need LTS (long term support) versions.
+So I am getting new stuff.
+
+This package has installed:
+	•	Node.js v22.13.1 to /usr/local/bin/node
+	•	npm v10.9.2 to /usr/local/bin/npm
+Make sure that /usr/local/bin is in your $PATH.
+
+Install xcode (from apple app store - also during install, ask for ios support)
+brew install ruby (needed for cocoapods)
+brew install cocoapods ()
+brew install watchman (Facebook recommends installing thi sfor better file-watching performance)
+
+
+
+launchctl limit maxfiles
+sudo launchctl limit maxfiles 65536 524288
+
+
+Do this loop at times to get the pesky too many files issue....
+npm install
+cd ios && pod install && cd ..
+
+npx react-native run-ios
