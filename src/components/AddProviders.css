@@ -60,3 +60,352 @@
     color: #721c24;
     background-color: #f8d7da;
 }
+
+.refresh-progress {
+    padding: 0.5rem;
+    margin-top: 0.5rem;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+}
+
+.task-list {
+    font-size: 0.875rem;
+    line-height: 1.2;
+    list-style: none;
+    padding-left: 0;
+    margin: 0;
+}
+
+.task-item {
+    display: block;
+    margin-bottom: 0.25rem;
+}
+
+.task-icon {
+    font-size: 0.75rem;
+    margin-right: 0.25rem;
+    color: #28a745;
+}
+
+.task-pending {
+    color: #6c757d;
+}
+
+.task-error {
+    color: #dc3545;
+}
+
+.progress-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.25rem;
+    font-size: 0.875rem;
+}
+
+.progress-timestamp {
+    font-size: 0.875rem;
+    color: #6c757d;
+}
+
+.progress-timestamps {
+    font-size: 0.875rem;
+    color: #6c757d;
+}
+
+.progress-timestamps > div {
+    margin-bottom: 0.25rem;
+}
+
+.progress-status {
+    font-weight: 500;
+    text-transform: capitalize;
+}
+
+.task-content {
+    flex: 1;
+}
+
+.fetch-data-subtasks,
+.fetch-data-item {
+    display: none;
+}
+
+.task-details {
+    margin-top: 0.5rem;
+    padding-left: 1.5rem;
+    color: #666;
+    font-size: 0.9em;
+}
+
+.task-main {
+    display: inline-block;
+}
+
+.task-inline-details {
+    font-size: 0.8rem;
+    color: #666;
+    margin-left: 0.25rem;
+}
+
+.task-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.25rem;
+    width: 100%;
+}
+
+.task-main {
+    margin-right: 0.5rem;
+}
+
+.task-details {
+    margin-left: 2rem;  /* Align with the task name */
+    padding: 0.5rem 0;
+}
+
+.provider-name-toggle {
+  cursor: pointer;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.provider-name-toggle:hover {
+  color: #0056b3;
+}
+
+.toggle-indicator {
+  font-size: 0.75rem;
+  color: #6c757d;
+  transition: transform 0.2s ease;
+}
+
+.progress-row {
+  background-color: transparent !important;
+}
+
+.progress-row > td {
+  padding: 0 !important;
+  border-top: none !important;
+}
+
+/* Make sure the collapse animation is smooth */
+.collapse {
+  transition: height 0.3s ease !important;
+}
+
+.task-header-clickable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.task-header-clickable:hover {
+  color: #0056b3;
+}
+
+.task-toggle {
+  margin-left: 0.5rem;
+  font-size: 0.7rem;
+  color: #6c757d;
+}
+
+.task-item .collapse {
+  transition: height 0.3s ease !important;
+}
+
+.task-row {
+  width: 100%;
+  padding: 0.5rem 0;
+}
+
+.task-row-clickable {
+  cursor: pointer;
+}
+
+.task-row-clickable:hover {
+  color: #0056b3;
+}
+
+.task-details {
+  padding: 0.5rem 1rem;
+  background-color: #f8f9fa;
+  margin-top: 0.25rem;
+  border-radius: 4px;
+}
+
+.fetch-data-table {
+  margin: 0;
+  background-color: white;
+  width: 100%;
+  font-size: 0.8rem;
+}
+
+.fetch-data-table th {
+  font-weight: 500;
+  color: #495057;
+  border-top: none;
+}
+
+.fetch-data-table td {
+  vertical-align: middle;
+}
+
+.fetch-data-table tr:first-child td {
+  border-top: none;
+}
+
+/* ...existing styles... */
+
+.task-list {
+  font-size: 0.875rem;
+  line-height: 1.2;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.task-item {
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.task-main-row {
+  display: flex;
+  align-items: center;
+  padding: 0.25rem;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.task-row-clickable {
+  cursor: pointer;
+}
+
+.task-row-clickable:hover {
+  background-color: #f0f0f0;
+}
+
+.task-name {
+  flex: 1;
+  margin-right: 0.5rem;
+}
+
+.task-details-row {
+  padding: 0.25rem 0 0.25rem 1.75rem;
+  margin-top: 0.25rem;
+  margin-left: 2rem;
+  background-color: white;
+  border-radius: 4px;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.fetch-data-table {
+  margin: 0;
+  width: 100%;
+  font-size: 0.8rem;
+}
+
+.fetch-data-table th,
+.fetch-data-table td {
+  background: none;
+  border: none;
+  padding: 0.125rem 0.5rem 0.125rem 0;
+  vertical-align: middle;
+}
+
+.fetch-data-table th {
+  color: #666;
+  font-weight: 500;
+}
+
+/* Remove any conflicting styles */
+.task-header,
+.task-row,
+.task-content {
+  display: none;
+}
+
+/* ...rest of existing styles... */
+
+.task-name-container {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.task-inline-details {
+  display: none;
+}
+
+.task-duration {
+  font-size: 0.8rem;
+  color: #666;
+  white-space: nowrap;
+  margin-left: auto;
+  padding-left: 0.5rem;
+}
+
+.task-main-row {
+  display: flex;
+  align-items: center;
+  padding: 0.25rem;
+  gap: 0.5rem;
+}
+
+.task-details-row {
+  padding: 0.25rem 0 0.25rem 1.75rem;
+}
+
+.fetch-data-table {
+  margin: 0;
+  width: 100%;
+}
+
+.fetch-data-table th,
+.fetch-data-table td {
+  background: none;
+  border: none;
+  padding: 0.125rem 0.5rem 0.125rem 0;
+}
+
+/* ...existing styles... */
+
+.task-not-started {
+  color: #adb5bd;
+  opacity: 0.5;
+}
+
+.task-pending {
+  opacity: 0.6;
+}
+
+.task-pending-icon {
+  animation: spin 2s linear infinite;
+}
+
+.resource-pending {
+  opacity: 0.5;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* ...existing styles... */
+
+.task-spinner {
+  animation: spin 1.5s linear infinite;
+  color: #007bff;
+}
+
+.task-in-progress {
+  color: #007bff;
+  font-weight: 500;
+}
+
+/* ...rest of existing styles... */

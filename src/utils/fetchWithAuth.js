@@ -8,6 +8,7 @@ export async function fetchWithAuth(url, options = {}) {
       ...options.headers,
       Authorization: `Bearer ${accessToken}`,
       "Content-Type": "application/json", // Add other headers as needed
+      "ngrok-skip-browser-warning": "whatever", // Add ngrok header
     };
   
     let response = await fetch(`${baseURL}${url}`, options);

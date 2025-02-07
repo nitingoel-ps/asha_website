@@ -5,7 +5,7 @@ import axiosInstance from "../utils/axiosInstance";
 import { InputGroup, Modal } from "react-bootstrap";
 import "./MyDocuments.css";
 
-import { Search, Upload, Calendar, Filter, Tags } from "lucide-react";  // Add this line
+import { Search, Upload, Calendar, Filter, Tags, Trash2 } from "lucide-react";  // Updated import
 
 const MyDocuments = () => {
   const [documents, setDocuments] = useState([]);
@@ -280,6 +280,31 @@ const MyDocuments = () => {
     }
   };
 
+  // Add these new state variables
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [fileToDelete, setFileToDelete] = useState(null);
+
+  // Add this new function to handle file deletion
+  const handleDeleteFile = async (file) => {
+    setFileToDelete(file);
+    setShowDeleteModal(true);
+  };
+
+  // Add this function to execute the deletion
+  const confirmDelete = async () => {
+    if (!fileToDelete) return;
+
+    try {
+      await axiosInstance.delete(`/delete-file/?id=${fileToDelete.id}`);
+      await fetchDocuments(); // Refresh the document list
+      setShowDeleteModal(false);
+      setFileToDelete(null);
+    } catch (error) {
+      console.error("Failed to delete file:", error);
+      alert("Failed to delete the file. Please try again.");
+    }
+  };
+
   useEffect(() => {
     fetchDocuments();
   }, []);
@@ -334,6 +359,7 @@ const MyDocuments = () => {
     );
   };
 
+  // Update the renderFileList function to include the delete button
   const renderFileList = () => {
     const sortedFiles = filteredDocuments.sort((a, b) => {
       if (!a.ai_document_date) return -1;
@@ -351,6 +377,7 @@ const MyDocuments = () => {
               <th>Document Date</th>
               <th>AI Summary</th>
               <th>Status</th>
+              <th></th>
             </tr>
           </thead>
           <tbody>
@@ -374,7 +401,6 @@ const MyDocuments = () => {
                         )}
                     </div>
                 </td>
-
                 <td>
                   <span className="category-badge">
                     {file.ai_category || "N/A"}
@@ -400,6 +426,18 @@ const MyDocuments = () => {
                   <span className={`status-badge ${file.ai_status?.toLowerCase() || 'pending'}`}>
                     {file.ai_status || "Pending"}
                   </span>
+                </td>
+                <td>
+                  <Button
+                    variant="link"
+                    className="delete-button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteFile(file);
+                    }}
+                  >
+                    <Trash2 size={18} />
+                  </Button>
                 </td>
               </tr>
             ))}
@@ -491,6 +529,29 @@ const MyDocuments = () => {
           </div>
         </Col>
       </Row>
+
+      {/* Add this new Modal for delete confirmation */}
+      <Modal
+        show={showDeleteModal}
+        onHide={() => setShowDeleteModal(false)}
+        centered
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>Confirm Delete</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          Are you sure you want to delete "{fileToDelete?.file_name}"?
+          This action cannot be undone.
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowDeleteModal(false)}>
+            Cancel
+          </Button>
+          <Button variant="danger" onClick={confirmDelete}>
+            Delete
+          </Button>
+        </Modal.Footer>
+      </Modal>
 
       <Modal
         show={showSummaryModal}

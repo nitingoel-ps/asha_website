@@ -4,9 +4,26 @@ import axios from 'axios';
 //const baseURL = 'https://127.0.0.1:8000/';
 const apiBaseURL = process.env.REACT_APP_API_BASE_URL;
 
+// Function to get CSRF token from cookies
+function getCsrfToken() {
+  const name = 'csrftoken';
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim();
+      if (cookie.substring(0, name.length + 1) === (name + '=')) {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        break;
+      }
+    }
+  }
+  return cookieValue;
+}
+
 const axiosInstance = axios.create({
   baseURL: apiBaseURL,
-  //withCredentials: true, // Enable sending cookies
+  withCredentials: true, // Enable sending cookies
   timeout: 60000,  //Made very long for the /chat API
   headers: {
     Authorization: localStorage.getItem('access_token')
@@ -14,6 +31,7 @@ const axiosInstance = axios.create({
       : null,
     'Content-Type': 'application/json',
     accept: 'application/json',
+    'X-CSRFToken': getCsrfToken(), // Add CSRF token
     'ngrok-skip-browser-warning': 'whatever',
   },
 });
@@ -32,7 +50,7 @@ axiosInstance.interceptors.response.use(
     }
 
     // Handle refresh token flow
-    if (error.response.status === 401) {
+    if (error.response.status === 401 || error.response.status === 403) { // Hack fix. True problem is that without refresh API calls do not have access tokens being sent.
       // If refresh token request fails, redirect to login
       if (originalRequest.url === apiBaseURL + '/token/refresh/') {
         localStorage.removeItem('access_token');

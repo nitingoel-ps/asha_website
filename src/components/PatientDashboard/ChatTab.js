@@ -16,6 +16,9 @@ function ChatTab({
   openInNewWindow = false // true for new window, false for new tab
 }) {
   const [currentMessage, setCurrentMessage] = useState("");
+  const [models, setModels] = useState([]);
+  const [selectedModel, setSelectedModel] = useState(null);
+  const [hasUserStartedChat, setHasUserStartedChat] = useState(false);
   const chatContainerRef = useRef(null);
   const lastUserMessageRef = useRef(null);
   const hasScrolledRef = useRef(false); // To ensure scroll happens only once per message
@@ -52,6 +55,27 @@ const renderers = useMemo(
     []
   );
 */
+  // Fetch available models on component mount
+  useEffect(() => {
+    const fetchModels = async () => {
+      try {
+        const response = await fetchWithAuth("/ai/models/");
+        if (response.ok) {
+          const data = await response.json();
+          // Sort models by name before setting state
+          const sortedModels = data.models.sort((a, b) => 
+            a.name.localeCompare(b.name)
+          );
+          setModels(sortedModels);
+          setSelectedModel(sortedModels[0]); // Select first model by default
+        }
+      } catch (error) {
+        console.error("Failed to fetch models:", error);
+      }
+    };
+    fetchModels();
+  }, []);
+
   // Scroll handling during AI response
   useEffect(() => {
     let scrollInterval;
@@ -88,7 +112,12 @@ const renderers = useMemo(
 
   // Handle sending a message
   const handleSendMessage = async (message) => {
-    if (!message.trim()) return;
+    if (!message.trim() || !selectedModel) return;
+
+    // Set flag when user sends their first message
+    if (!hasUserStartedChat) {
+      setHasUserStartedChat(true);
+    }
 
     // Add user's message to the chat
     setChatMessages((prevMessages) => [
@@ -110,10 +139,16 @@ const renderers = useMemo(
       { role: "user", content: message }, // Include the new user question
     ];
 
-    const response = await fetchWithAuth("/chat/", {
+    const response = await fetchWithAuth("/new-chat/", {
         method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ messages: formattedMessages }), // Send formatted history
+      body: JSON.stringify({
+        messages: formattedMessages,
+        model: {
+          provider: selectedModel.provider,
+          model_id: selectedModel.id
+        }
+      }), // Send formatted history
       });
 
     if (!response.ok) {
@@ -190,11 +225,33 @@ const renderers = useMemo(
     });
   };
 
+  // Only show suggested questions when no chat messages exist
+  const showSuggestedQuestions = chatMessages.length === 0;
+
   return (
     <>
       <Card className="chat-interface mb-4">
         <Card.Body>
-          <div className="chat-messages" ref={chatContainerRef}>
+          {/* Suggested Questions - Only show before user starts chatting */}
+          {!hasUserStartedChat && (
+            <div className="suggested-questions mb-3">
+              <h6>Suggested Questions:</h6>
+              {suggestedQuestions.map((question, index) => (
+                <Button
+                  key={index}
+                  variant="outline-primary"
+                  className="me-2 mb-2 small-text"
+                  onClick={() => handleSendMessage(question)}
+                  disabled={isThinking}
+                >
+                  {question}
+                </Button>
+              ))}
+            </div>
+          )}
+
+          {/* Chat Messages - Full height when suggestions are hidden */}
+          <div className={`chat-messages ${hasUserStartedChat ? 'chat-messages-full' : ''}`} ref={chatContainerRef}>
             {chatMessages.map((message, index) => (
               <div
                 key={index}
@@ -215,37 +272,38 @@ const renderers = useMemo(
             )}
           </div>
 
-        {/* Chat Input */}
-          <InputGroup className="chat-input-container">
-            <Form.Control
-              as="textarea"
-              rows={1}
-              className="chat-input"
-              placeholder="Type your message..."
-              value={currentMessage}
-              onChange={(e) => setCurrentMessage(e.target.value)}
-                      onKeyDown={(e) => e.key === "Enter" && handleSendMessage(currentMessage)}
-              disabled={isThinking}
-            />
-          </InputGroup>
+          {/* Chat Input and Model Selector */}
+          <div className="chat-footer">
+            <InputGroup className="chat-input-container">
+              <Form.Control
+                as="textarea"
+                rows={1}
+                className="chat-input"
+                placeholder="Type your message..."
+                value={currentMessage}
+                onChange={(e) => setCurrentMessage(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleSendMessage(currentMessage)}
+                disabled={isThinking}
+              />
+            </InputGroup>
+            
+            <div className="model-selector-inline">
+              <Form.Select
+                size="sm"
+                value={selectedModel?.id || ''}
+                onChange={(e) => setSelectedModel(models.find(m => m.id === e.target.value))}
+                disabled={isThinking}
+              >
+                {models.map((model) => (
+                  <option key={model.id} value={model.id}>
+                    {model.name}
+                  </option>
+                ))}
+              </Form.Select>
+            </div>
+          </div>
         </Card.Body>
       </Card>
-
-              {/* Suggested Questions */}
-      <div className="suggested-questions mb-4">
-        <h6>Suggested Questions:</h6>
-        {suggestedQuestions.map((question, index) => (
-          <Button
-            key={index}
-            variant="outline-primary"
-            className="me-2 mb-2 small-text"
-            onClick={() => handleSendMessage(question)}
-                    disabled={isThinking} // Disable buttons when AI is thinking
-          >
-            {question}
-          </Button>
-        ))}
-      </div>
     </>
   );
 }

@@ -34,7 +34,7 @@ function Login() {
       localStorage.setItem('refresh_token', refresh);
 
       // Step 3: Set Authorization header for future requests
-      axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${access}`;
+      axiosInstance.defaults.headers['Authorization'] = `Bearer ${access}`;
 
       // Step 4: Fetch user details
       const userResponse = await axiosInstance.get('/user-context'); // Assuming `/user-context` returns user details

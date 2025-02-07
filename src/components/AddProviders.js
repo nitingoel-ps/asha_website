@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
 import axiosInstance from "../utils/axiosInstance";
 import { useNavigate } from "react-router-dom";
-import { Container, Card, Button, Form, Table, Alert } from "react-bootstrap";
+import { Container, Card, Button, Form, Table, Alert, Collapse } from "react-bootstrap";
 import { format, parseISO, formatDistanceToNow } from "date-fns";
 import './AddProviders.css';
+import { FaCheck, FaSpinner, FaTimes } from 'react-icons/fa';
 
 function AddProviders() {
   const [message, setMessage] = useState("");
@@ -19,6 +20,29 @@ function AddProviders() {
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
   const [searchError, setSearchError] = useState("");
+  const [refreshProgress, setRefreshProgress] = useState({});
+  const [pollingTimers, setPollingTimers] = useState({});
+  const [expandedProviders, setExpandedProviders] = useState(new Set());
+  const [expandedTasks, setExpandedTasks] = useState(new Set());
+
+  const EXPECTED_TASKS = [
+    { id: 'fetch_data', display: 'Downloading Medical Records' },
+    { id: 'update_cdm', display: 'Updating your Records' },
+    { id: 'generate_ai_summaries', display: 'AI Review' }
+  ];
+
+  const EXPECTED_RESOURCES = [
+    'Patient',
+    'Encounter',
+    'DiagnosticReport',
+    'Procedure',
+    'MedicationRequest',
+    'AllergyIntolerance',
+    'Immunization',
+    'CareTeam',
+    'Condition',
+    'DocumentReference'
+  ];
 
   useEffect(() => {
     axiosInstance
@@ -45,20 +69,151 @@ function AddProviders() {
       .catch((error) => {
         console.error("Failed to fetch providers:", error);
       });
+  }, []);
 
-    // Fetch existing connections
-    axiosInstance
-      .get("/provider-connections")
-      .then((response) => {
-        setConnections(response.data || []); // Set connections from the API response
+  useEffect(() => {
+    return () => {
+      Object.values(pollingTimers).forEach(timer => clearInterval(timer));
+    };
+  }, [pollingTimers]);
+
+  const fetchLatestProgress = async (providerId) => {
+    try {
+      const response = await axiosInstance.get('/data-refresh-progress', {
+        params: {
+          provider_id: providerId
+        }
+      });
+      
+      if (response.data.progress) {
+        setRefreshProgress(prev => ({
+          ...prev,
+          [providerId]: response.data.progress
+        }));
+
+        // Start polling if status is PENDING
+        if (response.data.progress.overall_status === 'PENDING') {
+          startPollingRefreshProgress(providerId);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching progress for provider:', providerId, error);
+    }
+  };
+
+  // Modify the connections loading effect to fetch progress after connections are loaded
+  useEffect(() => {
+    const loadConnectionsAndProgress = async () => {
+      try {
+        const response = await axiosInstance.get("/provider-connections");
+        const connectionsList = response.data || [];
+        setConnections(connectionsList);
         setLoadingConnections(false);
-      })
-      .catch((error) => {
+
+        // Load saved progress from localStorage first
+        const savedProgress = localStorage.getItem('refreshProgress');
+        if (savedProgress) {
+          setRefreshProgress(JSON.parse(savedProgress));
+        }
+
+        // Fetch latest progress for each connection
+        connectionsList.forEach(connection => {
+          fetchLatestProgress(connection.id);
+        });
+      } catch (error) {
         console.error("Failed to fetch connections:", error);
         setErrorConnections("Failed to load connections.");
         setLoadingConnections(false);
-      });
+      }
+    };
+
+    loadConnectionsAndProgress();
   }, []);
+
+  // Start polling for pending connections when connections or refreshProgress changes
+  useEffect(() => {
+    connections.forEach(connection => {
+      const progress = refreshProgress[connection.id];
+      if (progress?.overall_status === 'PENDING') {
+        startPollingRefreshProgress(connection.id);
+      }
+    });
+  }, [connections]); // Dependencies array only includes connections
+
+  const startPollingRefreshProgress = async (providerId) => {
+    console.log("Setting up polling for provider:", providerId);
+    if (pollingTimers[providerId]) {
+      clearInterval(pollingTimers[providerId]);
+    }
+
+    const pollProgress = async () => {
+      try {
+        console.log("Polling progress for provider:", providerId);
+        const response = await axiosInstance.get('/data-refresh-progress', {
+          params: {
+            provider_id: providerId
+          }
+        });
+        console.log("Poll response:", response.data);
+        
+        const newProgress = response.data.progress;
+        
+        // Update localStorage and state
+        setRefreshProgress(prev => {
+          const updated = {
+            ...prev,
+            [providerId]: newProgress
+          };
+          localStorage.setItem('refreshProgress', JSON.stringify(updated));
+          return updated;
+        });
+
+        // Stop polling if status is SUCCESS or ERROR
+        if (newProgress.overall_status === 'SUCCESS' || newProgress.overall_status === 'ERROR') {
+          clearInterval(pollingTimers[providerId]);
+          setPollingTimers(prev => {
+            const newTimers = { ...prev };
+            delete newTimers[providerId];
+            return newTimers;
+          });
+        }
+      } catch (error) {
+        console.error('Error polling refresh progress:', error);
+      }
+    };
+
+    // Start polling immediately
+    await pollProgress();
+    const timerId = setInterval(pollProgress, 2000);
+    setPollingTimers(prev => ({
+      ...prev,
+      [providerId]: timerId
+    }));
+  };
+
+  const refreshConnectionStatus = async () => {
+    try {
+      const response = await axiosInstance.get("/provider-connections");
+      setConnections(response.data || []);
+    } catch (error) {
+      console.error("Failed to refresh connections:", error);
+    }
+  };
+
+  const handleWindowClosure = (providerId) => {
+    alert("OAuth window closed - starting data refresh polling");
+    
+    // Start both progress polling and connection status polling
+    startPollingRefreshProgress(providerId);
+    
+    // Poll connection status every 5 seconds
+    const statusTimer = setInterval(refreshConnectionStatus, 5000);
+    
+    // Stop polling connection status after 30 seconds or when refresh completes
+    setTimeout(() => {
+      clearInterval(statusTimer);
+    }, 30000);
+  };
 
   const handleConnectProvider = async (providerId) => {
     try {
@@ -66,9 +221,10 @@ function AddProviders() {
         alert("Please select a provider.");
         return;
       }
+
       const response = await axiosInstance.get(`/oauth/authorize-url?provider=${providerId}`);
       const oauthUrl = response.data.url;
-        // Open the OAuth URL in a popup window
+      
       const width = 600;
       const height = 700;
       const left = window.screenX + (window.outerWidth - width) / 2;
@@ -78,31 +234,35 @@ function AddProviders() {
         "OAuthPopup",
         `width=${width},height=${height},top=${top},left=${left},resizable,scrollbars=yes,noopener,noreferrer`
       );
-  
+
       const pollTimer = setInterval(() => {
         try {
-          // Check if the popup has redirected to your app's domain
           if (popupWindow.closed) {
             clearInterval(pollTimer);
-            console.log("OAuth popup closed");
-          } else if (popupWindow.location.href.includes(window.location.origin)) {
-            // Only check if it's your origin; avoid accessing other properties
-            console.log ("The popup window is now ours! ",popupWindow.location.href)
+            console.log("OAuth window closed");
+            handleWindowClosure(providerId);
+            return;
+          }
+
+          if (popupWindow.location.href.includes(window.location.origin)) {
+            console.log("Detected redirect to our domain:", popupWindow.location.href);
             const params = new URL(popupWindow.location.href).searchParams;
             const code = params.get("code");
             const state = params.get("state");
-            popupWindow.close();
-            clearInterval(pollTimer);
-  
-            // Handle the retrieved code and state
-            console.log("OAuth success! Code:", code, "State:", state);
+            
+            if (code && state) {
+              console.log("OAuth flow completed successfully");
+              popupWindow.close();
+              // Window closure will be detected by the above check
+            }
           }
         } catch (err) {
-          // Cross-origin errors are expected until the popup redirects to your domain
+          // Cross-origin errors are expected until redirect
         }
-      }, 500); // Poll every 500ms
+      }, 500);
+
     } catch (error) {
-      console.error("Failed to get OAuth URL:", error);
+      console.error("Failed to initiate OAuth flow:", error);
     }
   };
 
@@ -161,6 +321,158 @@ function AddProviders() {
     }
   };
 
+  const formatFetchDataDetails = (detailsString) => {
+    try {
+      const details = JSON.parse(detailsString);
+      return (
+        <Table className="fetch-data-table" size="sm" borderless>
+          <thead>
+            <tr>
+              <th>Resource Type</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {EXPECTED_RESOURCES.map(resource => {
+              const status = details[resource] || 'Pending';
+              const isCompleted = details[resource] !== undefined;
+              return (
+                <tr key={resource} className={isCompleted ? '' : 'resource-pending'}>
+                  <td>{resource}</td>
+                  <td>
+                    {isCompleted ? (
+                      <>
+                        <FaCheck className="task-icon" />
+                        {status}
+                      </>
+                    ) : (
+                      <span className="text-muted">Waiting...</span>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </Table>
+      );
+    } catch (e) {
+      return detailsString;
+    }
+  };
+
+  const getTaskDisplayName = (taskName) => {
+    if (taskName === 'fetch_data') return 'Downloading Medical Records';
+    return taskName;
+  };
+
+  const getTaskDuration = (startTime, endTime) => {
+    if (!startTime || !endTime) return null;
+    
+    const start = parseISO(startTime);
+    const end = parseISO(endTime);
+    const durationSeconds = (end - start) / 1000;
+    
+    if (durationSeconds < 60) {
+      return `${Math.round(durationSeconds)}s`;
+    }
+    return `${Math.round(durationSeconds / 60)}m ${Math.round(durationSeconds % 60)}s`;
+  };
+
+  const toggleTaskDetails = (taskId) => {
+    setExpandedTasks(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(taskId)) {
+        newSet.delete(taskId);
+      } else {
+        newSet.add(taskId);
+      }
+      return newSet;
+    });
+  };
+
+  const RefreshProgress = ({ providerId }) => {
+    const progress = refreshProgress[providerId];
+    if (!progress) return null;
+
+    const tasks = progress.tasks || [];
+    const tasksMap = tasks.reduce((acc, task) => {
+      acc[task.task] = task;
+      return acc;
+    }, {});
+
+    return (
+      <div className="refresh-progress">
+        <div className="progress-header">
+          <div className="progress-timestamps">
+            <div>Started: {formatDateTime(progress.started_at)}</div>
+            {progress.completed_at && (
+              <div>Completed: {formatDateTime(progress.completed_at)}</div>
+            )}
+          </div>
+          <div className="progress-status">
+            {progress.overall_status}
+          </div>
+        </div>
+        <div className="task-list">
+          {EXPECTED_TASKS.map((expectedTask) => {
+            const task = tasksMap[expectedTask.id];
+            const isPending = !task;
+            const isInProgress = task?.status === 'PENDING';
+            
+            return (
+              <div key={expectedTask.id} className="task-item">
+                <div 
+                  className={`task-main-row ${expectedTask.id === 'fetch_data' ? 'task-row-clickable' : ''} ${isPending ? 'task-pending' : ''}`}
+                  onClick={expectedTask.id === 'fetch_data' ? () => toggleTaskDetails(expectedTask.id) : undefined}
+                >
+                  {task?.status === 'COMPLETED' && <FaCheck className="task-icon" />}
+                  {isInProgress && <FaSpinner className="task-icon task-spinner" />}
+                  {task?.status === 'ERROR' && <FaTimes className="task-icon task-error" />}
+                  {isPending && <FaSpinner className="task-icon task-not-started" />}
+                  <div className="task-name-container">
+                    <span className={isInProgress ? 'task-in-progress' : ''}>{expectedTask.display}</span>
+                    {expectedTask.id === 'fetch_data' && (
+                      <span className="toggle-indicator task-toggle">
+                        {expandedTasks.has(expectedTask.id) ? '▼' : '▶'}
+                      </span>
+                    )}
+                  </div>
+                  <span className="task-duration">
+                    {(task?.status === 'COMPLETED' && task?.task_start && task?.task_end) && 
+                      `(took ${getTaskDuration(task.task_start, task.task_end)})`
+                    }
+                  </span>
+                </div>
+                {expectedTask.id === 'fetch_data' && (
+                  <Collapse in={expandedTasks.has(expectedTask.id)}>
+                    <div className="task-details-row">
+                      {formatFetchDataDetails(task?.task_details || '{}')}
+                    </div>
+                  </Collapse>
+                )}
+              </div>
+            );
+          })}
+        </div>
+        {progress.error_message && (
+          <div className="text-danger mt-2">{progress.error_message}</div>
+        )}
+      </div>
+    );
+  };
+
+  const toggleProviderProgress = (providerId) => {
+    setExpandedProviders(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(providerId)) {
+        newSet.delete(providerId);
+      } else {
+        newSet.add(providerId);
+      }
+      return newSet;
+    });
+  };
+
   return (
     <Container className="providers-container">
       <h2 className="mb-4">Connect to Providers</h2>
@@ -177,32 +489,47 @@ function AddProviders() {
             <p>No connections found.</p>
           ) : (
             <Table striped bordered hover>
-              <thead>
-                <tr>
-                  <th>Provider</th>
-                  <th>Patient Name</th> {/* Updated header */}
-                  <th>Status</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
+              <thead><tr>
+                <th>Provider</th>
+                <th>Patient Name</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr></thead>
               <tbody>
-                {connections.map((connection) => (
-                  <tr key={connection.id}>
-                    <td>{connection.provider}</td>
-                    <td>{connection.patient_name}</td> {/* Updated data cell */}
-                      <td>{getStatusDisplay(connection.last_fetch_status, connection.last_fetched_at)}</td>
-                      <td>
-                        {/* Conditional Button for Refresh */}
-                        <Button
-                          variant="primary"
-                          disabled={connection.last_fetch_status === "PENDING"}
-                          onClick={() => handleConnectProvider(connection.id)}
-                        >
-                          Refresh
-                        </Button>
-                      </td>
+                {connections.map((connection) => (<React.Fragment key={connection.id}>
+                  <tr>
+                    <td>
+                      <div 
+                        className="provider-name-toggle"
+                        onClick={() => toggleProviderProgress(connection.id)}
+                        role="button"
+                      >
+                        {connection.provider}
+                        <span className="toggle-indicator">
+                          {expandedProviders.has(connection.id) ? '▼' : '▶'}
+                        </span>
+                      </div>
+                    </td>
+                    <td>{connection.patient_name}</td>
+                    <td>{getStatusDisplay(connection.last_fetch_status, connection.last_fetched_at)}</td>
+                    <td>
+                      <Button
+                        variant="primary"
+                        disabled={connection.last_fetch_status === "PENDING"}
+                        onClick={() => handleConnectProvider(connection.id)}
+                      >Refresh</Button>
+                    </td>
                   </tr>
-                ))}
+                  <tr className="progress-row">
+                    <td colSpan="4" className="p-0">
+                      <Collapse in={expandedProviders.has(connection.id)}>
+                        <div>
+                          <RefreshProgress providerId={connection.id} />
+                        </div>
+                      </Collapse>
+                    </td>
+                  </tr>
+                </React.Fragment>))}
               </tbody>
             </Table>
           )}
@@ -289,39 +616,33 @@ function AddProviders() {
                 <h5>Search Results</h5>
                 <div className="table-container">
                   <Table striped bordered hover>
-                    <thead>
-                      <tr>
-                        <th>Organization Name</th>
-                        <th>Parent Organization</th>
-                        <th className="address-cell">Location</th>
-                        <th>EHR System</th>
-                        <th>Action</th>
-                      </tr>
-                    </thead>
+                    <thead><tr>
+                      <th>Organization Name</th>
+                      <th>Parent Organization</th>
+                      <th className="address-cell">Location</th>
+                      <th>EHR System</th>
+                      <th>Action</th>
+                    </tr></thead>
                     <tbody>
-                      {searchResults.map((org) => (
-                        <tr key={org.org_id}>
-                          <td>{org.name}</td>
-                          <td>{org.parent_name || 'N/A'}</td>
-                          <td className="address-cell">
-                            <div className="address-main">{org.std_address}</div>
-                            <div className="address-secondary">
-                              {org.city}, {org.state} {org.zip}
-                            </div>
-                          </td>
-                          <td>{org.EHR_system || 'N/A'}</td>
-                          <td>
-                            <Button
-                              variant="primary"
-                              size="sm"
-                              className="action-button"
-                              onClick={() => handleConnectProvider(org.org_id)}
-                            >
-                              Connect
-                            </Button>
-                          </td>
-                        </tr>
-                      ))}
+                      {searchResults.map((org) => (<tr key={org.org_id}>
+                        <td>{org.name}</td>
+                        <td>{org.parent_name || 'N/A'}</td>
+                        <td className="address-cell">
+                          <div className="address-main">{org.std_address}</div>
+                          <div className="address-secondary">
+                            {org.city}, {org.state} {org.zip}
+                          </div>
+                        </td>
+                        <td>{org.EHR_system || 'N/A'}</td>
+                        <td>
+                          <Button
+                            variant="primary"
+                            size="sm"
+                            className="action-button"
+                            onClick={() => handleConnectProvider(org.org_id)}
+                          >Connect</Button>
+                        </td>
+                      </tr>))}
                     </tbody>
                   </Table>
                 </div>
