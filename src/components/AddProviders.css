@@ -408,4 +408,68 @@
   font-weight: 500;
 }
 
+/* Spinning animation for the main task icon */
+.task-spinner {
+  animation: spin 1s linear infinite;
+  color: #007bff;
+}
+
+/* Right-side progress animation */
+.task-progress-pulse {
+  display: inline-block;
+  color: #007bff;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+  0% { opacity: 0.4; }
+  50% { opacity: 1; }
+  100% { opacity: 0.4; }
+}
+
 /* ...rest of existing styles... */
+
+.task-status-icon {
+  display: flex;
+  align-items: center;
+  width: 20px;
+  justify-content: center;
+}
+
+.task-icon {
+  font-size: 0.875rem;
+}
+
+.task-icon.task-completed {
+  color: #28a745;
+}
+
+.task-icon.task-error {
+  color: #dc3545;
+}
+
+.task-icon.task-spinner {
+  color: #007bff;
+  animation: spin 1s linear infinite;
+}
+
+.task-icon.task-not-started {
+  color: #adb5bd;
+  opacity: 0.5;
+}
+
+.task-progress-pulse {
+  color: #007bff;
+  animation: pulse 1.5s ease-in-out infinite;
+  font-size: 0.875rem;
+}
+
+.task-in-progress {
+  color: #007bff;
+  font-weight: 500;
+}

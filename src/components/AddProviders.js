@@ -417,31 +417,39 @@ function AddProviders() {
           {EXPECTED_TASKS.map((expectedTask) => {
             const task = tasksMap[expectedTask.id];
             const isPending = !task;
-            const isInProgress = task?.status === 'PENDING';
+            const isInProgress = task?.status === 'PENDING' || task?.status === 'IN_PROGRESS';
+
             
             return (
               <div key={expectedTask.id} className="task-item">
                 <div 
-                  className={`task-main-row ${expectedTask.id === 'fetch_data' ? 'task-row-clickable' : ''} ${isPending ? 'task-pending' : ''}`}
+                  className={`task-main-row ${expectedTask.id === 'fetch_data' ? 'task-row-clickable' : ''}`}
                   onClick={expectedTask.id === 'fetch_data' ? () => toggleTaskDetails(expectedTask.id) : undefined}
                 >
-                  {task?.status === 'COMPLETED' && <FaCheck className="task-icon" />}
-                  {isInProgress && <FaSpinner className="task-icon task-spinner" />}
-                  {task?.status === 'ERROR' && <FaTimes className="task-icon task-error" />}
-                  {isPending && <FaSpinner className="task-icon task-not-started" />}
+                  <div className="task-status-icon">
+                    {task?.status === 'COMPLETED' && <FaCheck className="task-icon task-completed" />}
+                    {isInProgress && <FaSpinner className="task-icon task-spinner" />}
+                    {task?.status === 'ERROR' && <FaTimes className="task-icon task-error" />}
+                    {(!task || task.status === 'NOT_STARTED') && <FaSpinner className="task-icon task-not-started" />}
+                  </div>
                   <div className="task-name-container">
-                    <span className={isInProgress ? 'task-in-progress' : ''}>{expectedTask.display}</span>
+                    <span className={isInProgress ? 'task-in-progress' : ''}>
+                      {expectedTask.display}
+                    </span>
                     {expectedTask.id === 'fetch_data' && (
                       <span className="toggle-indicator task-toggle">
                         {expandedTasks.has(expectedTask.id) ? '▼' : '▶'}
                       </span>
                     )}
                   </div>
-                  <span className="task-duration">
-                    {(task?.status === 'COMPLETED' && task?.task_start && task?.task_end) && 
+                  <div className="task-duration">
+                    {isInProgress ? (
+                      <span className="task-progress-pulse">In Progress...</span>
+                    ) : (
+                      task?.status === 'COMPLETED' && task.task_start && task.task_end && 
                       `(took ${getTaskDuration(task.task_start, task.task_end)})`
-                    }
-                  </span>
+                    )}
+                  </div>
                 </div>
                 {expectedTask.id === 'fetch_data' && (
                   <Collapse in={expandedTasks.has(expectedTask.id)}>
