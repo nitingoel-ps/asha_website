@@ -200,12 +200,15 @@ function AddProviders() {
     }
   };
 
-  const handleWindowClosure = (providerId) => {
+  const handleWindowClosure = async (providerId) => {
     alert("OAuth window closed - starting data refresh polling");
     
     // Start both progress polling and connection status polling
     startPollingRefreshProgress(providerId);
     
+    // Immediately refresh connections
+    await refreshConnectionStatus();
+
     // Poll connection status every 5 seconds
     const statusTimer = setInterval(refreshConnectionStatus, 5000);
     
@@ -237,7 +240,7 @@ function AddProviders() {
 
       const pollTimer = setInterval(() => {
         try {
-          if (popupWindow.closed) {
+          if (!popupWindow || popupWindow.closed) {
             clearInterval(pollTimer);
             console.log("OAuth window closed");
             handleWindowClosure(providerId);

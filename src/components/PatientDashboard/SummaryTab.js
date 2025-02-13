@@ -24,7 +24,7 @@ function SummaryTab({ overallSummary = '', medications = { list: [] }, diagnosti
             <Card.Body>
               <Card.Title>Key Insights</Card.Title>
               <ul className="insights-list">
-                {keyInsights.insights.map((insight, index) => (
+                {(keyInsights?.insights || []).map((insight, index) => (
                   <OverlayTrigger
                     key={index}
                     placement="top"

@@ -7,6 +7,58 @@ import { fetchWithAuth } from "../../utils/fetchWithAuth";
 import 'katex/dist/katex.min.css';
 import { InlineMath, BlockMath } from 'react-katex';
 
+// Move processStreamingText to a more generic name since it handles both streaming and complete text
+const processThinkTags = (text) => {
+  const segments = [];
+  let currentIndex = 0;
+  let inThinkBlock = false;
+  let thinkContent = '';
+
+  while (currentIndex < text.length) {
+    const thinkStart = text.indexOf('<think>', currentIndex);
+    const thinkEnd = text.indexOf('</think>', currentIndex);
+
+    if (inThinkBlock) {
+      if (thinkEnd === -1) {
+        thinkContent += text.slice(currentIndex);
+        break;
+      } else {
+        thinkContent += text.slice(currentIndex, thinkEnd);
+        segments.push(`<span class="think-content">${thinkContent}</span>`);
+        currentIndex = thinkEnd + 8;
+        inThinkBlock = false;
+        thinkContent = '';
+      }
+    } else {
+      if (thinkStart === -1) {
+        segments.push(text.slice(currentIndex));
+        break;
+      } else {
+        if (thinkStart > currentIndex) {
+          segments.push(text.slice(currentIndex, thinkStart));
+        }
+        inThinkBlock = true;
+        currentIndex = thinkStart + 7;
+      }
+    }
+  }
+
+  return segments.join('');
+};
+
+// Update MessageContent component
+const MessageContent = ({ message, renderers }) => {
+  if (message.isThinkBlock) {
+    return <div className="think-content">{message.text}</div>;
+  }
+  
+  if (message.model?.output_type === "text") {
+    return <pre style={{ whiteSpace: 'pre-wrap', margin: 0 }}>{message.text}</pre>;
+  }
+  
+  return <ReactMarkdown components={renderers}>{message.text}</ReactMarkdown>;
+};
+
 function ChatTab({ 
   suggestedQuestions, 
   chatMessages, 
@@ -157,31 +209,83 @@ const renderers = useMemo(
 
       const reader = response.body.getReader();
       const decoder = new TextDecoder("utf-8");
-      let chunkedMessage = "";
+      let currentBuffer = "";
+      let inThinkBlock = false;
 
-    // Process the response stream
+      const updateMessages = (newContent, isThink = false) => {
+        setChatMessages((prevMessages) => {
+          const lastMessage = prevMessages[prevMessages.length - 1];
+          const isLastMessageMatchingType = lastMessage?.isThinkBlock === isThink;
+          
+          if (lastMessage?.isStreaming && isLastMessageMatchingType) {
+            // Update existing streaming message
+            return [
+              ...prevMessages.slice(0, -1),
+              {
+                type: "ai",
+                text: lastMessage.text + newContent,
+                isStreaming: true,
+                isThinkBlock: isThink,
+                model: selectedModel
+              }
+            ];
+          } else {
+            // Create new message
+            return [
+              ...prevMessages,
+              {
+                type: "ai",
+                text: newContent,
+                isStreaming: true,
+                isThinkBlock: isThink,
+                model: selectedModel
+              }
+            ];
+          }
+        });
+      };
+
+      // Process the response stream
       while (true) {
         const { value, done } = await reader.read();
         if (done) break;
 
         const chunk = decoder.decode(value, { stream: true });
-        chunkedMessage += chunk;
+        currentBuffer += chunk;
 
-        // Update the AI response incrementally
-        setChatMessages((prevMessages) => {
-          const lastMessage = prevMessages[prevMessages.length - 1];
-        // Check if the last message is AI's incomplete response
-          if (lastMessage?.type === "ai" && lastMessage?.isStreaming) {
-          // Update the last message
-            return [
-              ...prevMessages.slice(0, -1),
-              { type: "ai", text: chunkedMessage, isStreaming: true },
-            ];
+        while (currentBuffer.length > 0) {
+          if (inThinkBlock) {
+            const endIndex = currentBuffer.indexOf('</think>');
+            if (endIndex === -1) {
+              // Think block continues - update with current buffer
+              updateMessages(currentBuffer, true);
+              currentBuffer = '';
+            } else {
+              // Think block ends
+              const thinkContent = currentBuffer.slice(0, endIndex);
+              if (thinkContent.length > 0) {
+                updateMessages(thinkContent, true);
+              }
+              currentBuffer = currentBuffer.slice(endIndex + 8); // 8 is length of </think>
+              inThinkBlock = false;
+            }
           } else {
-          // Add a new AI message
-            return [...prevMessages, { type: "ai", text: chunkedMessage, isStreaming: true }];
+            const startIndex = currentBuffer.indexOf('<think>');
+            if (startIndex === -1) {
+              // No think block - regular content
+              updateMessages(currentBuffer);
+              currentBuffer = '';
+            } else {
+              // Found start of think block
+              if (startIndex > 0) {
+                // Process content before think block
+                updateMessages(currentBuffer.slice(0, startIndex));
+              }
+              currentBuffer = currentBuffer.slice(startIndex + 7); // 7 is length of <think>
+              inThinkBlock = true;
+            }
           }
-        });
+        }
       }
 
     // Mark the AI response as complete
@@ -260,9 +364,7 @@ const renderers = useMemo(
                 }`}
                 ref={message.type === "user" ? lastUserMessageRef : null}
               >
-                <ReactMarkdown components={renderers}>
-                  {message.text}
-                </ReactMarkdown>
+                <MessageContent message={message} renderers={renderers} />
               </div>
             ))}
             {isThinking && (
