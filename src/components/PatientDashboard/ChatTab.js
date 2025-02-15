@@ -7,6 +7,40 @@ import { fetchWithAuth } from "../../utils/fetchWithAuth";
 import 'katex/dist/katex.min.css';
 import { InlineMath, BlockMath } from 'react-katex';
 
+// Add these new persona-related constants
+const PERSONAS = [
+  {
+    id: 'record_keeper',
+    name: 'Mike (Record Keeping)',
+    icon: '📋',
+    description: 'I can help you find and understand information in your medical records.',
+    welcomeMessage: "Hi, my name is Mike. Can I help you find something in your records?",
+    suggestedQuestions: [
+      "Who was the last doctor I visited and when?",
+      "What were the results of my last lab test"
+    ]
+  },
+  {
+    id: 'note_taker',
+    name: 'Debby (the Nurse)',
+    icon: '👩‍⚕️',
+    description: 'I can help document your symptoms and provide basic health guidance.',
+    welcomeMessage: "Hi, I am Debby, are you experiencing any symptoms that I can note down for the doctor?",
+    suggestedQuestions: []
+  },
+  {
+    id: 'researcher',
+    name: 'Asha (the Research Agent)',
+    icon: '👩‍💻 ✨',
+    description: 'I can help research health topics and provide evidence-based information.',
+    welcomeMessage: "Hi, I am Asha. Are there any specific topics you would like me to research for you?",
+    suggestedQuestions: [
+      "What are best practices for reducing cholestrol",
+      "How can I reduce my blood glucose"
+    ]
+  }
+];
+
 // Move processStreamingText to a more generic name since it handles both streaming and complete text
 const processThinkTags = (text) => {
   const segments = [];
@@ -70,27 +104,47 @@ function ChatTab({
   const [currentMessage, setCurrentMessage] = useState("");
   const [models, setModels] = useState([]);
   const [selectedModel, setSelectedModel] = useState(null);
+  const [selectedPersona, setSelectedPersona] = useState(null);
   const [hasUserStartedChat, setHasUserStartedChat] = useState(false);
   const chatContainerRef = useRef(null);
   const lastUserMessageRef = useRef(null);
   const hasScrolledRef = useRef(false); // To ensure scroll happens only once per message
+
+  // Custom renderers for ReactMarkdown
+  // This object defines how different markdown elements should be rendered
   const renderers = {
+    // Ordered lists (<ol>) - Apply custom styling class
     ol: ({ children }) => <ol className="markdown-ol">{children}</ol>,
+
+    // Unordered lists (<ul>) - Apply custom styling class
     ul: ({ children }) => <ul className="markdown-ul">{children}</ul>,
+
+    // List items (<li>) - Apply custom styling class
     li: ({ children }) => <li className="markdown-li">{children}</li>,
+
+    // Paragraphs (<p>)
     p: ({ children }) => {
-      if (typeof children === 'string') {
-        return <p>{processText(children)}</p>;
-      }
+      // If the paragraph content is a plain string, process it for special content
+      // (like math expressions or references in square brackets)
+      //if (typeof children === 'string') {
+      //  return <p>{processText(children)}</p>;
+      //}
+      // If content is already React elements (like nested markdown), render as is
       return <p>{children}</p>;
     },
+
+    // Links (<a>)
     a: ({ children, href }) => (
       <a 
         href={href}
+        // Always open in new tab/window based on openInNewWindow prop
         target={openInNewWindow ? "_blank" : "_blank"}
+        // Security best practice for external links
         rel="noopener noreferrer"
         onClick={(e) => {
+          // Prevent default link behavior
           e.preventDefault();
+          // Custom window opening behavior
           window.open(href, '_blank', openInNewWindow ? 'noopener,noreferrer' : '');
         }}
       >
@@ -98,15 +152,7 @@ function ChatTab({
       </a>
     ),
   };
-  /*
 
-const renderers = useMemo(
-    () => ({
-      listItem: ({ children }) => <li>{children}</li>,
-    }),
-    []
-  );
-*/
   // Fetch available models on component mount
   useEffect(() => {
     const fetchModels = async () => {
@@ -127,6 +173,19 @@ const renderers = useMemo(
     };
     fetchModels();
   }, []);
+
+  // Initialize chat with welcome message when persona changes
+  useEffect(() => {
+    if (!hasUserStartedChat && selectedPersona) {
+      setChatMessages([
+        { 
+          type: "ai", 
+          text: selectedPersona.welcomeMessage,
+          model: selectedModel 
+        }
+      ]);
+    }
+  }, [selectedPersona, hasUserStartedChat]);
 
   // Scroll handling during AI response
   useEffect(() => {
@@ -164,7 +223,7 @@ const renderers = useMemo(
 
   // Handle sending a message
   const handleSendMessage = async (message) => {
-    if (!message.trim() || !selectedModel) return;
+    if (!message.trim() || !selectedModel || !selectedPersona) return;
 
     // Set flag when user sends their first message
     if (!hasUserStartedChat) {
@@ -199,7 +258,8 @@ const renderers = useMemo(
         model: {
           provider: selectedModel.provider,
           model_id: selectedModel.id
-        }
+        },
+        persona_id: selectedPersona.id // Add persona ID to request
       }), // Send formatted history
       });
 
@@ -312,22 +372,75 @@ const renderers = useMemo(
     }
   };
 
-  // Add this function to process text with math expressions
+  // Add this function to process text with math expressions and references
   const processText = (text) => {
     const parts = text.split(/(\[.*?\])/);
+    console.log('Split parts:', parts);
     return parts.map((part, index) => {
       if (part.startsWith('[') && part.endsWith(']')) {
-        // Extract the math expression without the brackets
-        const mathExpression = part.slice(1, -1);
+        const content = part.slice(1, -1);
+        console.log('Found bracketed content:', content);
+        
+        // Log reference check
+        const isNumericRef = /^\d+$/.test(content);
+        const isTextRef = content.startsWith('Ref:');
+        console.log('Reference checks:', {
+          content,
+          isNumericRef,
+          isTextRef,
+          'is reference?': isNumericRef || isTextRef
+        });
+
+        if (isNumericRef || isTextRef) {
+          console.log('Treating as reference:', content);
+          return <span key={index} className="reference">[{content}]</span>;
+        }
+        
+        console.log('Treating as math:', content);
         return (
           <BlockMath key={index}>
-            {mathExpression}
+            {content}
           </BlockMath>
         );
       }
       return part;
     });
   };
+
+  // Add persona selector component
+  const handlePersonaChange = (personaId) => {
+    const newPersona = PERSONAS.find(p => p.id === personaId);
+    setSelectedPersona(newPersona);
+    setHasUserStartedChat(false);
+    setChatMessages([]); // Clear chat history
+  };
+
+  const PersonaSelector = () => (
+    <div className="persona-selector mb-3">
+      <div className="d-flex align-items-center gap-3">
+        <label className="persona-label mb-0">Choose your agent:</label>
+        <div className="d-flex align-items-center flex-grow-1 gap-3">
+          <Form.Select
+            value={selectedPersona?.id || ''}
+            onChange={(e) => handlePersonaChange(e.target.value)}
+            className="persona-select"
+          >
+            <option value="">Select an agent...</option>
+            {PERSONAS.map(persona => (
+              <option key={persona.id} value={persona.id}>
+                {persona.icon} {persona.name}
+              </option>
+            ))}
+          </Form.Select>
+          {selectedPersona && (
+            <p className="persona-description text-muted mb-0 flex-grow-1">
+              {selectedPersona.description}
+            </p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
 
   // Only show suggested questions when no chat messages exist
   const showSuggestedQuestions = chatMessages.length === 0;
@@ -336,74 +449,82 @@ const renderers = useMemo(
     <>
       <Card className="chat-interface mb-4">
         <Card.Body>
-          {/* Suggested Questions - Only show before user starts chatting */}
-          {!hasUserStartedChat && (
-            <div className="suggested-questions mb-3">
-              <h6>Suggested Questions:</h6>
-              {suggestedQuestions.map((question, index) => (
-                <Button
-                  key={index}
-                  variant="outline-primary"
-                  className="me-2 mb-2 small-text"
-                  onClick={() => handleSendMessage(question)}
-                  disabled={isThinking}
-                >
-                  {question}
-                </Button>
-              ))}
-            </div>
-          )}
+          {/* Add PersonaSelector before chat area */}
+          <PersonaSelector />
+          
+          {/* Only show chat area if persona is selected */}
+          {selectedPersona && (
+            <>
+              {/* Suggested Questions - Only show before user starts chatting */}
+              {!hasUserStartedChat && (
+                <div className="suggested-questions mb-3">
+                  <h6>Suggested Questions:</h6>
+                  {selectedPersona.suggestedQuestions.map((question, index) => (
+                    <Button
+                      key={index}
+                      variant="outline-primary"
+                      className="me-2 mb-2 small-text"
+                      onClick={() => handleSendMessage(question)}
+                      disabled={isThinking}
+                    >
+                      {question}
+                    </Button>
+                  ))}
+                </div>
+              )}
 
-          {/* Chat Messages - Full height when suggestions are hidden */}
-          <div className={`chat-messages ${hasUserStartedChat ? 'chat-messages-full' : ''}`} ref={chatContainerRef}>
-            {chatMessages.map((message, index) => (
-              <div
-                key={index}
-                className={`chat-message ${
-                  message.type === "user" ? "text-end" : "text-start"
-                }`}
-                ref={message.type === "user" ? lastUserMessageRef : null}
-              >
-                <MessageContent message={message} renderers={renderers} />
-              </div>
-            ))}
-            {isThinking && (
-              <div className="chat-message text-start ai-message">
-                <span className="blinking-cursor">AI is thinking...</span>
-              </div>
-            )}
-          </div>
-
-          {/* Chat Input and Model Selector */}
-          <div className="chat-footer">
-            <InputGroup className="chat-input-container">
-              <Form.Control
-                as="textarea"
-                rows={1}
-                className="chat-input"
-                placeholder="Type your message..."
-                value={currentMessage}
-                onChange={(e) => setCurrentMessage(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleSendMessage(currentMessage)}
-                disabled={isThinking}
-              />
-            </InputGroup>
-            
-            <div className="model-selector-inline">
-              <Form.Select
-                size="sm"
-                value={selectedModel?.id || ''}
-                onChange={(e) => setSelectedModel(models.find(m => m.id === e.target.value))}
-                disabled={isThinking}
-              >
-                {models.map((model) => (
-                  <option key={model.id} value={model.id}>
-                    {model.name}
-                  </option>
+              {/* Chat Messages - Full height when suggestions are hidden */}
+              <div className={`chat-messages ${hasUserStartedChat ? 'chat-messages-full' : ''}`} ref={chatContainerRef}>
+                {chatMessages.map((message, index) => (
+                  <div
+                    key={index}
+                    className={`chat-message ${
+                      message.type === "user" ? "text-end" : "text-start"
+                    }`}
+                    ref={message.type === "user" ? lastUserMessageRef : null}
+                  >
+                    <MessageContent message={message} renderers={renderers} />
+                  </div>
                 ))}
-              </Form.Select>
-            </div>
-          </div>
+                {isThinking && (
+                  <div className="chat-message text-start ai-message">
+                    <span className="blinking-cursor">AI is thinking...</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Chat Input and Model Selector */}
+              <div className="chat-footer">
+                <InputGroup className="chat-input-container">
+                  <Form.Control
+                    as="textarea"
+                    rows={1}
+                    className="chat-input"
+                    placeholder="Type your message..."
+                    value={currentMessage}
+                    onChange={(e) => setCurrentMessage(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleSendMessage(currentMessage)}
+                    disabled={isThinking}
+                  />
+                </InputGroup>
+                
+                <div className="model-selector-inline">
+                  <Form.Select
+                    size="sm"
+                    value={selectedModel?.id || ''}
+                    onChange={(e) => setSelectedModel(models.find(m => m.id === e.target.value))}
+                    disabled={isThinking}
+                  >
+                    {models.map((model) => (
+                      <option key={model.id} value={model.id}>
+                        {model.name}
+                      </option>
+                    ))}
+                  </Form.Select>
+                </div>
+              </div>
+            </>
+          )}
         </Card.Body>
       </Card>
     </>

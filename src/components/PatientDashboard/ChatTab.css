@@ -262,3 +262,36 @@
   margin-bottom: 15px;
   border-bottom: 1px solid #eee;
 }
+
+/* Add new styles for persona selector */
+.persona-selector {
+  border-bottom: 1px solid #eee;
+  padding-bottom: 1rem;
+}
+
+.persona-label {
+  font-weight: 600;
+  min-width: fit-content;
+  color: #495057;
+}
+
+.persona-select {
+  min-width: 200px;
+  max-width: 300px;
+}
+
+.persona-description {
+  margin: 0;
+  padding-left: 1rem;
+  border-left: 2px solid #eee;
+}
+
+/* Reference styling */
+.reference {
+  color: #0066cc;
+  font-size: 0.9em;
+  font-weight: 500;
+  vertical-align: super;
+  line-height: 0;
+  padding: 0 1px;
+}
