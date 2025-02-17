@@ -1,4 +1,3 @@
-// src/App.js
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -41,6 +40,8 @@ function AppContent() {
           }
         />
         <Route path="/patient-dashboard" element={<PatientDashboard />} />
+        <Route path="/patient-dashboard/:tab" element={<PatientDashboard />} />
+        <Route path="/patient-dashboard/medical-reports/:reportId" element={<PatientDashboard />} />
         <Route path="/my-documents" element={<MyDocuments />} />
       </Routes>
     </>

@@ -14,14 +14,15 @@ import SummaryTab from "./PatientDashboard/SummaryTab";
 import ImmunizationsTab from "./PatientDashboard/ImmunizationsTab";
 import MedicalReportsTab from "./PatientDashboard/MedicalReportsTab";
 import axiosInstance from "../utils/axiosInstance";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import "../styles/PatientDashboard.css";
 
 function PatientDashboard() {
+  const { tab, reportId } = useParams();
   const [patientData, setPatientData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [activeTab, setActiveTab] = useState("summary"); // Set Chat as the default tab
+  const [activeTab, setActiveTab] = useState(tab || "summary");
   const [chatMessages, setChatMessages] = useState([
     {
       type: "ai",
@@ -30,13 +31,13 @@ function PatientDashboard() {
     },
   ]);
   const [isThinking, setIsThinking] = useState(false);
-  const [selectedReportId, setSelectedReportId] = useState(null); // Add this new state
+  const [selectedReportId, setSelectedReportId] = useState(reportId || null);
   const navigate = useNavigate();
 
-  // Add this new handler function
   const handleNavigateToReport = (reportId) => {
     setSelectedReportId(reportId);
     setActiveTab("diagnostic-reports");
+    navigate(`/patient-dashboard/diagnostic-reports/${reportId}`);
   };
 
   useEffect(() => {
@@ -99,13 +100,13 @@ function PatientDashboard() {
           medications={patientData.medication_requsts}
           diagnosticReports={patientData.diagnostic_reports}
           charts={patientData.important_charts}
-          onNavigateToReport={handleNavigateToReport} // Add this prop
-          keyInsights={patientData.key_insights} // Add this prop
+          onNavigateToReport={handleNavigateToReport}
+          keyInsights={patientData.key_insights}
         />;
       case "encounters":
         return <EncountersTab 
           encounters={patientData.encounters} 
-          onNavigateToReport={handleNavigateToReport}  // Add this prop
+          onNavigateToReport={handleNavigateToReport}
         />;
       case "vital-signs":
         return <VitalSignsTab vitals={patientData.vitals} />;
@@ -114,7 +115,7 @@ function PatientDashboard() {
       case "diagnostic-reports":
         return <DiagnosticReportsTab 
           diagnosticReports={patientData.diagnostic_reports}
-          initialReportId={selectedReportId} // Add this prop
+          initialReportId={selectedReportId}
         />;
       case "medical-reports":
         return <MedicalReportsTab diagnosticReports={patientData.diagnostic_reports} />;
