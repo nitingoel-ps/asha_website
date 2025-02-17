@@ -12,6 +12,7 @@ import EncountersTab from "./PatientDashboard/EncountersTab";
 import VitalSignsTab from "./PatientDashboard/VitalSignsTab";
 import SummaryTab from "./PatientDashboard/SummaryTab";
 import ImmunizationsTab from "./PatientDashboard/ImmunizationsTab";
+import MedicalReportsTab from "./PatientDashboard/MedicalReportsTab";
 import axiosInstance from "../utils/axiosInstance";
 import { useNavigate } from "react-router-dom";
 import "../styles/PatientDashboard.css";
@@ -115,6 +116,8 @@ function PatientDashboard() {
           diagnosticReports={patientData.diagnostic_reports}
           initialReportId={selectedReportId} // Add this prop
         />;
+      case "medical-reports":
+        return <MedicalReportsTab diagnosticReports={patientData.diagnostic_reports} />;
       case "charts":
         return <ChartsTab chartData={patientData.important_charts} />;
       case "procedures":
@@ -141,22 +144,25 @@ function PatientDashboard() {
         <Card.Body className="d-flex p-0" style={{ width: '100%', height: '100%' }}>
           <div className="left-nav">
             <div className={`nav-item ${activeTab === "summary" ? "active" : ""}`} onClick={() => setActiveTab("summary")}>
-              <MessageCircle size={16} /> Chat {/* Change icon to MessageCircle */}
+              <MessageCircle size={16} /> Chat
             </div>
             <div className={`nav-item ${activeTab === "dashboard-summary" ? "active" : ""}`} onClick={() => setActiveTab("dashboard-summary")}>
-              <BarChart2 size={16} /> Summary {/* Change icon to BarChart2 */}
+              <BarChart2 size={16} /> Summary
             </div>
             <div className={`nav-item ${activeTab === "encounters" ? "active" : ""}`} onClick={() => setActiveTab("encounters")}>
               <Microscope size={16} /> Encounters
             </div>
             <div className={`nav-item ${activeTab === "vital-signs" ? "active" : ""}`} onClick={() => setActiveTab("vital-signs")}>
-              <Heart size={16} /> Vital Signs {/* Change icon to Heart */}
+              <Heart size={16} /> Vital Signs
             </div>
             <div className={`nav-item ${activeTab === "immunizations" ? "active" : ""}`} onClick={() => setActiveTab("immunizations")}>
               <Syringe size={16} /> Immunizations
             </div>
             <div className={`nav-item ${activeTab === "diagnostic-reports" ? "active" : ""}`} onClick={() => setActiveTab("diagnostic-reports")}>
               <Microscope size={16} /> Diagnostic Reports
+            </div>
+            <div className={`nav-item ${activeTab === "medical-reports" ? "active" : ""}`} onClick={() => setActiveTab("medical-reports")}>
+              <FileText size={16} /> Medical Reports
             </div>
             <div className={`nav-item ${activeTab === "charts" ? "active" : ""}`} onClick={() => setActiveTab("charts")}>
               <Clipboard size={16} /> Key Lab Results

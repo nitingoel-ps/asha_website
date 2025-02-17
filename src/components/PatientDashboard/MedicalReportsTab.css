@@ -1,0 +1,145 @@
+.reports-header {
+  padding: 12px 24px;
+  background-color: #fff;
+  border-bottom: 1px solid #E2E8F0;
+}
+
+.reports-header h2 {
+  font-size: 1.5rem;
+  line-height: 1.2;
+}
+
+.reports-header p {
+  font-size: 0.875rem;
+}
+
+.timeline-container {
+  position: relative;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  height: calc(100vh - 300px);
+  overflow-y: auto;
+  padding-bottom: 40px;
+}
+
+.grid-container {
+  height: calc(100vh - 300px);
+  overflow-y: auto;
+  padding: 20px;
+  padding-bottom: 100px;
+}
+
+/* Card height constraints */
+.grid-container .card,
+.timeline-container .card {
+  height: 150px;
+  min-height: unset;
+}
+
+/* Add smooth scrolling to the containers */
+.timeline-container,
+.grid-container {
+  scrollbar-width: thin;
+  scrollbar-color: #CBD5E0 #F7FAFC;
+}
+
+/* Webkit scrollbar styling */
+.timeline-container::-webkit-scrollbar,
+.grid-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.timeline-container::-webkit-scrollbar-track,
+.grid-container::-webkit-scrollbar-track {
+  background: #F7FAFC;
+}
+
+.timeline-container::-webkit-scrollbar-thumb,
+.grid-container::-webkit-scrollbar-thumb {
+  background-color: #CBD5E0;
+  border-radius: 4px;
+}
+
+.timeline-year {
+  margin-bottom: 40px;
+}
+
+.timeline-year-header {
+  position: sticky;
+  top: 0;
+  background-color: #fff;
+  padding: 10px 0;
+  margin-bottom: 20px;
+  z-index: 10;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #2D3748;
+}
+
+.timeline-month {
+  margin-left: 40px;
+  margin-bottom: 30px;
+  position: relative;
+}
+
+.timeline-month::before {
+  content: '';
+  position: absolute;
+  left: -2px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background-color: #E8F5E9;
+}
+
+.timeline-month-header {
+  margin-bottom: 20px;
+  color: #4A5568;
+  font-size: 1.2rem;
+}
+
+.timeline-reports {
+  position: relative;
+}
+
+.timeline-report {
+  position: relative;
+  margin-bottom: 20px;
+  padding-left: 30px;
+}
+
+.timeline-marker {
+  position: absolute;
+  left: -5px;
+  top: 50%;
+  width: 12px;
+  height: 12px;
+  background-color: #4CAF50;
+  border: 3px solid #E8F5E9;
+  border-radius: 50%;
+  transform: translateY(-50%);
+  z-index: 1;
+}
+
+/* Animation classes */
+.fade-enter {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.fade-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 300ms, transform 300ms;
+}
+
+.fade-exit {
+  opacity: 1;
+}
+
+.fade-exit-active {
+  opacity: 0;
+  transform: translateY(-20px);
+  transition: opacity 300ms, transform 300ms;
+} 

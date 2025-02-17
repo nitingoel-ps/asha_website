@@ -1,0 +1,180 @@
+.medical-report-detail {
+  padding: 24px;
+  background-color: #fff;
+  animation: fadeIn 0.3s ease-out;
+  max-width: 1600px;
+  margin: 0 auto;
+  height: calc(100vh - 300px);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #CBD5E0 #F7FAFC;
+}
+
+.medical-report-detail::-webkit-scrollbar {
+  width: 8px;
+}
+
+.medical-report-detail::-webkit-scrollbar-track {
+  background: #F7FAFC;
+}
+
+.medical-report-detail::-webkit-scrollbar-thumb {
+  background-color: #CBD5E0;
+  border-radius: 4px;
+}
+
+.back-button {
+  color: #4A5568;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.back-button:hover {
+  color: #2D3748;
+  text-decoration: none;
+}
+
+.report-badge {
+  background-color: #EBF8FF;
+  color: #3182CE;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.report-title {
+  color: #2D3748;
+  font-size: 1.75rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.report-summary {
+  color: #4A5568;
+  font-size: 1rem;
+  line-height: 1.5;
+  margin: 0;
+  max-width: 800px;
+}
+
+.report-meta {
+  display: flex;
+  gap: 2rem;
+  color: #4A5568;
+  font-size: 0.9rem;
+  border-top: 1px solid #E2E8F0;
+  padding-top: 1rem;
+  margin-top: 1rem;
+}
+
+.meta-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.meta-icon {
+  font-size: 1.1rem;
+}
+
+.observations-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+}
+
+.observation-item {
+  background: #fff;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  padding: 1.5rem;
+  min-width: 380px;
+}
+
+.observation-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.5rem;
+}
+
+.observation-name {
+  color: #2D3748;
+  font-size: 1.1rem;
+  font-weight: 500;
+  margin: 0;
+}
+
+.status-badge {
+  font-size: 0.75rem;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  font-weight: 500;
+}
+
+.status-badge.normal {
+  background-color: #E8F5E9;
+  color: #4CAF50;
+}
+
+.status-badge.abnormal {
+  background-color: #FED7D7;
+  color: #C53030;
+}
+
+.observation-content {
+  margin-top: 0.5rem;
+}
+
+.value-display {
+  display: flex;
+  align-items: baseline;
+  gap: 0.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.value {
+  font-size: 2.5rem;
+  font-weight: 600;
+  color: #2D3748;
+  line-height: 1;
+}
+
+.unit {
+  color: #4A5568;
+  font-size: 1.25rem;
+  font-weight: 500;
+}
+
+.normal-range {
+  color: #718096;
+  font-size: 0.9rem;
+  margin-top: 0.25rem;
+}
+
+.narrative-text {
+  color: #4A5568;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.observation-explanation {
+  margin-top: 1rem;
+  color: #718096;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+} 

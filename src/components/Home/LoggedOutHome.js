@@ -1,14 +1,55 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Button, Container, Row, Col, Card } from 'react-bootstrap';
+import { Button, Container, Row, Col, Card, Form, Alert } from 'react-bootstrap';
 import NeuralNetwork from './NeuralNetwork';
 import './Home.css';
 //import happyCoupleImage from '../../assets/images/happy_people.png';
 //import happyCoupleImage from '../../assets/images/hero-consultation.jpg';
 import happyCoupleImage from '../../assets/images/doc_office.png';
 import { BsDatabase, BsChatDots, BsLightbulb, BsShare } from 'react-icons/bs';
+import axiosInstance from '../../utils/axiosInstance';
 
 function LoggedOutHome() {
+  const [formData, setFormData] = useState({
+    name: '',
+    email: ''
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [submitError, setSubmitError] = useState('');
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prevState => ({
+      ...prevState,
+      [name]: value
+    }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setSubmitError('');
+    setSubmitSuccess(false);
+    
+    try {
+      const response = await axiosInstance.post('/join_waitlist/', formData);
+      
+      if (response.status === 200 || response.status === 201) {
+        setSubmitSuccess(true);
+        setFormData({ name: '', email: '' }); // Reset form
+      }
+    } catch (error) {
+      console.error('Waitlist submission error:', error);
+      setSubmitError(
+        error.response?.data?.message || 
+        'Failed to join waitlist. Please try again.'
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <div>
       {/* Hero Section */}
@@ -168,20 +209,58 @@ function LoggedOutHome() {
       {/* Join Waitlist Section */}
       <section className="waitlist-section">
         <Container className="text-center">
-          <h2 className="mb-4">Ready to Take Control of Your Health?</h2>
+          <h1 className="display-4 mb-4">Join the Waitlist</h1>
           <p className="lead mb-5">
-            Join thousands of others who are already managing their health data smarter.
+            Be among the first to experience the future of personal health management.
           </p>
-          <Button 
-            variant="info" 
-            size="lg" 
-            as={Link} 
-            to="/register"
-            className="px-5"
-            style={{ backgroundColor: '#00CED1', borderColor: '#00CED1' }}
-          >
-            Get Started Now
-          </Button>
+          <Row className="justify-content-center">
+            <Col md={6}>
+              <Form onSubmit={handleSubmit}>
+                <Form.Group className="mb-3">
+                  <Form.Control
+                    type="text"
+                    placeholder="Name"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleInputChange}
+                    required
+                    size="lg"
+                  />
+                </Form.Group>
+                <Form.Group className="mb-4">
+                  <Form.Control
+                    type="email"
+                    placeholder="Email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    required
+                    size="lg"
+                  />
+                </Form.Group>
+                <Button 
+                  variant="info" 
+                  size="lg" 
+                  type="submit"
+                  className="px-5 w-100"
+                  style={{ backgroundColor: '#00CED1', borderColor: '#00CED1' }}
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? 'Joining...' : 'Join Waitlist'}
+                </Button>
+              </Form>
+              {submitSuccess && (
+                <Alert variant="success" className="mt-3">
+                  Thank you for joining our waitlist! We'll keep you updated on our progress.
+                </Alert>
+              )}
+              {submitError && (
+                <Alert variant="danger" className="mt-3">
+                  {submitError}
+                </Alert>
+              )}
+            </Col>
+          </Row>
         </Container>
       </section>
     </div>
