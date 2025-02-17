@@ -1,0 +1,156 @@
+.visit-detail {
+  padding: 24px;
+  background-color: #fff;
+  animation: fadeIn 0.3s ease-out;
+  max-width: 1600px;
+  margin: 0 auto;
+  height: calc(100vh - 300px);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #CBD5E0 #F7FAFC;
+}
+
+.visit-detail::-webkit-scrollbar {
+  width: 8px;
+}
+
+.visit-detail::-webkit-scrollbar-track {
+  background: #F7FAFC;
+}
+
+.visit-detail::-webkit-scrollbar-thumb {
+  background-color: #CBD5E0;
+  border-radius: 4px;
+}
+
+.back-button {
+  color: #4A5568;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.back-button:hover {
+  color: #2D3748;
+  text-decoration: none;
+}
+
+.visit-badge {
+  background-color: #E6F6FF;
+  color: #0086C9;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.visit-title {
+  color: #2D3748;
+  font-size: 1.75rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.visit-meta {
+  display: flex;
+  gap: 2rem;
+  color: #4A5568;
+  font-size: 0.9rem;
+  border-top: 1px solid #E2E8F0;
+  padding-top: 1rem;
+  margin-top: 1rem;
+}
+
+.meta-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.visit-summary {
+  background: #F7FAFC;
+  padding: 1.5rem;
+  border-radius: 8px;
+}
+
+.visit-summary h3 {
+  color: #2D3748;
+  font-size: 1.25rem;
+  margin-bottom: 1rem;
+}
+
+.visit-summary p {
+  color: #4A5568;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.visit-reports h3,
+.visit-documents h3 {
+  color: #2D3748;
+  font-size: 1.25rem;
+  margin-bottom: 1rem;
+}
+
+.report-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.report-link {
+  color: #3182CE;
+  text-decoration: none;
+  padding: 0.5rem 1rem;
+  background: #EBF8FF;
+  border-radius: 4px;
+  font-size: 0.875rem;
+}
+
+.report-link:hover {
+  background: #BEE3F8;
+  color: #2C5282;
+}
+
+/* Tab styling */
+.nav-tabs {
+  border-bottom: 1px solid #E2E8F0;
+}
+
+.nav-tabs .nav-link {
+  color: #4A5568;
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+}
+
+.nav-tabs .nav-link:hover {
+  border-color: transparent;
+  color: #2D3748;
+}
+
+.nav-tabs .nav-link.active {
+  color: #3182CE;
+  border-bottom: 2px solid #3182CE;
+  background: transparent;
+}
+
+.tab-content {
+  padding: 1.5rem;
+  background: #F7FAFC;
+  border-radius: 0 0 8px 8px;
+  min-height: 200px;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

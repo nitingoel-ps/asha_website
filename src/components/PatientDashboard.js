@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Card, Container, Spinner } from "react-bootstrap";
-import { Activity, Pill, FileText, Clipboard, Microscope, Syringe, MessageCircle, BarChart2, Heart } from "lucide-react"; // Import new icons
+import { Activity, Pill, FileText, Clipboard, Microscope, Syringe, MessageCircle, BarChart2, Heart, Calendar } from "lucide-react"; // Import new icons
 import ConditionsTab from "./PatientDashboard/ConditionsTab";
 import ChartsTab from "./PatientDashboard/ChartsTab";
 import ProceduresTab from "./PatientDashboard/ProceduresTab";
@@ -9,6 +9,7 @@ import DiagnosticReportsTab from "./PatientDashboard/DiagnosticReportsTab";
 import ObservationsTab from "./PatientDashboard/ObservationsTab";
 import ChatTab from "./PatientDashboard/ChatTab";
 import EncountersTab from "./PatientDashboard/EncountersTab";
+import VisitsTab from "./PatientDashboard/Visits/VisitsTab";
 import VitalSignsTab from "./PatientDashboard/VitalSignsTab";
 import SummaryTab from "./PatientDashboard/SummaryTab";
 import ImmunizationsTab from "./PatientDashboard/ImmunizationsTab";
@@ -18,7 +19,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import "../styles/PatientDashboard.css";
 
 function PatientDashboard() {
-  const { tab, reportId } = useParams();
+  const { tab, reportId, visitId } = useParams(); // Add visitId to destructuring
   const [patientData, setPatientData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -63,10 +64,12 @@ function PatientDashboard() {
     if (reportId) {
       setActiveTab('medical-reports');
       setSelectedReportId(reportId);
+    } else if (visitId) { // Add this check
+      setActiveTab('visits');
     } else if (tab) {
       setActiveTab(tab);
     }
-  }, [tab, reportId]);
+  }, [tab, reportId, visitId]); // Add visitId to dependencies
 
   if (loading) {
     return (
@@ -144,6 +147,8 @@ function PatientDashboard() {
           return <ConditionsTab conditions={patientData.conditions} />;
         case "observations":
         return <ObservationsTab observations={patientData.all_observations} />;
+      case "visits":
+        return <VisitsTab encounters={patientData.encounters} />;
       default:
         return null;
     }
@@ -232,6 +237,12 @@ function PatientDashboard() {
               onClick={() => handleTabChange("observations")}
             >
               <Microscope size={16} /> All Labs
+            </div>
+            <div 
+              className={`nav-item ${activeTab === "visits" ? "active" : ""}`} 
+              onClick={() => handleTabChange("visits")}
+            >
+              <Calendar size={16} /> Visits
             </div>
           </div>
           <div className="main-display">

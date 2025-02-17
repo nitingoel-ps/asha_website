@@ -9,20 +9,10 @@ function MedicalReportDetail({ report, onBack }) {
 
   return (
     <div className="medical-report-detail">
-      <div className="mb-4">
-        <Button 
-          variant="link" 
-          className="back-button"
-          onClick={onBack}
-        >
-          <ArrowLeft size={16} />
-          Back to Reports
-        </Button>
-      </div>
 
       <div className="report-header mb-5">
-        <span className="report-badge">{reportType}</span>
         <h2 className="report-title mt-3">{report.report_name}</h2>
+        <span className="report-badge">{reportType}</span>
         
         {report.report_summary && (
           <p className="report-summary mt-2">
