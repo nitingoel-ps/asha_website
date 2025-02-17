@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Card, Container, Button, Row, Col } from 'react-bootstrap';
 import { Grid, Clock } from 'lucide-react';
 import MedicalReportCard from './MedicalReports/MedicalReportCard';
@@ -6,6 +7,8 @@ import MedicalReportDetail from './MedicalReports/MedicalReportDetail';
 import './MedicalReportsTab.css';
 
 function MedicalReportsTab({ diagnosticReports }) {
+  const navigate = useNavigate();
+  const { reportId } = useParams();
   const [selectedReport, setSelectedReport] = useState(null);
   const [view, setView] = useState("grid"); // "grid" or "timeline"
 
@@ -29,11 +32,36 @@ function MedicalReportsTab({ diagnosticReports }) {
 
   const groupedReports = groupReportsByDate(diagnosticReports.list);
 
+  useEffect(() => {
+    // Load report from URL parameter
+    if (reportId && diagnosticReports?.list) {
+      const report = diagnosticReports.list.find(r => r.id.toString() === reportId.toString());
+      if (report) {
+        setSelectedReport(report);
+      } else {
+        // Handle case when report is not found
+        navigate('/patient-dashboard/medical-reports');
+      }
+    } else {
+      setSelectedReport(null);
+    }
+  }, [reportId, diagnosticReports, navigate]);
+
+  const handleReportSelect = (report) => {
+    setSelectedReport(report);
+    navigate(`/patient-dashboard/medical-reports/${report.id}`);
+  };
+
+  const handleBack = () => {
+    setSelectedReport(null);
+    navigate('/patient-dashboard/medical-reports');
+  };
+
   if (selectedReport) {
     return (
       <MedicalReportDetail 
         report={selectedReport} 
-        onBack={() => setSelectedReport(null)} 
+        onBack={handleBack} 
       />
     );
   }
@@ -74,7 +102,7 @@ function MedicalReportsTab({ diagnosticReports }) {
               <Col key={report.id}>
                 <MedicalReportCard
                   report={report}
-                  onClick={() => setSelectedReport(report)}
+                  onClick={() => handleReportSelect(report)}
                 />
               </Col>
             ))}
@@ -100,7 +128,7 @@ function MedicalReportsTab({ diagnosticReports }) {
                             <div className="timeline-marker"></div>
                             <MedicalReportCard
                               report={report}
-                              onClick={() => setSelectedReport(report)}
+                              onClick={() => handleReportSelect(report)}
                             />
                           </div>
                         ))}
@@ -115,4 +143,4 @@ function MedicalReportsTab({ diagnosticReports }) {
   );
 }
 
-export default MedicalReportsTab; 
+export default MedicalReportsTab;

@@ -1,13 +1,15 @@
 import React, { useState, useRef } from "react";
 import { Card, ListGroup, Button, Row, Col } from "react-bootstrap";
+import { useNavigate } from "react-router-dom";
 import axiosInstance from "../../utils/axiosInstance";
 import { format } from "date-fns";
 import './EncountersTab.css';
 import HorizontalTimeline from './HorizontalTimeline';
 
-function EncountersTab({ encounters = [], onNavigateToReport }) {
+function EncountersTab({ encounters = [] }) {
   const [contentType, setContentType] = useState("");
   const encounterRefs = useRef({});
+  const navigate = useNavigate();
 
   const scrollToEncounter = (encounterId) => {
     encounterRefs.current[encounterId]?.scrollIntoView({
@@ -64,6 +66,10 @@ function EncountersTab({ encounters = [], onNavigateToReport }) {
     } else {
       return `From ${formattedStartDate} at ${formattedStartTime} to ${format(endDate, "MMM dd, yyyy")} at ${formattedEndTime}`;
     }
+  };
+
+  const handleLabReportClick = (reportId) => {
+    navigate(`/patient-dashboard/medical-reports/${reportId}`);
   };
 
   return (
@@ -124,7 +130,7 @@ function EncountersTab({ encounters = [], onNavigateToReport }) {
                           <Button
                             key={report.id}
                             variant="link"
-                            onClick={() => onNavigateToReport(report.id)}
+                            onClick={() => handleLabReportClick(report.id)}
                             className="document-button"
                           >
                             {report.report_name}
