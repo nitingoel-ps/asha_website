@@ -14,14 +14,15 @@ import SummaryTab from "./PatientDashboard/SummaryTab";
 import ImmunizationsTab from "./PatientDashboard/ImmunizationsTab";
 import MedicalReportsTab from "./PatientDashboard/MedicalReportsTab";
 import axiosInstance from "../utils/axiosInstance";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import "../styles/PatientDashboard.css";
 
 function PatientDashboard() {
+  const { tab, reportId } = useParams();
   const [patientData, setPatientData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [activeTab, setActiveTab] = useState("summary"); // Set Chat as the default tab
+  const [activeTab, setActiveTab] = useState(tab || "summary");
   const [chatMessages, setChatMessages] = useState([
     {
       type: "ai",
@@ -30,13 +31,13 @@ function PatientDashboard() {
     },
   ]);
   const [isThinking, setIsThinking] = useState(false);
-  const [selectedReportId, setSelectedReportId] = useState(null); // Add this new state
+  const [selectedReportId, setSelectedReportId] = useState(reportId || null);
   const navigate = useNavigate();
 
-  // Add this new handler function
   const handleNavigateToReport = (reportId) => {
     setSelectedReportId(reportId);
     setActiveTab("diagnostic-reports");
+    navigate(`/patient-dashboard/diagnostic-reports/${reportId}`);
   };
 
   useEffect(() => {
@@ -56,6 +57,16 @@ function PatientDashboard() {
         setLoading(false);
       });
   }, [navigate]);
+
+  useEffect(() => {
+    // If there's a reportId in the URL, set the tab to medical-reports
+    if (reportId) {
+      setActiveTab('medical-reports');
+      setSelectedReportId(reportId);
+    } else if (tab) {
+      setActiveTab(tab);
+    }
+  }, [tab, reportId]);
 
   if (loading) {
     return (
@@ -82,6 +93,11 @@ function PatientDashboard() {
     );
   }
 
+  const handleTabChange = (newTab) => {
+    setActiveTab(newTab);
+    navigate(`/patient-dashboard/${newTab}`);
+  };
+
   const renderTabContent = () => {
     switch (activeTab) {
       case "summary":
@@ -99,13 +115,13 @@ function PatientDashboard() {
           medications={patientData.medication_requsts}
           diagnosticReports={patientData.diagnostic_reports}
           charts={patientData.important_charts}
-          onNavigateToReport={handleNavigateToReport} // Add this prop
-          keyInsights={patientData.key_insights} // Add this prop
+          onNavigateToReport={handleNavigateToReport}
+          keyInsights={patientData.key_insights}
         />;
       case "encounters":
         return <EncountersTab 
           encounters={patientData.encounters} 
-          onNavigateToReport={handleNavigateToReport}  // Add this prop
+          onNavigateToReport={handleNavigateToReport}
         />;
       case "vital-signs":
         return <VitalSignsTab vitals={patientData.vitals} />;
@@ -114,7 +130,7 @@ function PatientDashboard() {
       case "diagnostic-reports":
         return <DiagnosticReportsTab 
           diagnosticReports={patientData.diagnostic_reports}
-          initialReportId={selectedReportId} // Add this prop
+          initialReportId={selectedReportId}
         />;
       case "medical-reports":
         return <MedicalReportsTab diagnosticReports={patientData.diagnostic_reports} />;
@@ -143,40 +159,78 @@ function PatientDashboard() {
         </Card.Header>
         <Card.Body className="d-flex p-0" style={{ width: '100%', height: '100%' }}>
           <div className="left-nav">
-            <div className={`nav-item ${activeTab === "summary" ? "active" : ""}`} onClick={() => setActiveTab("summary")}>
+            <div 
+              className={`nav-item ${activeTab === "summary" ? "active" : ""}`} 
+              onClick={() => handleTabChange("summary")}
+            >
               <MessageCircle size={16} /> Chat
             </div>
-            <div className={`nav-item ${activeTab === "dashboard-summary" ? "active" : ""}`} onClick={() => setActiveTab("dashboard-summary")}>
+            <div 
+              className={`nav-item ${activeTab === "dashboard-summary" ? "active" : ""}`} 
+              onClick={() => handleTabChange("dashboard-summary")}
+            >
               <BarChart2 size={16} /> Summary
             </div>
-            <div className={`nav-item ${activeTab === "encounters" ? "active" : ""}`} onClick={() => setActiveTab("encounters")}>
+            <div 
+              className={`nav-item ${activeTab === "encounters" ? "active" : ""}`} 
+              onClick={() => handleTabChange("encounters")}
+            >
               <Microscope size={16} /> Encounters
             </div>
-            <div className={`nav-item ${activeTab === "vital-signs" ? "active" : ""}`} onClick={() => setActiveTab("vital-signs")}>
+            <div 
+              className={`nav-item ${activeTab === "vital-signs" ? "active" : ""}`} 
+              onClick={() => handleTabChange("vital-signs")}
+            >
               <Heart size={16} /> Vital Signs
             </div>
-            <div className={`nav-item ${activeTab === "immunizations" ? "active" : ""}`} onClick={() => setActiveTab("immunizations")}>
+            <div 
+              className={`nav-item ${activeTab === "immunizations" ? "active" : ""}`} 
+              onClick={() => handleTabChange("immunizations")}
+            >
               <Syringe size={16} /> Immunizations
             </div>
-            <div className={`nav-item ${activeTab === "diagnostic-reports" ? "active" : ""}`} onClick={() => setActiveTab("diagnostic-reports")}>
+            {/*
+            <div 
+              className={`nav-item ${activeTab === "diagnostic-reports" ? "active" : ""}`} 
+              onClick={() => handleTabChange("diagnostic-reports")}
+            >
               <Microscope size={16} /> Diagnostic Reports
             </div>
-            <div className={`nav-item ${activeTab === "medical-reports" ? "active" : ""}`} onClick={() => setActiveTab("medical-reports")}>
+            */}
+            <div 
+              className={`nav-item ${activeTab === "medical-reports" ? "active" : ""}`} 
+              onClick={() => handleTabChange("medical-reports")}
+            >
               <FileText size={16} /> Medical Reports
             </div>
-            <div className={`nav-item ${activeTab === "charts" ? "active" : ""}`} onClick={() => setActiveTab("charts")}>
+            <div 
+              className={`nav-item ${activeTab === "charts" ? "active" : ""}`} 
+              onClick={() => handleTabChange("charts")}
+            >
               <Clipboard size={16} /> Key Lab Results
             </div>
-            <div className={`nav-item ${activeTab === "procedures" ? "active" : ""}`} onClick={() => setActiveTab("procedures")}>
+            <div 
+              className={`nav-item ${activeTab === "procedures" ? "active" : ""}`} 
+              onClick={() => handleTabChange("procedures")}
+            >
               <FileText size={16} /> Procedures
             </div>
-            <div className={`nav-item ${activeTab === "medications" ? "active" : ""}`} onClick={() => setActiveTab("medications")}>
+            <div 
+              className={`nav-item ${activeTab === "medications" ? "active" : ""}`} 
+              onClick={() => handleTabChange("medications")}
+            >
               <Pill size={16} /> Medications
             </div>
-            <div className={`nav-item ${activeTab === "conditions" ? "active" : ""}`} onClick={() => setActiveTab("conditions")}>
+            <div 
+              className={`nav-item ${activeTab === "conditions" ? "active" : ""}`} 
+              onClick={() => handleTabChange("conditions")}
+            >
               <Clipboard size={16} /> Conditions
             </div>
-            <div className={`nav-item ${activeTab === "observations" ? "active" : ""}`} onClick={() => setActiveTab("observations")}>
+            <div 
+              className={`nav-item ${activeTab === "observations" ? "active" : ""}`} 
+              onClick={() => handleTabChange("observations")}
+            >
               <Microscope size={16} /> All Labs
             </div>
           </div>
