@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { Button, Card, Container, Spinner } from "react-bootstrap";
 import { Activity, Pill, FileText, Clipboard, Microscope, Syringe, MessageCircle, BarChart2, Heart, Calendar, ArrowLeft } from "lucide-react";
 import ConditionsTab from "./PatientDashboard/ConditionsTab";
@@ -34,6 +34,11 @@ function PatientDashboard() {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [selectedPersona, setSelectedPersona] = useState(null);
   const navigate = useNavigate();
+  const memoizedEncounters = useMemo(() => 
+    patientData?.encounters?.sort((a, b) => 
+      new Date(b.date) - new Date(a.date)
+    ), [patientData?.encounters]
+  );
 
   // Get current tab from path
   const activeTab = location.pathname.split('/').pop() || 'dashboard-summary';
@@ -103,8 +108,8 @@ function PatientDashboard() {
   }
 
   const handleTabChange = (newTab) => {
-    // Use relative navigation
-    navigate(`/patient-dashboard/${newTab}`);
+    // Remove the absolute path and use relative navigation
+    navigate(newTab);
   };
 
   const NavigationMenu = () => (
@@ -160,13 +165,8 @@ function PatientDashboard() {
 
   return (
     <div className={`dashboard-container ${activeTab && isMobile ? 'tab-active' : ''}`}>
-      {console.log('PatientDashboard render:', { isMobile, activeTab })}
-      {(!isMobile || !activeTab) && (
-        <>
-          {console.log('NavigationMenu rendering')}
-          <NavigationMenu />
-        </>
-      )}
+      {console.log('PatientDashboard Content render:', { isMobile, activeTab })}
+      {(!isMobile || !activeTab) && <NavigationMenu />}
       {(!isMobile || activeTab) && (
         <div className="content-area">
           {isMobile && (
@@ -178,43 +178,50 @@ function PatientDashboard() {
               <ArrowLeft size={16} /> Back to Menu
             </Button>
           )}
-          <Routes>
-            <Route path="/" element={<Navigate to="dashboard-summary" replace />} />
-            <Route path="dashboard-summary" element={
-              <SummaryTab 
-                vitals={patientData?.vitals}
-                overallSummary={patientData?.overall_summary}
-                medications={patientData?.medication_requsts}
-                diagnosticReports={patientData?.diagnostic_reports}
-                charts={patientData?.important_charts}
-                keyInsights={patientData?.key_insights}
-              />
-            } />
-            <Route path="summary" element={
-              <ChatTab 
-                suggestedQuestions={patientData?.suggested_questions?.research_topics || []}
-                chatMessages={chatMessages}
-                setChatMessages={setChatMessages}
-                isThinking={isThinking}
-                setIsThinking={setIsThinking}
-                selectedPersona={selectedPersona}
-                setSelectedPersona={setSelectedPersona}
-              />
-            } />
-            <Route path="vital-signs" element={<VitalSignsTab vitals={patientData?.vitals} />} />
-            <Route path="immunizations" element={<ImmunizationsTab immunizations={patientData?.immunizations} />} />
-            <Route path="visits/*" element={<VisitsTab encounters={patientData?.encounters} />} />
-            <Route 
-              path="medical-reports/*" 
-              element={
-                <MedicalReportsTab 
-                  diagnosticReports={patientData?.diagnostic_reports} 
+          <div className="tab-content-wrapper">
+            <Routes>
+              <Route path="/" element={<Navigate to="dashboard-summary" replace />} />
+              <Route path="dashboard-summary" element={
+                <SummaryTab 
+                  vitals={patientData?.vitals}
+                  overallSummary={patientData?.overall_summary}
+                  medications={patientData?.medication_requsts}
+                  diagnosticReports={patientData?.diagnostic_reports}
+                  charts={patientData?.important_charts}
+                  keyInsights={patientData?.key_insights}
                 />
-              } 
-            />
-            <Route path="charts" element={<ChartsTab chartData={patientData?.important_charts} />} />
-            <Route path="medications" element={<MedicationsTab medications={patientData?.medication_requsts} />} />
-          </Routes>
+              } />
+              <Route path="summary" element={
+                <ChatTab 
+                  suggestedQuestions={patientData?.suggested_questions?.research_topics || []}
+                  chatMessages={chatMessages}
+                  setChatMessages={setChatMessages}
+                  isThinking={isThinking}
+                  setIsThinking={setIsThinking}
+                  selectedPersona={selectedPersona}
+                  setSelectedPersona={setSelectedPersona}
+                />
+              } />
+              <Route path="vital-signs" element={<VitalSignsTab vitals={patientData?.vitals} />} />
+              <Route path="immunizations" element={<ImmunizationsTab immunizations={patientData?.immunizations} />} />
+              <Route 
+                path="visits/*" 
+                element={
+                  <VisitsTab encounters={memoizedEncounters || []} />
+                } 
+              />
+              <Route 
+                path="medical-reports/*" 
+                element={
+                  <React.Suspense fallback={<div>Loading...</div>}>
+                    <MedicalReportsTab diagnosticReports={patientData?.diagnostic_reports} />
+                  </React.Suspense>
+                } 
+              />
+              <Route path="charts" element={<ChartsTab chartData={patientData?.important_charts} />} />
+              <Route path="medications" element={<MedicationsTab medications={patientData?.medication_requsts} />} />
+            </Routes>
+          </div>
         </div>
       )}
     </div>

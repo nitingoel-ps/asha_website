@@ -50,11 +50,31 @@
   background-color: #F7FAFC;
   height: 100%;
   padding: 15px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
 }
 
 .back-button {
   margin-bottom: 15px;
   margin-top: 25px;  
+}
+
+.tab-content-wrapper {
+  position: relative;
+  min-height: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Remove any existing transition effects on route changes */
+.fade-enter,
+.fade-enter-active,
+.fade-exit,
+.fade-exit-active {
+  transition: none !important;
 }
 
 /* Desktop styles */

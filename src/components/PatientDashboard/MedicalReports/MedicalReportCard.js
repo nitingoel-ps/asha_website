@@ -12,6 +12,7 @@ function MedicalReportCard({ report, onClick }) {
     onClick();
   };
 
+
   return (
     <Card 
       className="medical-report-card h-100" 
