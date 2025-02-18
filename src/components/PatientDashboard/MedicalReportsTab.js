@@ -72,7 +72,6 @@ function MedicalReportsTab({ diagnosticReports }) {
         <div className="d-flex justify-content-between align-items-center">
           <div>
             <h2 className="mb-1">Medical Reports</h2>
-            <p className="text-muted mb-0">View and manage your medical diagnostic reports</p>
           </div>
           <div className="d-flex gap-2">
             <Button 

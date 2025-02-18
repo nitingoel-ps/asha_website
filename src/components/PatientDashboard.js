@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { Card, Container, Spinner } from "react-bootstrap";
-import { Activity, Pill, FileText, Clipboard, Microscope, Syringe, MessageCircle, BarChart2, Heart, Calendar } from "lucide-react"; // Import new icons
+import { Button, Card, Container, Spinner } from "react-bootstrap";
+import { Activity, Pill, FileText, Clipboard, Microscope, Syringe, MessageCircle, BarChart2, Heart, Calendar, ArrowLeft } from "lucide-react";
 import ConditionsTab from "./PatientDashboard/ConditionsTab";
 import ChartsTab from "./PatientDashboard/ChartsTab";
 import ProceduresTab from "./PatientDashboard/ProceduresTab";
@@ -23,7 +23,7 @@ function PatientDashboard() {
   const [patientData, setPatientData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [activeTab, setActiveTab] = useState(tab || "summary");
+  const [activeTab, setActiveTab] = useState(tab || "dashboard-summary");
   const [chatMessages, setChatMessages] = useState([
     {
       type: "ai",
@@ -33,6 +33,8 @@ function PatientDashboard() {
   ]);
   const [isThinking, setIsThinking] = useState(false);
   const [selectedReportId, setSelectedReportId] = useState(reportId || null);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [selectedPersona, setSelectedPersona] = useState(null); // Add selectedPersona state
   const navigate = useNavigate();
 
   const handleNavigateToReport = (reportId) => {
@@ -70,6 +72,27 @@ function PatientDashboard() {
       setActiveTab(tab);
     }
   }, [tab, reportId, visitId]); // Add visitId to dependencies
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Add useEffect hook to handle component mount and unmount
+  useEffect(() => {
+    console.log("PatientDashboard mounted");
+    return () => {
+      console.log("PatientDashboard unmounted");
+    };
+  }, []);
+  // Add this near your other useEffect hooks to see whats changing.
+  useEffect(() => {
+    console.log('isMobile or activeTab changed:', { isMobile, activeTab });
+  }, [isMobile, activeTab]);
 
   if (loading) {
     return (
@@ -110,6 +133,8 @@ function PatientDashboard() {
           setChatMessages={setChatMessages}
           isThinking={isThinking}
           setIsThinking={setIsThinking}
+          selectedPersona={selectedPersona} // Pass selectedPersona as a prop
+          setSelectedPersona={setSelectedPersona} // Pass setSelectedPersona as a prop
         />;
       case "dashboard-summary":
         return <SummaryTab 
@@ -154,102 +179,87 @@ function PatientDashboard() {
     }
   };
 
+  const NavigationMenu = () => (
+    <div className="nav-menu">
+      <div 
+        className={`nav-item ${activeTab === "dashboard-summary" ? "active" : ""}`} 
+        onClick={() => handleTabChange("dashboard-summary")}
+      >
+        <BarChart2 size={16} /> Summary
+      </div>
+      <div className={`nav-item ${activeTab === "summary" ? "active" : ""}`} 
+           onClick={() => handleTabChange("summary")}>
+        <MessageCircle size={16} /> Chat
+      </div>
+      <div 
+        className={`nav-item ${activeTab === "vital-signs" ? "active" : ""}`} 
+        onClick={() => handleTabChange("vital-signs")}
+      >
+        <Heart size={16} /> Vital Signs
+      </div>
+      <div 
+        className={`nav-item ${activeTab === "immunizations" ? "active" : ""}`} 
+        onClick={() => handleTabChange("immunizations")}
+      >
+        <Syringe size={16} /> Immunizations
+      </div>
+      <div 
+        className={`nav-item ${activeTab === "visits" ? "active" : ""}`} 
+        onClick={() => handleTabChange("visits")}
+      >
+        <Calendar size={16} /> Visits
+      </div>      
+      <div 
+        className={`nav-item ${activeTab === "medical-reports" ? "active" : ""}`} 
+        onClick={() => handleTabChange("medical-reports")}
+      >
+        <FileText size={16} /> Medical Reports
+      </div>
+      <div 
+        className={`nav-item ${activeTab === "charts" ? "active" : ""}`} 
+        onClick={() => handleTabChange("charts")}
+      >
+        <Clipboard size={16} /> Key Lab Results
+      </div>
+      <div 
+        className={`nav-item ${activeTab === "medications" ? "active" : ""}`} 
+        onClick={() => handleTabChange("medications")}
+      >
+        <Pill size={16} /> Medications
+      </div>
+    </div>
+  );
+
+  const ContentArea = () => (
+    <div className="content-area">
+      {isMobile && (
+        <Button 
+          variant="outline-primary" 
+          className="back-button"
+          onClick={() => handleTabChange("")}
+        >
+          <ArrowLeft size={16} /> Back to Menu
+        </Button>
+      )}
+      {renderTabContent()}
+    </div>
+  );
+
   return (
-    <div className="dashboard-container">
-      <Card className="full-width-card">
-        <Card.Header>
-          <Card.Title>
-            {patientData?.demographics?.[0]?.name || 'Patient'}'s Dashboard
-          </Card.Title>
-        </Card.Header>
-        <Card.Body className="d-flex p-0" style={{ width: '100%', height: '100%' }}>
-          <div className="left-nav">
-            <div 
-              className={`nav-item ${activeTab === "summary" ? "active" : ""}`} 
-              onClick={() => handleTabChange("summary")}
-            >
-              <MessageCircle size={16} /> Chat
-            </div>
-            <div 
-              className={`nav-item ${activeTab === "dashboard-summary" ? "active" : ""}`} 
-              onClick={() => handleTabChange("dashboard-summary")}
-            >
-              <BarChart2 size={16} /> Summary
-            </div>
-            <div 
-              className={`nav-item ${activeTab === "encounters" ? "active" : ""}`} 
-              onClick={() => handleTabChange("encounters")}
-            >
-              <Microscope size={16} /> Encounters
-            </div>
-            <div 
-              className={`nav-item ${activeTab === "vital-signs" ? "active" : ""}`} 
-              onClick={() => handleTabChange("vital-signs")}
-            >
-              <Heart size={16} /> Vital Signs
-            </div>
-            <div 
-              className={`nav-item ${activeTab === "immunizations" ? "active" : ""}`} 
-              onClick={() => handleTabChange("immunizations")}
-            >
-              <Syringe size={16} /> Immunizations
-            </div>
-            {/*
-            <div 
-              className={`nav-item ${activeTab === "diagnostic-reports" ? "active" : ""}`} 
-              onClick={() => handleTabChange("diagnostic-reports")}
-            >
-              <Microscope size={16} /> Diagnostic Reports
-            </div>
-            */}
-            <div 
-              className={`nav-item ${activeTab === "medical-reports" ? "active" : ""}`} 
-              onClick={() => handleTabChange("medical-reports")}
-            >
-              <FileText size={16} /> Medical Reports
-            </div>
-            <div 
-              className={`nav-item ${activeTab === "charts" ? "active" : ""}`} 
-              onClick={() => handleTabChange("charts")}
-            >
-              <Clipboard size={16} /> Key Lab Results
-            </div>
-            <div 
-              className={`nav-item ${activeTab === "procedures" ? "active" : ""}`} 
-              onClick={() => handleTabChange("procedures")}
-            >
-              <FileText size={16} /> Procedures
-            </div>
-            <div 
-              className={`nav-item ${activeTab === "medications" ? "active" : ""}`} 
-              onClick={() => handleTabChange("medications")}
-            >
-              <Pill size={16} /> Medications
-            </div>
-            <div 
-              className={`nav-item ${activeTab === "conditions" ? "active" : ""}`} 
-              onClick={() => handleTabChange("conditions")}
-            >
-              <Clipboard size={16} /> Conditions
-            </div>
-            <div 
-              className={`nav-item ${activeTab === "observations" ? "active" : ""}`} 
-              onClick={() => handleTabChange("observations")}
-            >
-              <Microscope size={16} /> All Labs
-            </div>
-            <div 
-              className={`nav-item ${activeTab === "visits" ? "active" : ""}`} 
-              onClick={() => handleTabChange("visits")}
-            >
-              <Calendar size={16} /> Visits
-            </div>
-          </div>
-          <div className="main-display">
-            {renderTabContent()}
-          </div>
-        </Card.Body>
-      </Card>
+    <div className={`dashboard-container ${activeTab && isMobile ? 'tab-active' : ''}`}>
+      {console.log('PatientDashboard render:', { isMobile, activeTab })}
+      {(!isMobile || !activeTab) && (
+        <>
+          {console.log('NavigationMenu rendering')}
+          <NavigationMenu />
+        </>
+      )}
+      {(!isMobile || activeTab) && (
+        <>
+          {console.log('ContentArea rendering')}
+          <ContentArea />
+        </>
+      )}
     </div>
   );
 }

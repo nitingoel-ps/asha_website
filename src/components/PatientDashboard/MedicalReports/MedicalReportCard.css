@@ -4,12 +4,17 @@
   border: 1px solid #E2E8F0;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   height: 150px;
+  width: 100%;
 }
 
 .medical-report-card .card-body {
-  padding: 1rem;
-  display: flex;
-  flex-direction: column;
+  padding: 0.75rem;
+}
+
+@media (min-width: 768px) {
+  .medical-report-card .card-body {
+    padding: 1rem;
+  }
 }
 
 .medical-report-card:hover {
@@ -21,13 +26,13 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 1rem;
+  gap: 0.5rem;
   margin-bottom: 0.75rem;
 }
 
 .card-title {
   color: #2D3748;
-  font-size: 1.1rem;
+  font-size: 1rem;
   font-weight: 600;
   line-height: 1.3;
   margin: 0;
@@ -40,20 +45,43 @@
   overflow: hidden;
 }
 
+@media (min-width: 768px) {
+  .card-title {
+    font-size: 1.1rem;
+  }
+  
+  .card-header-row {
+    gap: 1rem;
+  }
+}
+
 .report-badge {
   background-color: #E8F5E9;
   color: #4CAF50;
-  padding: 4px 12px;
+  padding: 2px 8px;
   border-radius: 9999px;
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 500;
   white-space: nowrap;
   flex-shrink: 0;
 }
 
+@media (min-width: 768px) {
+  .report-badge {
+    padding: 4px 12px;
+    font-size: 0.75rem;
+  }
+}
+
 .medical-report-card .text-muted {
-  font-size: 0.875rem;
+  font-size: 0.8rem;
   margin-top: auto;
+}
+
+@media (min-width: 768px) {
+  .medical-report-card .text-muted {
+    font-size: 0.875rem;
+  }
 }
 
 .medical-report-card .text-muted .d-flex {

@@ -229,4 +229,28 @@
   .hero-description {
     font-size: 1.1rem;
   }
+}
+
+.logged-in-container {
+  padding-top: 80px;
+  min-height: calc(100vh - 60px);
+  background-color: #F7FAFC;
+}
+
+.action-card {
+  height: 100%;
+  transition: transform 0.2s;
+  border: none;
+  border-radius: 10px;
+}
+
+.action-card:hover {
+  transform: translateY(-5px);
+}
+
+/* Mobile adjustments */
+@media (max-width: 767px) {
+  .logged-in-container {
+    padding-top: 76px;
+  }
 } 

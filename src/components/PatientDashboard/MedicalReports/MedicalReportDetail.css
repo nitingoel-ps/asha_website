@@ -1,10 +1,9 @@
 .medical-report-detail {
-  padding: 24px;
+  padding: 16px;
   background-color: #fff;
   animation: fadeIn 0.3s ease-out;
-  max-width: 1600px;
   margin: 0 auto;
-  height: calc(100vh - 300px);
+  height: calc(100vh - 100px);
   overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-color: #CBD5E0 #F7FAFC;
@@ -38,6 +37,10 @@
   text-decoration: none;
 }
 
+.report-header {
+  margin-bottom: 1.5rem;
+}
+
 .report-badge {
   background-color: #EBF8FF;
   color: #3182CE;
@@ -45,76 +48,81 @@
   border-radius: 9999px;
   font-size: 0.75rem;
   font-weight: 500;
+  display: inline-block;
+  margin-bottom: 0.5rem;
 }
 
 .report-title {
   color: #2D3748;
-  font-size: 1.75rem;
+  font-size: 1.25rem;
   font-weight: 600;
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
+  line-height: 1.3;
 }
 
 .report-summary {
   color: #4A5568;
-  font-size: 1rem;
+  font-size: 0.9rem;
   line-height: 1.5;
-  margin: 0;
-  max-width: 800px;
+  margin: 0 0 1rem 0;
 }
 
 .report-meta {
   display: flex;
-  gap: 2rem;
+  flex-wrap: wrap;
+  gap: 1rem;
   color: #4A5568;
-  font-size: 0.9rem;
+  font-size: 0.875rem;
   border-top: 1px solid #E2E8F0;
   padding-top: 1rem;
-  margin-top: 1rem;
 }
 
 .meta-item {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  min-width: 140px;
 }
 
 .meta-icon {
-  font-size: 1.1rem;
+  font-size: 1rem;
 }
 
 .observations-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1.5rem;
+  grid-template-columns: 1fr;
+  gap: 1rem;
 }
 
 .observation-item {
   background: #fff;
   border: 1px solid #E2E8F0;
   border-radius: 8px;
-  padding: 1.5rem;
-  min-width: 380px;
+  padding: 1rem;
 }
 
 .observation-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 1.5rem;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
 }
 
 .observation-name {
   color: #2D3748;
-  font-size: 1.1rem;
+  font-size: 1rem;
   font-weight: 500;
   margin: 0;
+  flex: 1;
 }
 
 .status-badge {
   font-size: 0.75rem;
-  padding: 4px 12px;
+  padding: 4px 8px;
   border-radius: 9999px;
   font-weight: 500;
+  white-space: nowrap;
 }
 
 .status-badge.normal {
@@ -122,24 +130,24 @@
   color: #4CAF50;
 }
 
-.status-badge.abnormal {
+.status-badge.warning {
   background-color: #FED7D7;
   color: #C53030;
 }
 
 .observation-content {
-  margin-top: 0.5rem;
+  margin-top: 0.75rem;
 }
 
 .value-display {
   display: flex;
   align-items: baseline;
   gap: 0.25rem;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.25rem;
 }
 
 .value {
-  font-size: 2.5rem;
+  font-size: 2rem;
   font-weight: 600;
   color: #2D3748;
   line-height: 1;
@@ -147,13 +155,13 @@
 
 .unit {
   color: #4A5568;
-  font-size: 1.25rem;
+  font-size: 1rem;
   font-weight: 500;
 }
 
 .normal-range {
   color: #718096;
-  font-size: 0.9rem;
+  font-size: 0.875rem;
   margin-top: 0.25rem;
 }
 
@@ -161,13 +169,56 @@
   color: #4A5568;
   line-height: 1.6;
   margin: 0;
+  font-size: 0.9rem;
 }
 
 .observation-explanation {
-  margin-top: 1rem;
+  margin-top: 0.75rem;
   color: #718096;
   font-size: 0.875rem;
   line-height: 1.5;
+}
+
+@media (min-width: 768px) {
+  .medical-report-detail {
+    padding: 24px;
+    max-width: 1600px;
+  }
+
+  .report-title {
+    font-size: 1.75rem;
+    margin-bottom: 1rem;
+  }
+
+  .report-summary {
+    font-size: 1rem;
+    max-width: 800px;
+  }
+
+  .observations-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+  }
+
+  .observation-item {
+    padding: 1.5rem;
+  }
+
+  .observation-name {
+    font-size: 1.1rem;
+  }
+
+  .value {
+    font-size: 2.5rem;
+  }
+
+  .unit {
+    font-size: 1.25rem;
+  }
+
+  .narrative-text {
+    font-size: 1rem;
+  }
 }
 
 @keyframes fadeIn {

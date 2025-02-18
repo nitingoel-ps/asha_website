@@ -73,7 +73,7 @@ function VisitsTab({ encounters }) {
         </div>
       </div>
 
-      <div className="grid-container">
+      <div className="visits-grid-container">
         <Row xs={1} md={2} lg={3} className="g-4">
           {encounters
             .sort((a, b) => new Date(b.start) - new Date(a.start))

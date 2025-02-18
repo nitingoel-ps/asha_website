@@ -201,7 +201,7 @@ function AddProviders() {
   };
 
   const handleWindowClosure = async (providerId) => {
-    alert("OAuth window closed - starting data refresh polling");
+    //alert("OAuth window closed - starting data refresh polling");
     
     // Start both progress polling and connection status polling
     startPollingRefreshProgress(providerId);

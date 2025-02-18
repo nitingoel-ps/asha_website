@@ -99,12 +99,13 @@ function ChatTab({
   setChatMessages, 
   isThinking, 
   setIsThinking,
+  selectedPersona, // Add selectedPersona as a prop
+  setSelectedPersona, // Add setSelectedPersona as a prop
   openInNewWindow = false // true for new window, false for new tab
 }) {
   const [currentMessage, setCurrentMessage] = useState("");
   const [models, setModels] = useState([]);
   const [selectedModel, setSelectedModel] = useState(null);
-  const [selectedPersona, setSelectedPersona] = useState(null);
   const [hasUserStartedChat, setHasUserStartedChat] = useState(false);
   const chatContainerRef = useRef(null);
   const lastUserMessageRef = useRef(null);
@@ -152,6 +153,14 @@ function ChatTab({
       </a>
     ),
   };
+  
+  // Add useEffect hook to handle component mount and unmount
+  useEffect(() => {
+    console.log("ChatTab mounted");
+    return () => {
+      console.log("ChatTab unmounted");
+    };
+  }, []);
 
   // Fetch available models on component mount
   useEffect(() => {
@@ -177,15 +186,21 @@ function ChatTab({
   // Initialize chat with welcome message when persona changes
   useEffect(() => {
     if (!hasUserStartedChat && selectedPersona) {
-      setChatMessages([
-        { 
-          type: "ai", 
-          text: selectedPersona.welcomeMessage,
-          model: selectedModel 
+      setChatMessages((prevMessages) => {
+        // Check if the welcome message is already present to avoid re-render loop
+        if (prevMessages.length === 0 || prevMessages[0].text !== selectedPersona.welcomeMessage) {
+          return [
+            { 
+              type: "ai", 
+              text: selectedPersona.welcomeMessage,
+              model: selectedModel 
+            }
+          ];
         }
-      ]);
+        return prevMessages;
+      });
     }
-  }, [selectedPersona, hasUserStartedChat]);
+  }, [selectedPersona, hasUserStartedChat, setChatMessages, selectedModel]);
 
   // Scroll handling during AI response
   useEffect(() => {

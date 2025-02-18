@@ -1,52 +1,137 @@
 .dashboard-container {
+  min-height: calc(100vh - 60px);
+  width: 100%;
   display: flex;
-  height: 100vh;
-  width: 100vw; /* Make the dashboard occupy the full width of the window */
+  position: relative;
+  background-color: #F7FAFC;
+  margin-top: 60px;
 }
 
-.left-nav {
-  flex: 0 0 250px; /* Ensure the left-nav maintains its width */
-  background-color: #f8f9fa;
-  border-right: 1px solid #dee2e6;
-  padding: 20px;
+.nav-menu {
+  background-color: #fff;
+  border-right: 1px solid #E2E8F0;
+  width: 240px;
+  height: calc(100vh - 60px);
+  overflow-y: auto;
+  flex-shrink: 0;
+  position: sticky;
+  top: 60px;
 }
 
-.left-nav .nav-item {
-  margin-bottom: 15px;
-  cursor: pointer;
+.nav-item {
   display: flex;
   align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  color: #4A5568;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
 }
 
-.left-nav .nav-item:hover {
-  background-color: #e9ecef;
-  border-radius: 5px;
+.nav-item:hover {
+  background-color: #F7FAFC;
+  color: #2D3748;
 }
 
-.left-nav .nav-item.active {
-  background-color: #007bff;
-  color: white;
-  border-radius: 5px;
+.nav-item.active {
+  background-color: #EBF8FF;
+  color: #3182CE;
+  font-weight: 500;
 }
 
-.left-nav .nav-item.active svg {
-  color: white;
-}
-
-.left-nav .nav-item svg {
+.nav-item svg {
   margin-right: 10px;
 }
 
-.main-display {
-  flex-grow: 1;
-  padding: 20px;
+.content-area {
+  flex: 1;
   overflow-y: auto;
+  background-color: #F7FAFC;
+  height: 100%;
+  padding: 15px;
 }
 
-.card {
-  width: 100%; /* Ensure the card occupies the full width */
+.back-button {
+  margin-bottom: 15px;
+  margin-top: 25px;  
 }
 
-.full-width-card {
-  width: 100%; /* Ensure the card occupies the full width */
+/* Desktop styles */
+@media (min-width: 768px) {
+  .dashboard-container {
+    display: flex;
+  }
+
+  .nav-menu {
+    width: 250px;
+    border-right: 1px solid #dee2e6;
+    position: sticky;
+    top: 60px;
+    height: calc(100vh - 60px);
+  }
+
+  .content-area {
+    flex: 1;
+  }
+
+  .back-button {
+    display: none;
+  }
+}
+
+/* Mobile-specific styles */
+@media (max-width: 767px) {
+  .dashboard-container {
+    margin-top: 56px;
+    overflow: hidden;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+  }
+  
+  .nav-menu {
+    width: 100%;
+    height: calc(100vh - 56px);
+    position: absolute;
+    top: 60px;
+    left: 0;
+    overflow-y: scroll;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .content-area {
+    display: none; /* Hide content area when menu is shown on mobile */
+  }
+
+  /* Show content area when a tab is active */
+  .dashboard-container.tab-active .nav-menu {
+    display: none;
+  }
+
+  .dashboard-container.tab-active .content-area {
+    display: block;
+    height: calc(100vh - 56px);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .nav-item {
+    padding: 1rem 1.25rem;
+    padding-left: 3rem;
+    font-size: 1.5rem;
+    gap: 1rem;
+  }
+
+  .nav-item svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  /* Add touch-friendly spacing between items */
+  .nav-item + .nav-item {
+    border-top: 1px solid #F0F0F0;
+  }
 }
