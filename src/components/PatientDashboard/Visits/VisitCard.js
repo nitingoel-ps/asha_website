@@ -4,10 +4,15 @@ import { Calendar, MapPin, User } from 'lucide-react';
 import './VisitCard.css';
 
 function VisitCard({ visit, onClick }) {
+  const handleClick = (e) => {
+    e.preventDefault();
+    onClick();
+  };
+
   return (
     <Card 
       className="visit-card h-100" 
-      onClick={onClick}
+      onClick={handleClick}
     >
       <Card.Body className="d-flex flex-column">
         <div className="card-header-row">

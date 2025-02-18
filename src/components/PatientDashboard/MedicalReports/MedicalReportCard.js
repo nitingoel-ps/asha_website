@@ -7,10 +7,15 @@ function MedicalReportCard({ report, onClick }) {
   // Extract the first part of report_type if it's comma-separated
   const reportType = report.report_type?.split(',')[0]?.trim() || 'Report';
 
+  const handleClick = (e) => {
+    e.preventDefault();
+    onClick();
+  };
+
   return (
     <Card 
       className="medical-report-card h-100" 
-      onClick={onClick}
+      onClick={handleClick}
     >
       <Card.Body className="d-flex flex-column">
         <div className="card-header-row">
@@ -39,4 +44,4 @@ function MedicalReportCard({ report, onClick }) {
   );
 }
 
-export default MedicalReportCard; 
+export default MedicalReportCard;

@@ -15,15 +15,14 @@ import SummaryTab from "./PatientDashboard/SummaryTab";
 import ImmunizationsTab from "./PatientDashboard/ImmunizationsTab";
 import MedicalReportsTab from "./PatientDashboard/MedicalReportsTab";
 import axiosInstance from "../utils/axiosInstance";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, Outlet, Routes, Route, useLocation, Navigate } from "react-router-dom";
 import "../styles/PatientDashboard.css";
 
 function PatientDashboard() {
-  const { tab, reportId, visitId } = useParams(); // Add visitId to destructuring
+  const location = useLocation();
   const [patientData, setPatientData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [activeTab, setActiveTab] = useState(tab || "dashboard-summary");
   const [chatMessages, setChatMessages] = useState([
     {
       type: "ai",
@@ -32,16 +31,12 @@ function PatientDashboard() {
     },
   ]);
   const [isThinking, setIsThinking] = useState(false);
-  const [selectedReportId, setSelectedReportId] = useState(reportId || null);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-  const [selectedPersona, setSelectedPersona] = useState(null); // Add selectedPersona state
+  const [selectedPersona, setSelectedPersona] = useState(null);
   const navigate = useNavigate();
 
-  const handleNavigateToReport = (reportId) => {
-    setSelectedReportId(reportId);
-    setActiveTab("diagnostic-reports");
-    navigate(`/patient-dashboard/diagnostic-reports/${reportId}`);
-  };
+  // Get current tab from path
+  const activeTab = location.pathname.split('/').pop() || 'dashboard-summary';
 
   useEffect(() => {
     const accessToken = localStorage.getItem("access_token");
@@ -60,18 +55,6 @@ function PatientDashboard() {
         setLoading(false);
       });
   }, [navigate]);
-
-  useEffect(() => {
-    // If there's a reportId in the URL, set the tab to medical-reports
-    if (reportId) {
-      setActiveTab('medical-reports');
-      setSelectedReportId(reportId);
-    } else if (visitId) { // Add this check
-      setActiveTab('visits');
-    } else if (tab) {
-      setActiveTab(tab);
-    }
-  }, [tab, reportId, visitId]); // Add visitId to dependencies
 
   useEffect(() => {
     const handleResize = () => {
@@ -120,63 +103,8 @@ function PatientDashboard() {
   }
 
   const handleTabChange = (newTab) => {
-    setActiveTab(newTab);
+    // Use relative navigation
     navigate(`/patient-dashboard/${newTab}`);
-  };
-
-  const renderTabContent = () => {
-    switch (activeTab) {
-      case "summary":
-        return <ChatTab 
-          suggestedQuestions={patientData.suggested_questions?.research_topics || []} 
-          chatMessages={chatMessages}
-          setChatMessages={setChatMessages}
-          isThinking={isThinking}
-          setIsThinking={setIsThinking}
-          selectedPersona={selectedPersona} // Pass selectedPersona as a prop
-          setSelectedPersona={setSelectedPersona} // Pass setSelectedPersona as a prop
-        />;
-      case "dashboard-summary":
-        return <SummaryTab 
-          vitals={patientData.vitals}
-          overallSummary={patientData.overall_summary}
-          medications={patientData.medication_requsts}
-          diagnosticReports={patientData.diagnostic_reports}
-          charts={patientData.important_charts}
-          onNavigateToReport={handleNavigateToReport}
-          keyInsights={patientData.key_insights}
-        />;
-      case "encounters":
-        return <EncountersTab 
-          encounters={patientData.encounters} 
-          onNavigateToReport={handleNavigateToReport}
-        />;
-      case "vital-signs":
-        return <VitalSignsTab vitals={patientData.vitals} />;
-      case "immunizations":
-        return <ImmunizationsTab immunizations={patientData.immunizations} />;
-      case "diagnostic-reports":
-        return <DiagnosticReportsTab 
-          diagnosticReports={patientData.diagnostic_reports}
-          initialReportId={selectedReportId}
-        />;
-      case "medical-reports":
-        return <MedicalReportsTab diagnosticReports={patientData.diagnostic_reports} />;
-      case "charts":
-        return <ChartsTab chartData={patientData.important_charts} />;
-      case "procedures":
-        return <ProceduresTab procedures={patientData.procedures} />;
-      case "medications":
-        return <MedicationsTab medications={patientData.medication_requsts} />;
-      case "conditions":
-          return <ConditionsTab conditions={patientData.conditions} />;
-        case "observations":
-        return <ObservationsTab observations={patientData.all_observations} />;
-      case "visits":
-        return <VisitsTab encounters={patientData.encounters} />;
-      default:
-        return null;
-    }
   };
 
   const NavigationMenu = () => (
@@ -230,21 +158,6 @@ function PatientDashboard() {
     </div>
   );
 
-  const ContentArea = () => (
-    <div className="content-area">
-      {isMobile && (
-        <Button 
-          variant="outline-primary" 
-          className="back-button"
-          onClick={() => handleTabChange("")}
-        >
-          <ArrowLeft size={16} /> Back to Menu
-        </Button>
-      )}
-      {renderTabContent()}
-    </div>
-  );
-
   return (
     <div className={`dashboard-container ${activeTab && isMobile ? 'tab-active' : ''}`}>
       {console.log('PatientDashboard render:', { isMobile, activeTab })}
@@ -255,10 +168,54 @@ function PatientDashboard() {
         </>
       )}
       {(!isMobile || activeTab) && (
-        <>
-          {console.log('ContentArea rendering')}
-          <ContentArea />
-        </>
+        <div className="content-area">
+          {isMobile && (
+            <Button 
+              variant="outline-primary" 
+              className="back-button"
+              onClick={() => handleTabChange("")}
+            >
+              <ArrowLeft size={16} /> Back to Menu
+            </Button>
+          )}
+          <Routes>
+            <Route path="/" element={<Navigate to="dashboard-summary" replace />} />
+            <Route path="dashboard-summary" element={
+              <SummaryTab 
+                vitals={patientData?.vitals}
+                overallSummary={patientData?.overall_summary}
+                medications={patientData?.medication_requsts}
+                diagnosticReports={patientData?.diagnostic_reports}
+                charts={patientData?.important_charts}
+                keyInsights={patientData?.key_insights}
+              />
+            } />
+            <Route path="summary" element={
+              <ChatTab 
+                suggestedQuestions={patientData?.suggested_questions?.research_topics || []}
+                chatMessages={chatMessages}
+                setChatMessages={setChatMessages}
+                isThinking={isThinking}
+                setIsThinking={setIsThinking}
+                selectedPersona={selectedPersona}
+                setSelectedPersona={setSelectedPersona}
+              />
+            } />
+            <Route path="vital-signs" element={<VitalSignsTab vitals={patientData?.vitals} />} />
+            <Route path="immunizations" element={<ImmunizationsTab immunizations={patientData?.immunizations} />} />
+            <Route path="visits/*" element={<VisitsTab encounters={patientData?.encounters} />} />
+            <Route 
+              path="medical-reports/*" 
+              element={
+                <MedicalReportsTab 
+                  diagnosticReports={patientData?.diagnostic_reports} 
+                />
+              } 
+            />
+            <Route path="charts" element={<ChartsTab chartData={patientData?.important_charts} />} />
+            <Route path="medications" element={<MedicationsTab medications={patientData?.medication_requsts} />} />
+          </Routes>
+        </div>
       )}
     </div>
   );

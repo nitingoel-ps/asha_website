@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Routes, Route, useNavigate, useLocation, useParams } from 'react-router-dom';
 import { Card, Container, Button, Row, Col } from 'react-bootstrap';
 import { Grid, Clock } from 'lucide-react';
 import MedicalReportCard from './MedicalReports/MedicalReportCard';
@@ -8,8 +8,7 @@ import './MedicalReportsTab.css';
 
 function MedicalReportsTab({ diagnosticReports }) {
   const navigate = useNavigate();
-  const { reportId } = useParams();
-  const [selectedReport, setSelectedReport] = useState(null);
+  const location = useLocation();
   const [view, setView] = useState("grid"); // "grid" or "timeline"
 
   // Group reports by year and month for timeline view
@@ -32,41 +31,16 @@ function MedicalReportsTab({ diagnosticReports }) {
 
   const groupedReports = groupReportsByDate(diagnosticReports.list);
 
-  useEffect(() => {
-    // Load report from URL parameter
-    if (reportId && diagnosticReports?.list) {
-      const report = diagnosticReports.list.find(r => r.id.toString() === reportId.toString());
-      if (report) {
-        setSelectedReport(report);
-      } else {
-        // Handle case when report is not found
-        navigate('/patient-dashboard/medical-reports');
-      }
-    } else {
-      setSelectedReport(null);
-    }
-  }, [reportId, diagnosticReports, navigate]);
-
   const handleReportSelect = (report) => {
-    setSelectedReport(report);
-    navigate(`/patient-dashboard/medical-reports/${report.id}`);
+    navigate(`${report.id}`);
   };
 
   const handleBack = () => {
-    setSelectedReport(null);
-    navigate('/patient-dashboard/medical-reports');
+    navigate('..');
   };
 
-  if (selectedReport) {
-    return (
-      <MedicalReportDetail 
-        report={selectedReport} 
-        onBack={handleBack} 
-      />
-    );
-  }
-
-  return (
+  // Separate component for the reports list view
+  const ReportsList = () => (
     <div className="h-100 d-flex flex-column">
       <div className="reports-header">
         <div className="d-flex justify-content-between align-items-center">
@@ -139,6 +113,23 @@ function MedicalReportsTab({ diagnosticReports }) {
         </div>
       )}
     </div>
+  );
+
+  return (
+    <Routes>
+      <Route index element={<ReportsList />} />
+      <Route 
+        path=":reportId" 
+        element={
+          <MedicalReportDetail 
+            report={diagnosticReports.list.find(r => 
+              r.id.toString() === location.pathname.split('/').pop()
+            )}
+            onBack={handleBack}
+          />
+        }
+      />
+    </Routes>
   );
 }
 

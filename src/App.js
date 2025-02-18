@@ -39,17 +39,14 @@ function AppContent() {
             </PrivateRoute>
           }
         />
-        {/*
         <Route 
-          path="/patient-dashboard" 
-          element={<PatientDashboard />} 
-          end
+          path="/patient-dashboard/*" 
+          element={
+            <PrivateRoute>
+              <PatientDashboard />
+            </PrivateRoute>
+          } 
         />
-        */}
-        <Route path="/patient-dashboard/:tab" element={<PatientDashboard />} />
-        <Route path="/patient-dashboard/medical-reports/:reportId" element={<PatientDashboard />} />
-        <Route path="/patient-dashboard/visits/:visitId" element={<PatientDashboard />} /> {/* Add this route */}
-        {/* <Route path="/patient-dashboard/:tab/:reportId" element={<PatientDashboard />} /> I dont think this is needed*/}
         <Route path="/my-documents" element={<MyDocuments />} />
       </Routes>
     </>

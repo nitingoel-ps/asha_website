@@ -2,7 +2,7 @@ import React from "react";
 import { Card, Row, Col, Button, OverlayTrigger, Tooltip } from "react-bootstrap";
 import "./SummaryTab.css";
 
-function SummaryTab({ overallSummary = '', medications = { list: [] }, diagnosticReports = { list: [] }, onNavigateToReport, keyInsights = { insights: [] } }) {
+function SummaryTab({ overallSummary = '', medications = { list: [] }, diagnosticReports = { list: [] }, keyInsights = { insights: [] } }) {
   // Get active medications
   const activeMedications = medications?.list?.filter(med => med?.status === 'active') || [];
 
@@ -50,7 +50,6 @@ function SummaryTab({ overallSummary = '', medications = { list: [] }, diagnosti
                       variant="link"
                       className="p-0"
                       style={{ textDecoration: "none" }}
-                      onClick={() => onNavigateToReport(mostRecentReport.id)}
                     >
                       {mostRecentReport.report_name}
                     </Button>
