@@ -67,7 +67,7 @@ function SummaryTab({ overallSummary = '', medications = { list: [] }, diagnosti
           <Card>
             <Card.Body>
               <Card.Title>Active Medications ({activeMedications.length})</Card.Title>
-              <div className="medications-list">
+              <div className="summary-medications-list">
                 {activeMedications.length > 0 ? (
                   activeMedications.map(med => (
                     <div key={med.id} className="medication-item">

@@ -1,0 +1,33 @@
+.medication-detail-container {
+  padding: 1rem;
+}
+
+.back-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0;
+}
+
+.detail-card .medication-info {
+  display: grid;
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.info-group {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.info-group label {
+  font-weight: 500;
+  color: #666;
+  font-size: 0.875rem;
+}
+
+@media (min-width: 768px) {
+  .medication-info {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

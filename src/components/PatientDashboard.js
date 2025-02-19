@@ -5,6 +5,7 @@ import ConditionsTab from "./PatientDashboard/ConditionsTab";
 import ChartsTab from "./PatientDashboard/ChartsTab";
 import ProceduresTab from "./PatientDashboard/ProceduresTab";
 import MedicationsTab from "./PatientDashboard/MedicationsTab";
+import { NewMedicationsTab } from "./PatientDashboard/NewMedications/NewMedicationsTab";
 import DiagnosticReportsTab from "./PatientDashboard/DiagnosticReportsTab";
 import ObservationsTab from "./PatientDashboard/ObservationsTab";
 import ChatTab from "./PatientDashboard/ChatTab";
@@ -40,9 +41,13 @@ function PatientDashboard() {
     ), [patientData?.encounters]
   );
 
-  // Get current tab from path
+  // Add this near the top of the component
+  console.log("PatientDashboard: Current location:", location.pathname);
+  
+  // Modify the activeTab calculation to log
   const activeTab = location.pathname === '/patient-dashboard' ? '' 
     : location.pathname.split('/').pop();
+  console.log("PatientDashboard: Active tab calculated as:", activeTab);
 
   useEffect(() => {
     const accessToken = localStorage.getItem("access_token");
@@ -108,10 +113,9 @@ function PatientDashboard() {
     );
   }
 
-  // Update the handleTabChange function
+  // Update the handleTabChange function to handle nested routes
   const handleTabChange = (newTab) => {
     if (newTab === "") {
-      // Clear the specific route and show menu
       navigate("/patient-dashboard", { replace: true });
     } else {
       navigate(`/patient-dashboard/${newTab}`);
@@ -161,8 +165,8 @@ function PatientDashboard() {
         <Clipboard size={16} /> Key Lab Results
       </div>
       <div 
-        className={`nav-item ${activeTab === "medications" ? "active" : ""}`} 
-        onClick={() => handleTabChange("medications")}
+        className={`nav-item ${activeTab === "med" ? "active" : ""}`} 
+        onClick={() => handleTabChange("med")}
       >
         <Pill size={16} /> Medications
       </div>
@@ -186,6 +190,7 @@ function PatientDashboard() {
           )}
           <div className="tab-content-wrapper">
             <Routes>
+              {console.log("PatientDashboard: Rendering routes")}
               <Route index element={
                 isMobile ? null : <Navigate to="dashboard-summary" replace />
               } />
@@ -221,13 +226,19 @@ function PatientDashboard() {
               <Route 
                 path="medical-reports/*" 
                 element={
-                  <React.Suspense fallback={<div>Loading...</div>}>
                     <MedicalReportsTab diagnosticReports={patientData?.diagnostic_reports} />
-                  </React.Suspense>
                 } 
               />
               <Route path="charts" element={<ChartsTab chartData={patientData?.important_charts} />} />
-              <Route path="medications" element={<MedicationsTab medications={patientData?.medication_requsts} />} />
+              <Route 
+                path="med/*" 
+                element={
+                  <React.Suspense fallback={<div>Loading...</div>}>
+                    {console.log("PatientDashboard: Rendering medications new route")}
+                    <NewMedicationsTab medications={patientData?.medication_requsts} />
+                  </React.Suspense>
+                } 
+              />
             </Routes>
           </div>
         </div>

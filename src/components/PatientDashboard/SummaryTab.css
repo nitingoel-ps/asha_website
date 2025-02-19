@@ -39,7 +39,7 @@
   color: #6c757d;
 }
 
-.medications-list {
+.summary-medications-list {
   max-height: 300px;
   overflow-y: auto;
 }

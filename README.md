@@ -44,6 +44,7 @@ See the section about [deployment](https://facebook.github.io/create-react-app/d
 ### Addded by Nitin Goel
 Now push your build to s3 for deployment 
 >> aws s3 sync ./build s3://www.aspenhealth.ai --delete
+>> aws s3 sync ./build s3://nitin-frontend-app --delete
 
 ### `npm run eject`
 
