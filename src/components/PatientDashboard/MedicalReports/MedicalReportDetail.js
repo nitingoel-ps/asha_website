@@ -41,11 +41,11 @@ function MedicalReportDetail({ report, onBack }) {
           <div key={observation.id} className="observation-item">
             <div className="observation-header">
               <h3 className="observation-name">{observation.name}</h3>
-              {observation.is_normal !== undefined && (
+              {observation.is_normal !== null && (
                 observation.is_normal ? (
                   <span className="status-badge normal">Normal</span>
                 ) : (
-                  <span className="status-badge warning">
+                  <span className="status-icon warning">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                       <path d="M12 3L22 21H2L12 3Z" fill="#DC3545"/>
                       <path d="M12 17H12.01M12 7V13" stroke="white" strokeWidth="2" strokeLinecap="round"/>
@@ -87,4 +87,4 @@ function MedicalReportDetail({ report, onBack }) {
   );
 }
 
-export default MedicalReportDetail; 
+export default MedicalReportDetail;

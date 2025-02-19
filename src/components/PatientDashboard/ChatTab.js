@@ -11,33 +11,37 @@ import { InlineMath, BlockMath } from 'react-katex';
 const PERSONAS = [
   {
     id: 'record_keeper',
-    name: 'Mike (Record Keeping)',
-    icon: '📋',
-    description: 'I can help you find and understand information in your medical records.',
-    welcomeMessage: "Hi, my name is Mike. Can I help you find something in your records?",
+    name: 'Search Your Records',
+    icon: '🏥',
+    description: '',
+    welcomeMessage: "Hi! Can I help you find something in your records?",
     suggestedQuestions: [
       "Who was the last doctor I visited and when?",
       "What were the results of my last lab test"
-    ]
+    ],
+    preferred_model: "gpt-4o"
   },
+  /*
   {
     id: 'note_taker',
     name: 'Debby (the Nurse)',
     icon: '👩‍⚕️',
     description: 'I can help document your symptoms and provide basic health guidance.',
     welcomeMessage: "Hi, I am Debby, are you experiencing any symptoms that I can note down for the doctor?",
-    suggestedQuestions: []
-  },
+    suggestedQuestions: [],
+    preferred_model: "gpt-4o"
+  },*/
   {
     id: 'researcher',
-    name: 'Asha (the Research Agent)',
-    icon: '👩‍💻 ✨',
-    description: 'I can help research health topics and provide evidence-based information.',
-    welcomeMessage: "Hi, I am Asha. Are there any specific topics you would like me to research for you?",
+    name: 'Search the internet',
+    icon: '🌐',
+    description: '',
+    welcomeMessage: "Hi!. Are there any specific topics you would like me to research on the internet for you? I will use both the internet resources and your own health data to get meaningful results.",
     suggestedQuestions: [
-      "What are best practices for reducing cholestrol",
+      "What are best practices for reducing cholesterol",
       "How can I reduce my blood glucose"
-    ]
+    ],
+    preferred_model: "sonar-pro"    
   }
 ];
 
@@ -81,16 +85,146 @@ const processThinkTags = (text) => {
 };
 
 // Update MessageContent component
+const processText = (text, references) => {
+  // Check if text is a string, if not return as is
+  if (typeof text !== 'string') {
+    return text;
+  }
+
+  const parts = text.split(/(\[[^\]]+\])/);
+  return parts.map((part, index) => {
+    if (part.startsWith('[') && part.endsWith(']')) {
+      const content = part.slice(1, -1);
+      
+      // Handle numeric citations [n]
+      if (/^\d+$/.test(content)) {
+        // Check if this citation has a corresponding reference
+        const hasReference = references && references[content];
+        return (
+          <a 
+            key={index}
+            href={hasReference ? `#ref-${content}` : '#'}
+            className="citation"
+            onClick={(e) => {
+              e.preventDefault();
+              if (hasReference) {
+                const refElement = document.getElementById(`ref-${content}`);
+                refElement?.scrollIntoView({ behavior: 'smooth' });
+              }
+            }}
+          >
+            [{content}]
+          </a>
+        );
+      }
+      
+      // Handle medical record references [Ref: path]
+      if (content.startsWith('Ref:')) {
+        const path = content.split('Ref:')[1].trim();
+        const displayText = path.split('/').pop(); // Extract the name/id portion
+        return (
+          <a
+            key={index}
+            href={path}
+            className="citation"
+            onClick={(e) => {
+              e.preventDefault();
+              window.open(path, '_blank');
+            }}
+          >
+            <sup>[{path}]</sup>
+          </a>
+        );
+      }
+    }
+    return part;
+  });
+};
+
+const ReferencesSection = ({ references }) => {
+  if (!references || Object.keys(references).length === 0) return null;
+
+  // Separate references into external and internal
+  const externalRefs = {};
+  const internalRefs = {};
+
+  Object.entries(references).forEach(([key, value]) => {
+    if (key.startsWith('Ref:')) {
+      internalRefs[key] = value;
+    } else {
+      externalRefs[key] = value;
+    }
+  });
+
+  return (
+    <div className="references-section">
+      {Object.keys(externalRefs).length > 0 && (
+        <>
+          <h4>References</h4>
+          {Object.entries(externalRefs).map(([key, url]) => (
+            <div key={key} className="reference-item" id={`ref-${key}`}>
+              <span className="reference-number">[{key}]</span>
+              <a 
+                href={url}
+                className="reference-link"
+              >
+                {url}
+              </a>
+            </div>
+          ))}
+        </>
+      )}
+    </div>
+  );
+};
+
+// Update MessageContent component
 const MessageContent = ({ message, renderers }) => {
   if (message.isThinkBlock) {
     return <div className="think-content">{message.text}</div>;
   }
-  
+
   if (message.model?.output_type === "text") {
     return <pre style={{ whiteSpace: 'pre-wrap', margin: 0 }}>{message.text}</pre>;
   }
-  
-  return <ReactMarkdown components={renderers}>{message.text}</ReactMarkdown>;
+
+  // Split the message text into content and references, keeping all reference lines
+  const parts = message.text.split(/\n(?=\[(?:\d+|Ref:).*?]:)/);
+  const content = parts[0];
+  const referencesText = parts.slice(1).join('\n');
+  let references = {};
+
+  // Parse all reference lines
+  if (referencesText) {
+    const refLines = referencesText.split('\n');
+    refLines.forEach(line => {
+      const match = line.match(/\[(.*?)\]:\s*(.*)/);
+      if (match) {
+        const [_, key, value] = match;
+        references[key] = value.trim();
+      }
+    });
+  }
+
+  // Create custom renderers that include references
+  const customRenderers = {
+    ...renderers,
+    p: ({ children }) => {
+      const processedChildren = React.Children.map(children, child => {
+        return processText(child, references);
+      });
+      return <p>{processedChildren}</p>;
+    }
+  };
+
+  return (
+    <>
+      <ReactMarkdown components={customRenderers}>
+        {content}
+      </ReactMarkdown>
+      <ReferencesSection references={references} />
+    </>
+  );
 };
 
 function ChatTab({ 
@@ -125,13 +259,11 @@ function ChatTab({
 
     // Paragraphs (<p>)
     p: ({ children }) => {
-      // If the paragraph content is a plain string, process it for special content
-      // (like math expressions or references in square brackets)
-      //if (typeof children === 'string') {
-      //  return <p>{processText(children)}</p>;
-      //}
-      // If content is already React elements (like nested markdown), render as is
-      return <p>{children}</p>;
+      // Handle array of children or single child
+      const processedChildren = React.Children.map(children, child => {
+        return processText(child);
+      });
+      return <p>{processedChildren}</p>;
     },
 
     // Links (<a>)
@@ -428,7 +560,25 @@ function ChatTab({
     setSelectedPersona(newPersona);
     setHasUserStartedChat(false);
     setChatMessages([]); // Clear chat history
+    
+    // Set the preferred model if it exists
+    if (newPersona?.preferred_model) {
+      const preferredModel = models.find(m => m.id === newPersona.preferred_model);
+      if (preferredModel) {
+        setSelectedModel(preferredModel);
+      }
+    }
   };
+
+  // Add new useEffect to set initial model based on selected persona
+  useEffect(() => {
+    if (selectedPersona?.preferred_model && models.length > 0) {
+      const preferredModel = models.find(m => m.id === selectedPersona.preferred_model);
+      if (preferredModel) {
+        setSelectedModel(preferredModel);
+      }
+    }
+  }, [selectedPersona, models]);
 
   const PersonaSelector = () => (
     <div className="persona-selector mb-3">

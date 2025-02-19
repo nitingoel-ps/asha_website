@@ -115,27 +115,31 @@
   .nav-menu {
     width: 100%;
     height: calc(100vh - 56px);
-    position: absolute;
-    top: 60px;
+    position: relative;
+    top: 0;
     left: 0;
-    overflow-y: scroll;
+    overflow-y: auto;
     -webkit-overflow-scrolling: touch;
+    display: block;
   }
 
   .content-area {
-    display: none; /* Hide content area when menu is shown on mobile */
-  }
-
-  /* Show content area when a tab is active */
-  .dashboard-container.tab-active .nav-menu {
+    width: 100%;
+    height: calc(100vh - 56px);
+    position: absolute;
+    top: 0;
+    left: 0;
+    overflow-y: auto;
+    background: white;
     display: none;
   }
 
   .dashboard-container.tab-active .content-area {
     display: block;
-    height: calc(100vh - 56px);
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
+  }
+
+  .dashboard-container.tab-active .nav-menu {
+    display: none;
   }
 
   .nav-item {

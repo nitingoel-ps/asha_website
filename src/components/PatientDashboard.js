@@ -41,7 +41,8 @@ function PatientDashboard() {
   );
 
   // Get current tab from path
-  const activeTab = location.pathname.split('/').pop() || 'dashboard-summary';
+  const activeTab = location.pathname === '/patient-dashboard' ? '' 
+    : location.pathname.split('/').pop();
 
   useEffect(() => {
     const accessToken = localStorage.getItem("access_token");
@@ -107,9 +108,14 @@ function PatientDashboard() {
     );
   }
 
+  // Update the handleTabChange function
   const handleTabChange = (newTab) => {
-    // Remove the absolute path and use relative navigation
-    navigate(newTab);
+    if (newTab === "") {
+      // Clear the specific route and show menu
+      navigate("/patient-dashboard", { replace: true });
+    } else {
+      navigate(`/patient-dashboard/${newTab}`);
+    }
   };
 
   const NavigationMenu = () => (
@@ -163,13 +169,13 @@ function PatientDashboard() {
     </div>
   );
 
+  // Update the Routes section
   return (
-    <div className={`dashboard-container ${activeTab && isMobile ? 'tab-active' : ''}`}>
-      {console.log('PatientDashboard Content render:', { isMobile, activeTab })}
-      {(!isMobile || !activeTab) && <NavigationMenu />}
-      {(!isMobile || activeTab) && (
+    <div className={`dashboard-container ${activeTab ? 'tab-active' : ''}`}>
+      {(!activeTab || !isMobile) && <NavigationMenu />}
+      {(activeTab || !isMobile) && (
         <div className="content-area">
-          {isMobile && (
+          {isMobile && activeTab && (
             <Button 
               variant="outline-primary" 
               className="back-button"
@@ -180,7 +186,9 @@ function PatientDashboard() {
           )}
           <div className="tab-content-wrapper">
             <Routes>
-              <Route path="/" element={<Navigate to="dashboard-summary" replace />} />
+              <Route index element={
+                isMobile ? null : <Navigate to="dashboard-summary" replace />
+              } />
               <Route path="dashboard-summary" element={
                 <SummaryTab 
                   vitals={patientData?.vitals}

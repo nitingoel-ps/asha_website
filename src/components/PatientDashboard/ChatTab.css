@@ -295,3 +295,49 @@
   line-height: 0;
   padding: 0 1px;
 }
+
+/* Citation and Reference Styles */
+.citation {
+  font-size: 0.75em;
+  vertical-align: super;
+  line-height: 0;
+  color: #0066cc;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.citation:hover {
+  text-decoration: underline;
+}
+
+.references-section {
+  margin-top: 1.5em;
+  padding-top: 1em;
+  border-top: 1px solid #eee;
+  font-size: 0.9em;
+}
+
+.references-section h4 {
+  font-size: 1em;
+  font-weight: bold;
+  margin-bottom: 0.5em;
+}
+
+.reference-item {
+  margin-bottom: 0.5em;
+  display: flex;
+}
+
+.reference-number {
+  min-width: 2.5em;
+  color: #666;
+}
+
+.reference-link {
+  color: #0066cc;
+  text-decoration: none;
+}
+
+.reference-link:hover {
+  text-decoration: underline;
+}
