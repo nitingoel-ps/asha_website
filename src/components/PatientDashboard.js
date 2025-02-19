@@ -122,6 +122,35 @@ function PatientDashboard() {
     }
   };
 
+  // Add these new functions to handle back button text and navigation
+  const getBackButtonText = () => {
+    const pathSegments = location.pathname.split('/').filter(Boolean);
+    
+    // If we're in a detail view (has more than 2 segments after patient-dashboard)
+    if (pathSegments.length > 2) {
+      // Map the parent route to a friendly name
+      const parentRouteNames = {
+        med: 'Medications',
+        visits: 'Visits',
+        'medical-reports': 'Medical Reports'
+      };
+      return `Back to ${parentRouteNames[pathSegments[1]] || 'Menu'}`;
+    }
+    
+    return 'Back to Menu';
+  };
+
+  const handleBack = () => {
+    const pathSegments = location.pathname.split('/').filter(Boolean);
+    if (pathSegments.length > 2) {
+      // Go back to the parent route
+      navigate(`/patient-dashboard/${pathSegments[1]}`);
+    } else {
+      // Go back to main menu
+      handleTabChange('');
+    }
+  };
+
   const NavigationMenu = () => (
     <div className="nav-menu">
       <div 
@@ -183,9 +212,9 @@ function PatientDashboard() {
             <Button 
               variant="outline-primary" 
               className="back-button"
-              onClick={() => handleTabChange("")}
+              onClick={handleBack}
             >
-              <ArrowLeft size={16} /> Back to Menu
+              <ArrowLeft size={16} /> {getBackButtonText()}
             </Button>
           )}
           <div className="tab-content-wrapper">
