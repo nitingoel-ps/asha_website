@@ -38,7 +38,7 @@
 }
 
 .visits-grid-container {
-  padding: 0 24px 100px 24px; /* Add horizontal padding here instead */
+  padding: 0 24px;
 }
 
 /* Card height constraints */
@@ -67,4 +67,30 @@
   opacity: 0;
   transform: translateY(-20px);
   transition: opacity 300ms, transform 300ms;
+}
+
+.year-header {
+  position: sticky;
+  top: 0;
+  background-color: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(5px);
+  padding: 16px 0;
+  margin-bottom: 20px;
+  z-index: 10;
+  border-bottom: 1px solid #E2E8F0;
+}
+
+.year-header h3 {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #2D3748;
+  margin: 0;
+}
+
+.year-section {
+  margin-bottom: 40px;
+}
+
+.year-section:last-child {
+  margin-bottom: 100px;
 }

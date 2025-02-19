@@ -341,3 +341,100 @@
 .reference-link:hover {
   text-decoration: underline;
 }
+
+/* Mobile-specific styles */
+@media (max-width: 768px) {
+  .model-selector-inline {
+    display: none; /* Hide model selector on mobile */
+  }
+
+  .chat-messages {
+    /* Adjust height for mobile to prevent overflow */
+    max-height: calc(100vh - 200px); /* Reduced height to ensure input stays visible */
+  }
+
+  .chat-messages-full {
+    /* Adjust full height for mobile */
+    max-height: calc(100vh - 250px);
+  }
+
+  .chat-footer {
+    position: sticky;
+    bottom: 0;
+    background-color: #f9f9f9;
+    padding: 10px;
+    z-index: 1000;
+  }
+
+  .chat-input-container {
+    width: 100%; /* Take full width since model selector is hidden */
+  }
+
+  .chat-interface {
+    height: calc(100vh - 60px); /* Adjust card height to fit viewport */
+    display: flex;
+    flex-direction: column;
+  }
+
+  .chat-interface .card-body {
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .chat-interface {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 100vh;
+    margin: 0;
+  }
+
+  .chat-interface .card-body {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 10px;
+    overflow: hidden;
+  }
+
+  .persona-selector {
+    flex-shrink: 0; /* Prevent persona selector from shrinking */
+  }
+
+  .suggested-questions {
+    flex-shrink: 0; /* Prevent suggested questions from shrinking */
+  }
+
+  .chat-messages {
+    flex: 1;
+    min-height: 0; /* Important for Firefox */
+    height: 0; /* Allow flex to control the height */
+    max-height: none; /* Remove max-height constraint */
+    overflow-y: auto;
+  }
+
+  .chat-footer {
+    position: sticky;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: #f9f9f9;
+    padding: 10px;
+    z-index: 1000;
+    flex-shrink: 0; /* Prevent footer from shrinking */
+    border-top: 1px solid #ddd;
+  }
+
+  .chat-input-container {
+    width: 100%;
+  }
+
+  .chat-input {
+    max-height: 100px; /* Limit how tall the input can get */
+    overflow-y: auto;
+  }
+}

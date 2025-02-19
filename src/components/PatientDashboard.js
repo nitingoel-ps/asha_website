@@ -18,6 +18,7 @@ import MedicalReportsTab from "./PatientDashboard/MedicalReportsTab";
 import axiosInstance from "../utils/axiosInstance";
 import { useNavigate, useParams, Outlet, Routes, Route, useLocation, Navigate } from "react-router-dom";
 import "../styles/PatientDashboard.css";
+import { NewImmunizationsTab } from "./PatientDashboard/NewImmunizations/NewImmunizationsTab";
 
 function PatientDashboard() {
   const location = useLocation();
@@ -132,7 +133,8 @@ function PatientDashboard() {
       const parentRouteNames = {
         med: 'Medications',
         visits: 'Visits',
-        'medical-reports': 'Medical Reports'
+        'medical-reports': 'Medical Reports',
+        immunizations: 'Immunizations',
       };
       return `Back to ${parentRouteNames[pathSegments[1]] || 'Menu'}`;
     }
@@ -245,7 +247,14 @@ function PatientDashboard() {
                 />
               } />
               <Route path="vital-signs" element={<VitalSignsTab vitals={patientData?.vitals} />} />
-              <Route path="immunizations" element={<ImmunizationsTab immunizations={patientData?.immunizations} />} />
+              <Route 
+                path="immunizations/*" 
+                element={
+                  <React.Suspense fallback={<div>Loading...</div>}>
+                    <NewImmunizationsTab immunizations={patientData?.immunizations} />
+                  </React.Suspense>
+                } 
+              />
               <Route 
                 path="visits/*" 
                 element={

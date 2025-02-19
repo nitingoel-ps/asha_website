@@ -5,22 +5,55 @@ import VisitCard from './VisitCard';
 import VisitDetail from './VisitDetail';
 import './VisitsTab.css';
 
-// Separate VisitsList into its own component
-const VisitsList = React.memo(({ encounters, onVisitClick }) => (
-  <div className="visits-grid-container">
-    <h2 className="mb-4">Clinical Visits</h2>
-    <Row xs={1} md={2} lg={3} className="g-4">
-      {encounters.map((visit) => (
-        <Col key={visit.id}>
-          <VisitCard 
-            visit={visit} 
-            onClick={() => onVisitClick(visit.id)}
-          />
-        </Col>
-      ))}
-    </Row>
+// Add YearHeader component
+const YearHeader = React.memo(({ year }) => (
+  <div className="year-header">
+    <h3>{year}</h3>
   </div>
 ));
+
+// Update VisitsList component
+const VisitsList = React.memo(({ encounters, onVisitClick }) => {
+  const groupedEncounters = useMemo(() => {
+    const groups = encounters.reduce((acc, visit) => {
+      const year = new Date(visit.start).getFullYear();
+      if (!acc[year]) {
+        acc[year] = [];
+      }
+      acc[year].push(visit);
+      return acc;
+    }, {});
+
+    // Sort years in descending order
+    return Object.entries(groups)
+      .sort(([yearA], [yearB]) => Number(yearB) - Number(yearA))
+      .map(([year, visits]) => ({
+        year,
+        visits: visits.sort((a, b) => new Date(b.start) - new Date(a.start))
+      }));
+  }, [encounters]);
+
+  return (
+    <div className="visits-grid-container">
+      <h2 className="mb-4">Clinical Visits</h2>
+      {groupedEncounters.map(({ year, visits }) => (
+        <div key={year} className="year-section">
+          <YearHeader year={year} />
+          <Row xs={1} md={2} lg={3} className="g-4 mb-5">
+            {visits.map((visit) => (
+              <Col key={visit.id}>
+                <VisitCard 
+                  visit={visit} 
+                  onClick={() => onVisitClick(visit.id)}
+                />
+              </Col>
+            ))}
+          </Row>
+        </div>
+      ))}
+    </div>
+  );
+});
 
 function VisitsTab({ encounters }) {
   const navigate = useNavigate();

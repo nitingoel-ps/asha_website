@@ -583,14 +583,14 @@ function ChatTab({
   const PersonaSelector = () => (
     <div className="persona-selector mb-3">
       <div className="d-flex align-items-center gap-3">
-        <label className="persona-label mb-0">Choose your agent:</label>
+        <label className="persona-label mb-0">Choose: </label>
         <div className="d-flex align-items-center flex-grow-1 gap-3">
           <Form.Select
             value={selectedPersona?.id || ''}
             onChange={(e) => handlePersonaChange(e.target.value)}
             className="persona-select"
           >
-            <option value="">Select an agent...</option>
+            <option value="">Use Case ...</option>
             {PERSONAS.map(persona => (
               <option key={persona.id} value={persona.id}>
                 {persona.icon} {persona.name}
