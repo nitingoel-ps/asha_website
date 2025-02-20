@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { Button, Card, Container, Spinner } from "react-bootstrap";
-import { Activity, Pill, FileText, Clipboard, Microscope, Syringe, MessageCircle, BarChart2, Heart, Calendar, ArrowLeft } from "lucide-react";
+import { Activity, Pill, FileText, Clipboard, Microscope, Syringe, MessageCircle, BarChart2, Heart, Calendar, ArrowLeft, Mic } from "lucide-react";
 import ConditionsTab from "./PatientDashboard/ConditionsTab";
 import ChartsTab from "./PatientDashboard/ChartsTab";
 import ProceduresTab from "./PatientDashboard/ProceduresTab";
@@ -19,6 +19,7 @@ import axiosInstance from "../utils/axiosInstance";
 import { useNavigate, useParams, Outlet, Routes, Route, useLocation, Navigate } from "react-router-dom";
 import "../styles/PatientDashboard.css";
 import { NewImmunizationsTab } from "./PatientDashboard/NewImmunizations/NewImmunizationsTab";
+import VoiceTab from "./PatientDashboard/VoiceTab";
 
 function PatientDashboard() {
   const location = useLocation();
@@ -166,6 +167,12 @@ function PatientDashboard() {
         <MessageCircle size={16} /> Chat
       </div>
       <div 
+        className={`nav-item ${activeTab === "voice" ? "active" : ""}`} 
+        onClick={() => handleTabChange("voice")}
+      >
+        <Mic size={16} /> Talk
+      </div>      
+      <div 
         className={`nav-item ${activeTab === "vital-signs" ? "active" : ""}`} 
         onClick={() => handleTabChange("vital-signs")}
       >
@@ -277,6 +284,7 @@ function PatientDashboard() {
                   </React.Suspense>
                 } 
               />
+              <Route path="voice" element={<VoiceTab />} />
             </Routes>
           </div>
         </div>
