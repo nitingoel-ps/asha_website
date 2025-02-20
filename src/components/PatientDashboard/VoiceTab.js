@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Button, Card, Spinner } from 'react-bootstrap';
+import { Button, Card, Spinner, Form } from 'react-bootstrap';  // Add Form import
 import { Mic, Square, Send, X, Play, Pause } from 'lucide-react';
 import './VoiceTab.css';
 import { fetchWithAuth } from "../../utils/fetchWithAuth";
@@ -12,6 +12,11 @@ const VoiceTab = () => {
   const [response, setResponse] = useState(null);
   const [error, setError] = useState(null);
   const [audioUrl, setAudioUrl] = useState(null);
+  const [isInstantSend, setIsInstantSend] = useState(() => {
+    // Initialize from localStorage, default to true if not set
+    const saved = localStorage.getItem('voiceInstantSend');
+    return saved !== null ? JSON.parse(saved) : true;
+  });
 
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
@@ -31,6 +36,11 @@ const VoiceTab = () => {
     audio.oncanplaythrough = () => {
       console.log('Audio can play through without buffering');
     };
+    // Add error handler specifically for autoplay failures
+    audio.onplayerror = (error) => {
+      console.error('Autoplay error:', error);
+      setError('Could not auto-play response. Please tap play.');
+    };
   };
 
   // Update useEffect to use new audio handlers
@@ -46,6 +56,11 @@ const VoiceTab = () => {
       audio.oncanplaythrough = null;
     };
   }, []);
+
+  // Save preference when it changes
+  React.useEffect(() => {
+    localStorage.setItem('voiceInstantSend', JSON.stringify(isInstantSend));
+  }, [isInstantSend]);
 
   const convertBlobToBase64 = (blob) => {
     console.log('Converting blob to base64, blob size:', blob.size);
@@ -150,33 +165,61 @@ const VoiceTab = () => {
       mediaRecorderRef.current.onstop = async () => {
         console.log('Recording stopped, processing audio chunks...');
         try {
-          // Use the same MIME type that was used for recording
           const mimeType = mediaRecorderRef.current.mimeType || 'audio/webm';
-          const audioBlob = new Blob(audioChunksRef.current, { 
-            type: mimeType 
-          });
+          const audioBlob = new Blob(audioChunksRef.current, { type: mimeType });
           console.log('Created audio blob:', { 
             size: audioBlob.size, 
             type: audioBlob.type,
             chunks: audioChunksRef.current.length 
           });
+
+          if (isInstantSend) {
+            // Convert and send immediately
+            const base64Audio = await convertBlobToBase64(audioBlob);
+            const base64Data = base64Audio.split(',')[1];
+            
+            const response = await fetchWithAuth('/voice-chat/', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ audio: base64Data })
+            });
+
+            const data = await response.json();
+            setResponse(data);
+            
+            // Handle the response audio
+            const responseAudio = `data:audio/wav;base64,${data.audio}`;
+            const newAudio = new Audio(responseAudio);
+            setupAudioHandlers(newAudio);
+            audioRef.current = newAudio;
+
+            // Attempt autoplay
+            try {
+              await newAudio.play();
+              setIsPlaying(true);
+            } catch (error) {
+              console.error('Autoplay failed:', error);
+              if (error.name === 'NotAllowedError') {
+                setError('Please tap play to hear the response');
+              }
+            }
+            
+            setIsProcessing(false);
+          } else {
+            // Original behavior for review before send
+            const blobUrl = URL.createObjectURL(audioBlob);
+            setAudioUrl(blobUrl);
+            audioRef.current = new Audio(blobUrl);
+            setupAudioHandlers(audioRef.current);
+            audioRef.current.blob = audioBlob;
+            setHasRecording(true);
+          }
           
-          // Create an object URL instead of base64 for local playback
-          const blobUrl = URL.createObjectURL(audioBlob);
-          console.log('Created blob URL for playback');
-          
-          // Store both blob and URL for different purposes
-          setAudioUrl(blobUrl);
-          audioRef.current = new Audio(blobUrl);
-          setupAudioHandlers(audioRef.current);
-          
-          // Store the blob separately for sending to API
-          audioRef.current.blob = audioBlob;
-          setHasRecording(true);
-          console.log('Audio ready for playback');
+          console.log('Audio processing completed');
         } catch (error) {
-          console.error('Error preparing audio:', error);
-          setError('Error preparing audio for playback: ' + error.message);
+          console.error('Error processing audio:', error);
+          setError('Error processing audio: ' + error.message);
+          setIsProcessing(false);
         }
       };
 
@@ -200,6 +243,11 @@ const VoiceTab = () => {
       mediaRecorderRef.current.stop();
       mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
       setIsRecording(false);
+      
+      if (isInstantSend) {
+        // We'll handle the actual sending in the onstop handler
+        setIsProcessing(true);
+      }
     }
   };
 
@@ -244,8 +292,31 @@ const VoiceTab = () => {
       
       // Handle the response audio
       const responseAudio = `data:audio/wav;base64,${data.audio}`;
-      audioRef.current = new Audio(responseAudio);
-      setupAudioHandlers(audioRef.current);
+      const newAudio = new Audio(responseAudio);
+      setupAudioHandlers(newAudio);
+      audioRef.current = newAudio;
+
+      // Attempt to autoplay
+      try {
+        const playPromise = newAudio.play();
+        if (playPromise !== undefined) {
+          playPromise
+            .then(() => {
+              console.log('Response autoplay started successfully');
+              setIsPlaying(true);
+            })
+            .catch(error => {
+              console.error('Autoplay failed:', error);
+              // On iOS, we need explicit user interaction
+              if (error.name === 'NotAllowedError') {
+                setError('Please tap play to hear the response');
+              }
+              setIsPlaying(false);
+            });
+        }
+      } catch (error) {
+        console.error('Error during autoplay setup:', error);
+      }
       
       setHasRecording(false);
       setIsProcessing(false);
@@ -313,6 +384,15 @@ const VoiceTab = () => {
     <Card className="voice-chat-interface">
       <Card.Body>
         <div className="voice-controls">
+          <Form.Check 
+            type="switch"
+            id="instant-send-switch"
+            label="Instant Send"
+            checked={isInstantSend}
+            onChange={(e) => setIsInstantSend(e.target.checked)}
+            className="mb-3"
+          />
+
           {error && (
             <div className="error-message alert alert-danger">
               {error}
@@ -333,7 +413,7 @@ const VoiceTab = () => {
               className="record-button"
               onClick={startRecording}
             >
-              <Mic /> Start Recording
+              <Mic /> {isInstantSend ? 'Start Recording (Auto-send)' : 'Start Recording'}
             </Button>
           )}
 
@@ -389,14 +469,16 @@ const VoiceTab = () => {
               <div className="response-text">
                 {response.text}
               </div>
-              <Button 
-                variant="light" 
-                onClick={togglePlayback}
-                className="play-response"
-              >
-                {isPlaying ? <Pause /> : <Play />}
-                {isPlaying ? 'Pause Response' : 'Play Response'}
-              </Button>
+              {/* Only show button if audio is playing or failed to autoplay */}
+              {(isPlaying || error) && (
+                <Button 
+                  variant="light" 
+                  onClick={togglePlayback}
+                  className="play-response"
+                >
+                  <Pause /> Stop Response
+                </Button>
+              )}
             </div>
           )}
         </div>

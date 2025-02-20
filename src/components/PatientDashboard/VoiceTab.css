@@ -114,3 +114,20 @@
     padding: 15px;
   }
 }
+
+/* Add styles for the instant send switch */
+.form-switch {
+  padding-left: 2.5em;
+  margin-bottom: 1.5rem;
+}
+
+.form-switch .form-check-input {
+  height: 1.5em;
+  width: 3em;
+  cursor: pointer;
+}
+
+.form-switch .form-check-label {
+  cursor: pointer;
+  padding-left: 0.5em;
+}
