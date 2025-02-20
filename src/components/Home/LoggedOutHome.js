@@ -171,25 +171,29 @@ function LoggedOutHome() {
     <div>
       {/* Hero Section */}
       <section className="hero-section">
-        <NeuralNetwork />
-        <Container>
+        <Container fluid>
           <Row>
-            <Col lg={7} className="hero-content">
-              <h1 className="hero-title fade-in">
-                Your Health Data
-                <span className="hero-subtitle">Powered by AI</span>
-              </h1>
-              <p className="hero-description fade-in">
-                Consolidate your health records, get AI-powered insights, and take control 
-                of your healthcare journey with our secure and intelligent platform.
-              </p>
-              <div className="hero-buttons fade-in">
-                <Button variant="info" as={Link} to="/register" size="lg" style={{ backgroundColor: '#00CED1', borderColor: '#00CED1' }}>
-                  Get Started
-                </Button>
-                <Button variant="outline-light" href="#features" size="lg">
-                  Learn More
-                </Button>
+            <Col lg={6} className="hero-content-wrapper">
+              <div className="hero-content">
+                <NeuralNetwork nodeCount={25} />
+                <div className="hero-text">
+                  <h1 className="hero-title fade-in">
+                    Your Health Data
+                    <span className="hero-subtitle">Powered by AI</span>
+                  </h1>
+                  <p className="hero-description fade-in">
+                    Consolidate your health records, get AI-powered insights, and take control 
+                    of your healthcare journey with our secure and intelligent platform.
+                  </p>
+                  <div className="hero-buttons fade-in">
+                    <Button variant="info" as={Link} to="/register" size="lg" style={{ backgroundColor: '#00CED1', borderColor: '#00CED1' }}>
+                      Get Started
+                    </Button>
+                    <Button variant="outline-light" href="#features" size="lg">
+                      Learn More
+                    </Button>
+                  </div>
+                </div>
               </div>
             </Col>
           </Row>

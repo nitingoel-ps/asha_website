@@ -1,16 +1,37 @@
 .hero-section {
   position: relative;
-  height: 600px;
+  height: 600px;  /* Changed from 600px to match content */
   background: linear-gradient(to right, #1a1a1a 60%, #2d2d2d);
   overflow: hidden;
   display: flex;
   align-items: center;
 }
 
+.hero-section .container {
+  padding-left: 0;  /* Remove left padding from container */
+}
+
+.hero-content-wrapper {
+  position: relative;
+  z-index: 1;
+  padding-left: 0px;  /* Add some minimal padding to prevent text from touching screen edge */
+  padding-right: 80px;
+}
+
 .hero-content {
   position: relative;
   z-index: 10;
   padding-top: 0;
+  height: 600px;  /* Changed from min-height to fixed height */
+  display: flex;  /* Added to help with vertical alignment */
+  align-items: center;  /* Added to center content vertically */
+}
+
+.hero-text {
+  position: relative;
+  padding-left: 100px;
+  padding-top: 0;  /* Changed from 80px since we're using flex centering */
+  z-index: 1;
 }
 
 .hero-image-container {
@@ -188,24 +209,16 @@
   }
 }
 
-/* Responsive adjustments */
+/* Large devices */
 @media (max-width: 992px) {
   .hero-image-container {
     opacity: 0.15;
     width: 100%;
   }
 
-  .hero-content {
-    text-align: center;
-  }
-
-  .hero-description {
-    margin-left: auto;
-    margin-right: auto;
-  }
-
-  .hero-buttons {
-    justify-content: center;
+  .hero-text {
+    padding-left: 2rem;  /* Adjust this value to control left padding on mobile */
+    padding-right: 2rem; /* Add right padding for balance */
   }
 
   .hero-title {
@@ -217,7 +230,31 @@
   }
 }
 
+@media (max-width: 991px) {
+  .hero-content-wrapper {
+    position: static;
+  }
+
+  .hero-content {
+    position: relative;
+    z-index: 2;
+  }
+
+  .neural-network-container {
+    position: absolute;
+    opacity: 0.5; /* Make it more subtle on mobile */
+    top: 0;
+    left: 0;
+    width: 50%;
+    height: 100%;
+  }
+}
+
 @media (max-width: 768px) {
+  .hero-content-wrapper {
+    position: static;
+  }
+
   .hero-title {
     font-size: 2.5rem;
   }
@@ -248,9 +285,29 @@
   transform: translateY(-5px);
 }
 
+.hero-buttons .btn {
+  padding: 0.75rem 1rem;
+  font-weight: 500;
+}
+
+.neural-network-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+}
+
+.neural-network-canvas {
+  width: 100%;
+  height: 100%;
+ 
+}
+
 /* Mobile adjustments */
 @media (max-width: 767px) {
   .logged-in-container {
     padding-top: 76px;
   }
-} 
+}

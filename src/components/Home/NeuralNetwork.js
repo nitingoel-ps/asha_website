@@ -1,26 +1,35 @@
 import React, { useEffect, useRef } from "react";
 
-const NeuralNetwork = () => {
+const NeuralNetwork = ({ nodeCount = 20 }) => {  // Changed from hardcoded 40 to configurable 20
   const canvasRef = useRef(null);
+  const containerRef = useRef(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    const container = containerRef.current;
+    if (!canvas || !container) return;
 
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    const resize = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
+    let nodes = [];
+
+    // Add responsive node count calculation
+    const calculateNodeCount = () => {
+      const width = window.innerWidth;
+      if (width <= 768) {
+        return Math.floor(nodeCount * 0.5); // 50% nodes on mobile
+      } else if (width <= 992) {
+        return Math.floor(nodeCount * 0.7); // 70% nodes on tablet
+      }
+      return nodeCount; // Full count on desktop
     };
-    resize();
-    window.addEventListener("resize", resize);
+
 
     class Node {
       constructor() {
         const section = Math.floor(Math.random() * 4);
-        const padding = 100;
+        const padding = 20; // Reduced from 100 to use more space
 
         switch(section) {
           case 0:
@@ -48,7 +57,7 @@ const NeuralNetwork = () => {
         this.x += this.vx;
         this.y += this.vy;
 
-        const padding = 50;
+        const padding = 10; // Reduced from 50 to use more space
         if (this.x < padding || this.x > canvas.width - padding) {
           this.vx *= -1;
           this.x = Math.max(padding, Math.min(canvas.width - padding, this.x));
@@ -81,7 +90,18 @@ const NeuralNetwork = () => {
       }
     }
 
-    const nodes = Array.from({ length: 40 }, () => new Node());
+    const resize = () => {
+      const rect = container.getBoundingClientRect();
+      canvas.width = rect.width;
+      canvas.height = rect.height;
+            
+      // Recalculate nodes when resizing
+      const newNodeCount = calculateNodeCount();
+      nodes = Array.from({ length: newNodeCount }, () => new Node());
+    };
+
+    resize();
+    window.addEventListener("resize", resize);    
 
     const animate = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -120,19 +140,19 @@ const NeuralNetwork = () => {
     return () => {
       window.removeEventListener("resize", resize);
     };
-  }, []);
+  }, [nodeCount]);
 
   return (
-    <canvas
-      ref={canvasRef}
-      style={{
-        position: 'absolute',
-        inset: 0,
-        width: '100%',
-        height: '100%'
-      }}
-    />
+    <div 
+      ref={containerRef}
+      className="neural-network-container"
+    >
+      <canvas
+        ref={canvasRef}
+        className="neural-network-canvas"
+      />
+    </div>
   );
 };
 
-export default NeuralNetwork; 
+export default NeuralNetwork;
