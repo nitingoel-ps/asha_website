@@ -6,6 +6,7 @@ import './Navigation.css';
 function LoggedOutNavbar() {
   const [expanded, setExpanded] = useState(false);
   const navbarRef = useRef(null);
+  const isDevelopment = process.env.NODE_ENV === 'development';
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -34,9 +35,9 @@ function LoggedOutNavbar() {
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
         <Navbar.Collapse id="basic-navbar-nav">
           <Nav className="ms-auto">
-            <Nav.Link href="#features" onClick={() => setExpanded(false)}>Features</Nav.Link>
-            <Nav.Link href="#how-it-works" onClick={() => setExpanded(false)}>How It Works</Nav.Link>
-            <Nav.Link as={Link} to="/register" onClick={() => setExpanded(false)}>Sign Up</Nav.Link>
+            <Nav.Link href="/#features" onClick={() => setExpanded(false)}>Features</Nav.Link>
+            <Nav.Link href="/#how-it-works" onClick={() => setExpanded(false)}>How It Works</Nav.Link>
+            <Nav.Link as={Link} to="/#waitlist" onClick={() => setExpanded(false)}>Sign Up</Nav.Link>
             <Nav.Link as={Link} to="/login" className="ms-3" onClick={() => setExpanded(false)}>Login</Nav.Link>
           </Nav>
         </Navbar.Collapse>
@@ -45,4 +46,4 @@ function LoggedOutNavbar() {
   );
 }
 
-export default LoggedOutNavbar; 
+export default LoggedOutNavbar;

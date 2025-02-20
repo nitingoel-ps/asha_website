@@ -1,10 +1,13 @@
 // src/components/Register.js
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import axiosInstance from '../utils/axiosInstance'; // Import axiosInstance
 import { Form, Button, Container, Row, Col, Card, Alert } from 'react-bootstrap';
 import { FaUserPlus } from 'react-icons/fa'; // Import icon
 
 function Register() {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [formData, setFormData] = useState({
     username: '',
     password: '',
@@ -12,10 +15,40 @@ function Register() {
     email: '',
     first_name: '',
     last_name: '',
+    invitation_code: ''
   });
 
+  const [isCodeValid, setIsCodeValid] = useState(false);
   const [errors, setErrors] = useState({});
   const [message, setMessage] = useState('');
+
+  useEffect(() => {
+    // Extract invitation code from URL parameters
+    const params = new URLSearchParams(location.search);
+    const code = params.get('code');
+    
+    if (!code) {
+      navigate('/registration');
+      return;
+    }
+
+    setFormData(prev => ({ ...prev, invitation_code: code }));
+    validateInvitationCode(code);
+  }, [location]);
+
+  const validateInvitationCode = (code) => {
+    axiosInstance
+      .post('/validate/registration-code/', { code })
+      .then((response) => {
+        setIsCodeValid(true);
+        setErrors({});
+      })
+      .catch((error) => {
+        setIsCodeValid(false);
+        setErrors({ invitation_code: 'Invalid invitation code' });
+        setTimeout(() => navigate('/'), 3000);
+      });
+  };
 
   const handleChange = (e) => {
     setFormData({
@@ -26,6 +59,11 @@ function Register() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (!isCodeValid) {
+      setErrors({ invitation_code: 'Invalid invitation code' });
+      return;
+    }
+
     axiosInstance
       .post('/register/', formData)
       .then((response) => {
@@ -41,6 +79,16 @@ function Register() {
       });
   };
 
+  if (!isCodeValid) {
+    return (
+      <Container className="mt-5">
+        <Alert variant="warning">
+          Validating invitation code... {errors.invitation_code && <div>{errors.invitation_code}</div>}
+        </Alert>
+      </Container>
+    );
+  }
+
   return (
     <Container className="mt-5">
       <Row className="justify-content-md-center">
@@ -53,6 +101,18 @@ function Register() {
               {message && <Alert variant="success">{message}</Alert>}
               {errors.general && <Alert variant="danger">{errors.general}</Alert>}
               <Form onSubmit={handleSubmit}>
+                {/* Invitation Code */}
+                <Form.Group controlId="invitation_code" className="mb-3">
+                  <Form.Label>Invitation Code</Form.Label>
+                  <Form.Control
+                    type="text"
+                    name="invitation_code"
+                    value={formData.invitation_code}
+                    disabled
+                    className="bg-light"
+                  />
+                </Form.Group>
+                
                 {/* Username */}
                 <Form.Group controlId="username" className="mb-3">
                   <Form.Label>Username</Form.Label>

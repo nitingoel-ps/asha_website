@@ -1,9 +1,9 @@
 import React, { createContext, useState, useContext } from 'react';
-
-const AuthContext = createContext();
+import { Amplify } from 'aws-amplify';
+import { signUp } from 'aws-amplify/auth';
 
 // Hook to access AuthContext
-export const useAuth = () => useContext(AuthContext);
+const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   // State for authentication
@@ -33,3 +33,8 @@ export const AuthProvider = ({ children }) => {
     </AuthContext.Provider>
   );
 };
+
+export const useAuth = () => useContext(AuthContext);
+
+
+

@@ -10,6 +10,7 @@ import MyDocuments from './components/MyDocuments';
 import PrivateRoute from './components/PrivateRoute';
 import UploadFiles from "./components/UploadFiles";
 import { LoggedInNavbar, LoggedOutNavbar } from './components/Navigation';
+import InvitationCodeEntry from './components/InvitationCodeEntry';
 
 import './theme.css';
 
@@ -48,6 +49,7 @@ function AppContent() {
           } 
         />
         <Route path="/my-documents" element={<MyDocuments />} />
+        <Route path="/registration" element={<InvitationCodeEntry />} />
       </Routes>
     </>
   );
