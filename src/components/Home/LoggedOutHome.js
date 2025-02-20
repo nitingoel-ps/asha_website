@@ -12,6 +12,8 @@ import axiosInstance from '../../utils/axiosInstance';
 // Cognito configuration only for waitlist
 import { Amplify } from 'aws-amplify';
 import { signUp } from 'aws-amplify/auth';  // Updated import
+import { Modal } from 'react-bootstrap';  // Add this import
+import { confirmSignUp } from 'aws-amplify/auth';  // Add this import
 const waitlistConfig = {
   Auth: {
     Cognito: {
@@ -22,6 +24,51 @@ const waitlistConfig = {
   }
 };
 Amplify.configure(waitlistConfig);
+
+// Move VerificationModal outside of LoggedOutHome
+const VerificationModal = ({
+  show,
+  onHide,
+  verificationCode,
+  setVerificationCode,
+  onSubmit,
+  verificationError,
+  verifying
+}) => (
+  <Modal show={show} onHide={onHide}>
+    <Modal.Header closeButton>
+      <Modal.Title>Verify Your Email</Modal.Title>
+    </Modal.Header>
+    <Modal.Body>
+      <p>Please check your email for a verification code and enter it below.</p>
+      <Form onSubmit={onSubmit}>
+        <Form.Group className="mb-3">
+          <Form.Control
+            type="text"
+            placeholder="Enter verification code"
+            value={verificationCode}
+            onChange={(e) => setVerificationCode(e.target.value)}
+            required
+          />
+        </Form.Group>
+        {verificationError && (
+          <Alert variant="danger" className="mb-3">
+            {verificationError}
+          </Alert>
+        )}
+        <Button 
+          type="submit"
+          variant="info"
+          style={{ backgroundColor: '#00CED1', borderColor: '#00CED1' }}
+          disabled={verifying}
+          className="w-100"
+        >
+          {verifying ? 'Verifying...' : 'Verify Email'}
+        </Button>
+      </Form>
+    </Modal.Body>
+  </Modal>
+);
 
 function LoggedOutHome() {
   const [formData, setFormData] = useState({
@@ -64,15 +111,21 @@ function LoggedOutHome() {
     }));
   };
 
+
+  // Code to handle registration signup with Cognito
+
   const generateTempPassword = () => {
     // Generate a random password that meets Cognito requirements
     return Math.random().toString(36).slice(-8) + 'A1!';
   };
+  const [showVerificationModal, setShowVerificationModal] = useState(false);
+  const [verificationCode, setVerificationCode] = useState('');
+  const [verificationError, setVerificationError] = useState('');
+  const [verifying, setVerifying] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
     try {
       // Sign up the user with Cognito
       const { user } = await signUp({
@@ -84,13 +137,33 @@ function LoggedOutHome() {
         }
       });
       
-      setSubmitSuccess(true);
+      setShowVerificationModal(true); // Show verification modal after successful signup
       setSubmitError(null);
     } catch (error) {
       setSubmitError(error.message);
       setSubmitSuccess(false);
     } finally {
       setIsSubmitting(false);
+    }
+  };
+  // Add verification handler
+  const handleVerification = async (e) => {
+    e.preventDefault();
+    setVerifying(true);
+    setVerificationError('');
+
+    try {
+      await confirmSignUp({
+        username: formData.email,
+        confirmationCode: verificationCode
+      });
+      
+      setShowVerificationModal(false);
+      setSubmitSuccess(true);
+    } catch (error) {
+      setVerificationError(error.message);
+    } finally {
+      setVerifying(false);
     }
   };
 
@@ -307,6 +380,15 @@ function LoggedOutHome() {
           </Row>
         </Container>
       </section>
+      <VerificationModal
+        show={showVerificationModal}
+        onHide={() => setShowVerificationModal(false)}
+        verificationCode={verificationCode}
+        setVerificationCode={setVerificationCode}
+        onSubmit={handleVerification}
+        verificationError={verificationError}
+        verifying={verifying}
+      />
     </div>
   );
 }
