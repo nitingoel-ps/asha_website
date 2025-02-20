@@ -11,11 +11,120 @@ const VoiceTab = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [response, setResponse] = useState(null);
   const [error, setError] = useState(null);
-  
+  const [audioUrl, setAudioUrl] = useState(null);
+
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
   const audioRef = useRef(new Audio());
-  
+
+  // Add debug logging for audio events
+  const setupAudioHandlers = (audio) => {
+    audio.onloadeddata = () => console.log('Audio loaded:', audio.src.slice(0, 50) + '...');
+    audio.onerror = (e) => console.error('Audio error:', e);
+    audio.onplay = () => console.log('Audio started playing');
+    audio.onpause = () => console.log('Audio paused');
+    audio.onended = () => {
+      console.log('Audio playback ended');
+      setIsPlaying(false);
+    };
+    // Add canplaythrough event handler
+    audio.oncanplaythrough = () => {
+      console.log('Audio can play through without buffering');
+    };
+  };
+
+  // Update useEffect to use new audio handlers
+  React.useEffect(() => {
+    const audio = audioRef.current;
+    setupAudioHandlers(audio);
+    return () => {
+      audio.onloadeddata = null;
+      audio.onerror = null;
+      audio.onplay = null;
+      audio.onpause = null;
+      audio.onended = null;
+      audio.oncanplaythrough = null;
+    };
+  }, []);
+
+  const convertBlobToBase64 = (blob) => {
+    console.log('Converting blob to base64, blob size:', blob.size);
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        console.log('Blob converted to base64, length:', reader.result.length);
+        resolve(reader.result);
+      };
+      reader.onerror = (error) => {
+        console.error('Error converting blob to base64:', error);
+        reject(error);
+      };
+      reader.readAsDataURL(blob);
+    });
+  };
+
+  const createAudioElement = async (base64Audio) => {
+    console.log('Creating new audio element...');
+    return new Promise((resolve, reject) => {
+      const newAudio = new Audio();
+      
+      const timeoutId = setTimeout(() => {
+        cleanup();
+        reject(new Error('Audio loading timeout'));
+      }, 10000); // Increased timeout to 10 seconds
+
+      const cleanup = () => {
+        newAudio.oncanplaythrough = null;
+        newAudio.onerror = null;
+        clearTimeout(timeoutId);
+      };
+
+      newAudio.oncanplaythrough = () => {
+        cleanup();
+        resolve(newAudio);
+      };
+
+      newAudio.onerror = (error) => {
+        cleanup();
+        reject(new Error(`Audio loading failed: ${error.message}`));
+      };
+
+      // For iOS compatibility, we need to set these attributes
+      newAudio.setAttribute('playsinline', 'true');
+      newAudio.setAttribute('webkit-playsinline', 'true');
+      
+      // Load the audio
+      newAudio.src = base64Audio;
+      
+      // For iOS, we might need to load() explicitly
+      try {
+        newAudio.load();
+      } catch (e) {
+        console.warn('Audio load() failed, continuing anyway:', e);
+      }
+    });
+  };
+
+  const getSupportedMimeType = () => {
+    const types = [
+      'audio/webm;codecs=opus',
+      'audio/webm',
+      'audio/ogg;codecs=opus',
+      'audio/mp4',
+      'audio/aac',
+      ''  // empty string means let browser pick format
+    ];
+    
+    for (const type of types) {
+      if (type === '' || MediaRecorder.isTypeSupported(type)) {
+        console.log('Using MIME type:', type || 'browser default');
+        return type;
+      }
+    }
+    
+    throw new Error('No supported audio MIME type found');
+  };
+
   const startRecording = async () => {
     try {
       setError(null);
@@ -25,18 +134,50 @@ const VoiceTab = () => {
       }
 
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      mediaRecorderRef.current = new MediaRecorder(stream);
+      
+      // Get supported MIME type
+      const mimeType = getSupportedMimeType();
+      const options = mimeType ? { mimeType } : undefined;
+      
+      console.log('Creating MediaRecorder with options:', options);
+      mediaRecorderRef.current = new MediaRecorder(stream, options);
       audioChunksRef.current = [];
 
       mediaRecorderRef.current.ondataavailable = (event) => {
         audioChunksRef.current.push(event.data);
       };
 
-      mediaRecorderRef.current.onstop = () => {
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/wav' });
-        const audioUrl = URL.createObjectURL(audioBlob);
-        audioRef.current.src = audioUrl;
-        setHasRecording(true);
+      mediaRecorderRef.current.onstop = async () => {
+        console.log('Recording stopped, processing audio chunks...');
+        try {
+          // Use the same MIME type that was used for recording
+          const mimeType = mediaRecorderRef.current.mimeType || 'audio/webm';
+          const audioBlob = new Blob(audioChunksRef.current, { 
+            type: mimeType 
+          });
+          console.log('Created audio blob:', { 
+            size: audioBlob.size, 
+            type: audioBlob.type,
+            chunks: audioChunksRef.current.length 
+          });
+          
+          // Create an object URL instead of base64 for local playback
+          const blobUrl = URL.createObjectURL(audioBlob);
+          console.log('Created blob URL for playback');
+          
+          // Store both blob and URL for different purposes
+          setAudioUrl(blobUrl);
+          audioRef.current = new Audio(blobUrl);
+          setupAudioHandlers(audioRef.current);
+          
+          // Store the blob separately for sending to API
+          audioRef.current.blob = audioBlob;
+          setHasRecording(true);
+          console.log('Audio ready for playback');
+        } catch (error) {
+          console.error('Error preparing audio:', error);
+          setError('Error preparing audio for playback: ' + error.message);
+        }
       };
 
       mediaRecorderRef.current.start();
@@ -62,66 +203,111 @@ const VoiceTab = () => {
     }
   };
 
+  // Update cancelRecording to properly clean up
   const cancelRecording = () => {
+    console.log('Canceling recording...');
     if (mediaRecorderRef.current) {
       mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
     }
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.src = '';
+      // Clean up blob URL if it exists
+      if (audioUrl && audioUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(audioUrl);
+      }
+    }
     setIsRecording(false);
     setHasRecording(false);
-    audioRef.current.src = '';
+    setAudioUrl(null);
+    setIsPlaying(false);
+    console.log('Recording canceled and cleaned up');
   };
 
   const sendRecording = async () => {
-    if (!hasRecording) return;
+    if (!hasRecording || !audioRef.current.blob) return;
 
     setIsProcessing(true);
-    const reader = new FileReader();
-    const audioBlob = await fetch(audioRef.current.src).then(r => r.blob());
+    try {
+      // Convert blob to base64 only when sending to API
+      const base64Audio = await convertBlobToBase64(audioRef.current.blob);
+      const base64Data = base64Audio.split(',')[1];
+      
+      const response = await fetchWithAuth('/voice-chat/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ audio: base64Data })
+      });
 
-    reader.onload = async () => {
-      const base64Audio = reader.result.split(',')[1];
-      try {
-        const response = await fetchWithAuth('/voice-chat/', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ audio: base64Audio })
-        });
+      const data = await response.json();
+      setResponse(data);
+      
+      // Handle the response audio
+      const responseAudio = `data:audio/wav;base64,${data.audio}`;
+      audioRef.current = new Audio(responseAudio);
+      setupAudioHandlers(audioRef.current);
+      
+      setHasRecording(false);
+      setIsProcessing(false);
+    } catch (error) {
+      console.error('Error sending audio:', error);
+      setIsProcessing(false);
+      setError('Error sending audio: ' + error.message);
+    }
+  };
 
-        const data = await response.json();
-        setResponse(data);
-        
-        // Convert base64 response to audio
-        const responseAudio = `data:audio/wav;base64,${data.audio}`;
-        audioRef.current.src = responseAudio;
-        
-        setHasRecording(false);
-        setIsProcessing(false);
-      } catch (error) {
-        console.error('Error sending audio:', error);
-        setIsProcessing(false);
+  // Clean up blob URLs when component unmounts
+  React.useEffect(() => {
+    return () => {
+      if (audioUrl && audioUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(audioUrl);
       }
     };
-
-    reader.readAsDataURL(audioBlob);
-  };
+  }, [audioUrl]);
 
   const togglePlayback = () => {
-    if (isPlaying) {
-      audioRef.current.pause();
-    } else {
-      audioRef.current.play();
+    console.log('Toggle playback called, current playing state:', isPlaying);
+    
+    if (!audioRef.current.src) {
+      console.error('No audio source available');
+      setError('No audio available for playback');
+      return;
     }
-    setIsPlaying(!isPlaying);
-  };
 
-  // Set up audio event listeners
-  React.useEffect(() => {
-    const audio = audioRef.current;
-    audio.onended = () => setIsPlaying(false);
-    return () => {
-      audio.onended = null;
-    };
-  }, []);
+    try {
+      if (isPlaying) {
+        audioRef.current.pause();
+        setIsPlaying(false);
+      } else {
+        // For iOS, we need to catch and handle the play() promise
+        const playAttempt = audioRef.current.play();
+        
+        if (playAttempt !== undefined) {
+          playAttempt
+            .then(() => {
+              console.log('Audio playback started successfully');
+              setIsPlaying(true);
+            })
+            .catch(error => {
+              console.error('Playback error:', error);
+              // On iOS, we might need to retry with user interaction
+              if (error.name === 'NotAllowedError') {
+                setError('Tap the play button again to start playback');
+              } else {
+                setError('Error playing audio: ' + error.message);
+              }
+              setIsPlaying(false);
+            });
+        } else {
+          setIsPlaying(true);
+        }
+      }
+    } catch (error) {
+      console.error('Toggle playback error:', error);
+      setError('Error controlling playback: ' + error.message);
+      setIsPlaying(false);
+    }
+  };
 
   return (
     <Card className="voice-chat-interface">
