@@ -39,19 +39,22 @@ export function MedicationsListView({ medications }) {
       onClick={() => handleMedicationClick(medication.id)}
     >
       <Card.Body>
-        <div className="d-flex justify-content-between align-items-start">
-          <div>
-            <h5 className="mb-1">{medication.medication}</h5>
-            <p className="text-muted mb-1">
-              {medication.patient_instruction || 'No specific instructions'}
-            </p>
-            <small className="text-muted">
-              Prescribed: {formatDate(medication.authoredOn)}
-            </small>
+        <div>
+          <div className="d-flex justify-content-between align-items-center mb-2">
+            <h5 className="mb-0">{medication.medication}</h5>
+            <span className={`status-badge status-${medication.status}`}>
+              {medication.status}
+            </span>
           </div>
-          <span className={`status-badge status-${medication.status}`}>
-            {medication.status}
-          </span>
+          <p className="text-muted mb-1">
+            {medication.patient_instruction || 'No specific instructions'}
+          </p>
+          <small className="text-muted">
+            Prescribed: {formatDate(medication.authoredOn)}
+            {medication.reason && (
+              <><br />Reason: {medication.reason}</>
+            )}
+          </small>
         </div>
       </Card.Body>
     </Card>
