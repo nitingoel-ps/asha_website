@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Button, Card, Spinner, Form } from 'react-bootstrap';  // Add Form import
 import { Mic, Square, Send, X, Play, Pause } from 'lucide-react';
 import './VoiceTab.css';
@@ -6,21 +6,27 @@ import { fetchWithAuth } from "../../utils/fetchWithAuth";
 
 const VoiceTab = () => {
   const [isRecording, setIsRecording] = useState(false);
-  const [hasRecording, setHasRecording] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [response, setResponse] = useState(null);
   const [error, setError] = useState(null);
   const [audioUrl, setAudioUrl] = useState(null);
-  const [isInstantSend, setIsInstantSend] = useState(() => {
-    // Initialize from localStorage, default to true if not set
-    const saved = localStorage.getItem('voiceInstantSend');
-    return saved !== null ? JSON.parse(saved) : true;
-  });
-
+  const [showPlaybackControl, setShowPlaybackControl] = useState(true);
+  const [needsManualPlay, setNeedsManualPlay] = useState(false);
+  
+  const cancelingRef = useRef(false);
+  
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
   const audioRef = useRef(new Audio());
+
+  // Add useEffect hook to handle component mount and unmount
+  useEffect(() => {
+    console.log("VoiceTab mounted");
+    return () => {
+    console.log("VoiceTab unmounted");
+    };
+  }, []);
 
   // Add debug logging for audio events
   const setupAudioHandlers = (audio) => {
@@ -56,11 +62,6 @@ const VoiceTab = () => {
       audio.oncanplaythrough = null;
     };
   }, []);
-
-  // Save preference when it changes
-  React.useEffect(() => {
-    localStorage.setItem('voiceInstantSend', JSON.stringify(isInstantSend));
-  }, [isInstantSend]);
 
   const convertBlobToBase64 = (blob) => {
     console.log('Converting blob to base64, blob size:', blob.size);
@@ -143,6 +144,7 @@ const VoiceTab = () => {
   const startRecording = async () => {
     try {
       setError(null);
+      audioChunksRef.current = []; // Reset chunks at start
       // First check if the browser supports getUserMedia
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
         throw new Error('Your browser does not support audio recording');
@@ -163,57 +165,59 @@ const VoiceTab = () => {
       };
 
       mediaRecorderRef.current.onstop = async () => {
-        console.log('Recording stopped, processing audio chunks...');
+        console.log('Recording stopped, isCanceling:', cancelingRef.current);
+        
+        // Store chunks in a local variable and clear the ref immediately
+        const chunks = audioChunksRef.current;
+        audioChunksRef.current = [];
+        
+        if (cancelingRef.current) {
+          cancelingRef.current = false;
+          setIsProcessing(false);
+          return;
+        }
+
         try {
           const mimeType = mediaRecorderRef.current.mimeType || 'audio/webm';
-          const audioBlob = new Blob(audioChunksRef.current, { type: mimeType });
+          const audioBlob = new Blob(chunks, { type: mimeType });
           console.log('Created audio blob:', { 
             size: audioBlob.size, 
             type: audioBlob.type,
             chunks: audioChunksRef.current.length 
           });
 
-          if (isInstantSend) {
-            // Convert and send immediately
-            const base64Audio = await convertBlobToBase64(audioBlob);
-            const base64Data = base64Audio.split(',')[1];
-            
-            const response = await fetchWithAuth('/voice-chat/', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ audio: base64Data })
-            });
+          // Convert and send immediately
+          const base64Audio = await convertBlobToBase64(audioBlob);
+          const base64Data = base64Audio.split(',')[1];
+          
+          const response = await fetchWithAuth('/voice-chat/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ audio: base64Data })
+          });
 
-            const data = await response.json();
-            setResponse(data);
-            
-            // Handle the response audio
-            const responseAudio = `data:audio/wav;base64,${data.audio}`;
-            const newAudio = new Audio(responseAudio);
-            setupAudioHandlers(newAudio);
-            audioRef.current = newAudio;
+          const data = await response.json();
+          setResponse(data);
+          
+          // Handle the response audio
+          const responseAudio = `data:audio/wav;base64,${data.audio}`;
+          const newAudio = new Audio(responseAudio);
+          setupAudioHandlers(newAudio);
+          audioRef.current = newAudio;
 
-            // Attempt autoplay
-            try {
-              await newAudio.play();
-              setIsPlaying(true);
-            } catch (error) {
-              console.error('Autoplay failed:', error);
-              if (error.name === 'NotAllowedError') {
-                setError('Please tap play to hear the response');
-              }
-            }
-            
-            setIsProcessing(false);
-          } else {
-            // Original behavior for review before send
-            const blobUrl = URL.createObjectURL(audioBlob);
-            setAudioUrl(blobUrl);
-            audioRef.current = new Audio(blobUrl);
-            setupAudioHandlers(audioRef.current);
-            audioRef.current.blob = audioBlob;
-            setHasRecording(true);
+          // Attempt autoplay
+          try {
+            await newAudio.play();
+            setIsPlaying(true);
+            setShowPlaybackControl(true);
+            setNeedsManualPlay(false);
+          } catch (error) {
+            console.log('Autoplay failed, showing play button:', error);
+            setNeedsManualPlay(true);
+            setShowPlaybackControl(true);
           }
+          
+          setIsProcessing(false);
           
           console.log('Audio processing completed');
         } catch (error) {
@@ -238,23 +242,22 @@ const VoiceTab = () => {
     }
   };
 
-  const stopRecording = () => {
+  const stopAndSendRecording = () => {
     if (mediaRecorderRef.current && isRecording) {
+      setIsProcessing(true);
       mediaRecorderRef.current.stop();
       mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
       setIsRecording(false);
-      
-      if (isInstantSend) {
-        // We'll handle the actual sending in the onstop handler
-        setIsProcessing(true);
-      }
     }
   };
 
   // Update cancelRecording to properly clean up
   const cancelRecording = () => {
     console.log('Canceling recording...');
+    cancelingRef.current = true;  // Use ref instead of state
+    audioChunksRef.current = []; // Clear chunks immediately
     if (mediaRecorderRef.current) {
+      mediaRecorderRef.current.stop();
       mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
     }
     if (audioRef.current) {
@@ -266,65 +269,9 @@ const VoiceTab = () => {
       }
     }
     setIsRecording(false);
-    setHasRecording(false);
     setAudioUrl(null);
     setIsPlaying(false);
     console.log('Recording canceled and cleaned up');
-  };
-
-  const sendRecording = async () => {
-    if (!hasRecording || !audioRef.current.blob) return;
-
-    setIsProcessing(true);
-    try {
-      // Convert blob to base64 only when sending to API
-      const base64Audio = await convertBlobToBase64(audioRef.current.blob);
-      const base64Data = base64Audio.split(',')[1];
-      
-      const response = await fetchWithAuth('/voice-chat/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ audio: base64Data })
-      });
-
-      const data = await response.json();
-      setResponse(data);
-      
-      // Handle the response audio
-      const responseAudio = `data:audio/wav;base64,${data.audio}`;
-      const newAudio = new Audio(responseAudio);
-      setupAudioHandlers(newAudio);
-      audioRef.current = newAudio;
-
-      // Attempt to autoplay
-      try {
-        const playPromise = newAudio.play();
-        if (playPromise !== undefined) {
-          playPromise
-            .then(() => {
-              console.log('Response autoplay started successfully');
-              setIsPlaying(true);
-            })
-            .catch(error => {
-              console.error('Autoplay failed:', error);
-              // On iOS, we need explicit user interaction
-              if (error.name === 'NotAllowedError') {
-                setError('Please tap play to hear the response');
-              }
-              setIsPlaying(false);
-            });
-        }
-      } catch (error) {
-        console.error('Error during autoplay setup:', error);
-      }
-      
-      setHasRecording(false);
-      setIsProcessing(false);
-    } catch (error) {
-      console.error('Error sending audio:', error);
-      setIsProcessing(false);
-      setError('Error sending audio: ' + error.message);
-    }
   };
 
   // Clean up blob URLs when component unmounts
@@ -349,6 +296,7 @@ const VoiceTab = () => {
       if (isPlaying) {
         audioRef.current.pause();
         setIsPlaying(false);
+        setShowPlaybackControl(false); // Hide control after stopping
       } else {
         // For iOS, we need to catch and handle the play() promise
         const playAttempt = audioRef.current.play();
@@ -380,19 +328,22 @@ const VoiceTab = () => {
     }
   };
 
+  const handleInitialPlay = async () => {
+    try {
+      await audioRef.current.play();
+      setIsPlaying(true);
+      setNeedsManualPlay(false);
+      setShowPlaybackControl(true);
+    } catch (error) {
+      console.error('Manual play failed:', error);
+      setError('Playback failed: ' + error.message);
+    }
+  };
+
   return (
     <Card className="voice-chat-interface">
       <Card.Body>
         <div className="voice-controls">
-          <Form.Check 
-            type="switch"
-            id="instant-send-switch"
-            label="Instant Send"
-            checked={isInstantSend}
-            onChange={(e) => setIsInstantSend(e.target.checked)}
-            className="mb-3"
-          />
-
           {error && (
             <div className="error-message alert alert-danger">
               {error}
@@ -407,53 +358,56 @@ const VoiceTab = () => {
             </div>
           )}
 
-          {!isRecording && !hasRecording && (
+          {!isRecording && !isProcessing && !isPlaying && !needsManualPlay && (
             <Button 
               variant="primary" 
               className="record-button"
               onClick={startRecording}
             >
-              <Mic /> {isInstantSend ? 'Start Recording (Auto-send)' : 'Start Recording'}
+              <Mic /> Click to Speak
+            </Button>
+          )}
+
+          {needsManualPlay && (
+            <Button 
+              variant="primary" 
+              className="record-button"
+              onClick={handleInitialPlay}
+            >
+              <Play /> Play Response
+            </Button>
+          )}
+
+          {isPlaying && showPlaybackControl && (
+            <Button 
+              variant="light" 
+              onClick={togglePlayback}
+              className="record-button"
+            >
+              <Pause /> Stop Playback
             </Button>
           )}
 
           {isRecording && (
             <div className="recording-controls">
-              <Button 
-                variant="danger" 
-                className="stop-button"
-                onClick={stopRecording}
-              >
-                <Square /> Stop Recording
-              </Button>
+              <div className="recording-buttons">
+                <Button 
+                  variant="success" 
+                  className="send-button"
+                  onClick={stopAndSendRecording}
+                >
+                  <Send /> Send
+                </Button>
+                <Button 
+                  variant="danger" 
+                  onClick={cancelRecording}
+                >
+                  <X /> Cancel
+                </Button>
+              </div>
               <div className="recording-indicator">
                 Recording... <span className="pulse"></span>
               </div>
-            </div>
-          )}
-
-          {hasRecording && (
-            <div className="recording-actions">
-              <Button 
-                variant="secondary" 
-                onClick={togglePlayback}
-              >
-                {isPlaying ? <Pause /> : <Play />}
-                {isPlaying ? 'Pause' : 'Play'}
-              </Button>
-              <Button 
-                variant="danger" 
-                onClick={cancelRecording}
-              >
-                <X /> Cancel
-              </Button>
-              <Button 
-                variant="success" 
-                onClick={sendRecording}
-                disabled={isProcessing}
-              >
-                <Send /> Send
-              </Button>
             </div>
           )}
 
@@ -466,19 +420,9 @@ const VoiceTab = () => {
 
           {response && (
             <div className="response-section">
-              <div className="response-text">
+              <pre className="response-text">
                 {response.text}
-              </div>
-              {/* Only show button if audio is playing or failed to autoplay */}
-              {(isPlaying || error) && (
-                <Button 
-                  variant="light" 
-                  onClick={togglePlayback}
-                  className="play-response"
-                >
-                  <Pause /> Stop Response
-                </Button>
-              )}
+              </pre>
             </div>
           )}
         </div>

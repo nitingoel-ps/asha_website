@@ -1,4 +1,4 @@
-.voice-chat-interface {
+.streaming-voice-interface {
   height: 100%;
   margin: 20px;
 }
@@ -20,24 +20,26 @@
   gap: 10px;
 }
 
+.recording-controls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+}
+
 .recording-buttons {
   display: flex;
   gap: 10px;
   margin-bottom: 10px;
 }
 
-.recording-controls {
+.send-button,
+.cancel-button {
+  min-width: 100px;
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 10px;
-  width: 100%;
-  max-width: 300px;
-}
-
-.recording-buttons button {
-  flex: 1;
-  padding: 10px 20px;
+  justify-content: center;
+  gap: 5px;
 }
 
 .recording-indicator {
@@ -47,6 +49,13 @@
   gap: 10px;
 }
 
+.streaming-indicator {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #0d6efd;
+}
+
 .pulse {
   display: inline-block;
   width: 10px;
@@ -54,47 +63,6 @@
   border-radius: 50%;
   background-color: #dc3545;
   animation: pulse 1s infinite;
-}
-
-.recording-actions {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  justify-content: center;
-}
-
-.processing-indicator {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  color: #666;
-}
-
-.response-section {
-  width: 100%;
-  max-width: 600px;
-  margin-top: 20px;
-  padding: 20px;
-  background-color: #f8f9fa;
-  border-radius: 10px;
-}
-
-.response-text {
-  margin-bottom: 15px;
-  line-height: 1.5;
-  white-space: pre-wrap;
-  font-family: inherit;
-  background: none;
-  border: none;
-  padding: 0;
-  margin: 0 0 15px 0;
-  overflow-x: auto;
-}
-
-.play-response {
-  display: flex;
-  align-items: center;
-  gap: 5px;
 }
 
 .error-message {
@@ -117,20 +85,16 @@
 }
 
 @media (max-width: 768px) {
-  .voice-chat-interface {
+  .streaming-voice-interface {
     margin: 10px;
   }
+}
 
-  .recording-actions {
-    flex-direction: column;
-    width: 100%;
-  }
-
-  .recording-actions button {
-    width: 100%;
-  }
-
-  .response-section {
-    padding: 15px;
-  }
+.play-button {
+  margin-top: 10px;
+  min-width: 150px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
 }

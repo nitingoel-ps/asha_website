@@ -20,6 +20,7 @@ import { useNavigate, useParams, Outlet, Routes, Route, useLocation, Navigate } 
 import "../styles/PatientDashboard.css";
 import { NewImmunizationsTab } from "./PatientDashboard/NewImmunizations/NewImmunizationsTab";
 import VoiceTab from "./PatientDashboard/VoiceTab";
+import StreamingVoiceTab from "./PatientDashboard/StreamingVoiceTab";
 
 function PatientDashboard() {
   const location = useLocation();
@@ -285,6 +286,7 @@ function PatientDashboard() {
                 } 
               />
               <Route path="voice" element={<VoiceTab />} />
+              <Route path="streaming-voice" element={<StreamingVoiceTab />} />
             </Routes>
           </div>
         </div>
