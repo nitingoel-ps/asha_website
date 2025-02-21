@@ -63,19 +63,11 @@
   flex: 1;
   position: relative;
   background-color: #F7FAFC;
-  overflow: hidden; /* Changed from overflow-y: auto */
+  overflow: hidden;
   padding: 15px;
   display: flex;
   flex-direction: column;
-}
-
-.back-button {
-  margin-bottom: 15px;
-  margin-top: 15px;  /* Reduced from 50px to 15px */
-  padding: 8px 16px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  height: calc(100vh - 60px);
 }
 
 .tab-content-wrapper {
@@ -84,7 +76,16 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow-y: auto;
+}
+
+.back-button {
+  margin-bottom: 15px;
+  margin-top: 15px;
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 /* Remove any existing transition effects on route changes */
@@ -133,10 +134,10 @@
 @media (max-width: 767px) {
   .dashboard-container {
     margin-top: 56px;
-    overflow-y: auto;
     height: calc(100vh - 56px);
     position: fixed;
     width: 100%;
+    overflow-y: hidden; /* Changed from auto */
   }
   
   .nav-menu {
@@ -155,10 +156,10 @@
     position: absolute;
     top: 0;
     left: 0;
-    overflow: hidden; /* Changed from overflow-y: auto */
+    overflow-y: auto !important; /* Changed from hidden */
     background: white;
     display: none;
-    padding-top: 0;
+    padding: 0;
   }
 
   .dashboard-container.tab-active .content-area {
@@ -191,8 +192,16 @@
   }
 
   .back-button {
-    margin-bottom: 5px;  /* Reduced from 15px to 5px */
-    margin-top: 5px;     /* Reduced from 15px to 5px */
-    padding: 4px 12px;   /* Slightly reduced padding */
+    margin-bottom: 5px;
+    margin-top: 5px;
+    padding: 4px 12px;
+  }
+
+  .tab-content-wrapper {
+    position: relative;
+    height: 100%;  /* Changed from auto */
+    min-height: 100%;
+    overflow-y: visible;  /* Changed from hidden */
+    width: 100%;
   }
 }

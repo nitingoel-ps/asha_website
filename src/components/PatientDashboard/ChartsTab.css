@@ -1,14 +1,16 @@
 /* Main container styling */
 .charts-tab {
-  padding: 20px;
+  height: 100%;
+  overflow-y: auto;
+  padding: 1rem;
 }
 
 /* Grid layout for KPI cards - adjust minmax() for card width */
 .charts-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); /* Reduced from 240px */
-  gap: 12px; /* Reduced from 16px */
-  margin-bottom: 24px;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
 }
 
 /* Individual KPI card styling */
@@ -18,7 +20,7 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   min-height: 100px; /* Further reduced from 120px */
   border: none;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: transform 0.2s;
 }
 
 /* Hover effects for cards that can show graphs */
@@ -126,12 +128,14 @@
 
 /* Graph container styling */
 .graph-container {
-  width: 80%;
+  width: 100%; /* Changed from 80% */
   margin: 20px auto;
-  padding: 20px;
+  padding: 15px;
   background: #fff;
   border-radius: 8px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  margin-top: 2rem;
+  margin-bottom: 2rem;
 }
 
 /* Summary section styling */
@@ -151,4 +155,79 @@
   font-size: 1.1rem;
   margin-bottom: 0.75rem;
   color: #374151;
+}
+
+/* Mobile-specific styles */
+@media (max-width: 767px) {
+  .charts-tab {
+    padding: 0;
+    height: auto;
+    min-height: 100%;
+    overflow-y: visible;
+    -webkit-overflow-scrolling: touch;
+    position: relative;
+  }
+
+  .graph-container {
+    width: 100%;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible;
+    height: auto;
+    min-height: 70vh;
+    position: relative;
+    background: none;
+    box-shadow: none;
+    border-radius: 0;
+  }
+
+  /* Bottom spacing for scrolling */
+  .graph-container::after {
+    content: '';
+    display: block;
+    height: 80px;
+  }
+
+  /* Remove any conflicting height constraints */
+  .graph-container > div {
+    height: auto;
+    min-height: 70vh;
+    width: 100% !important;
+  }
+
+  canvas.chartjs-render-monitor {
+    height: auto !important;
+    width: 100% !important;
+  }
+
+  /* Add padding at the bottom to ensure we can scroll past the graph */
+  .graph-container::after {
+    content: '';
+    display: block;
+    height: 40px;  /* Add some space at the bottom */
+  }
+
+  /* Update canvas styles */
+  canvas.chartjs-render-monitor {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: 100% !important;
+  }
+
+  /* Adjust grid for mobile */
+  .charts-grid {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+
+  /* Reduce card margins on mobile */
+  .chart-card {
+    margin-bottom: 0.5rem;
+  }
+
+  /* Force canvas to full width */
+  canvas.chartjs-render-monitor {
+    width: 100vw !important;
+    max-width: none !important;
+  }
 }

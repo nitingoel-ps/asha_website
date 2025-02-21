@@ -91,6 +91,7 @@ function ObservationGraph({ data }) {
   // Chart options
   const options = {
     responsive: true,
+    maintainAspectRatio: false, // Allow chart to adapt to container height
     plugins: {
       legend: {
         display: false, // Hide legend
@@ -117,7 +118,7 @@ function ObservationGraph({ data }) {
         ],
         align: "start",
         font: {
-          size: 18,
+          size: window.innerWidth < 768 ? 14 : 18, // Smaller font on mobile
         },
       },
       subtitle: {
@@ -128,7 +129,7 @@ function ObservationGraph({ data }) {
         ].filter(Boolean),
         align: "start",
         font: {
-          size: 18,
+          size: window.innerWidth < 768 ? 12 : 18,
           style: "italic",
         },
         padding: {
@@ -155,11 +156,11 @@ function ObservationGraph({ data }) {
         },
         ticks: {
           // Rotate labels to 45 degrees
-          maxRotation: 45,
-          minRotation: 45,
-          // To make labels vertical, use:
-          // maxRotation: 90,
-          // minRotation: 90,
+          maxRotation: window.innerWidth < 768 ? 90 : 45, // Vertical labels on mobile
+          minRotation: window.innerWidth < 768 ? 90 : 45,
+          font: {
+            size: window.innerWidth < 768 ? 10 : 12,
+          },
         },
       },
       y: {
@@ -184,13 +185,63 @@ function ObservationGraph({ data }) {
             return p.value.split ? Math.max(...p.value.split("/").map(Number)) : Number(p.value);
           })
         ),
+        ticks: {
+          font: {
+            size: window.innerWidth < 768 ? 10 : 12,
+          },
+        },
       },
     },
   };
 
   return (
-    <div style={{ padding: "10px" }}>
-      <Line data={chartData} options={options} />
+    <div style={{ 
+      padding: 0,
+      margin: 0,
+      height: window.innerWidth < 768 ? "70vh" : "70vh",
+      width: "100%", // Changed from 100vw
+      position: "relative",
+      display: "flex",
+      alignItems: "stretch",
+      maxWidth: "100%" // Changed from 100vw
+    }}>
+      <Line 
+        data={chartData} 
+        options={{
+          ...options,
+          maintainAspectRatio: false,
+          layout: {
+            padding: {
+              left: 20, // Increased padding for axis labels
+              right: 20,
+              top: 10,
+              bottom: 10
+            }
+          },
+          plugins: {
+            ...options.plugins,
+            title: {
+              ...options.plugins.title,
+              padding: {
+                top: 0,
+                bottom: 5
+              }
+            },
+            subtitle: {
+              ...options.plugins.subtitle,
+              padding: {
+                bottom: 10
+              }
+            }
+          }
+        }} 
+        style={{
+          width: "100%", // Changed from 100vw
+          maxWidth: "100%", // Changed from 100vw
+          margin: 0,
+          padding: 0
+        }}
+      />
     </div>
   );
 }
