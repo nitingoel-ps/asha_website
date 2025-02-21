@@ -1,10 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Button, Card, Spinner, Form } from 'react-bootstrap';  // Add Form import
-import { Mic, Square, Send, X, Play, Pause } from 'lucide-react';
+import { Mic, Square, Send, X, Play, Pause, User, Bot } from 'lucide-react';
 import './VoiceTab.css';
 import { fetchWithAuth } from "../../utils/fetchWithAuth";
 
-const VoiceTab = () => {
+const VoiceTab = ({ messages, setMessages }) => {
   const [isRecording, setIsRecording] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -19,6 +19,7 @@ const VoiceTab = () => {
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
   const audioRef = useRef(new Audio());
+  const conversationWrapperRef = useRef(null);
 
   // Add useEffect hook to handle component mount and unmount
   useEffect(() => {
@@ -27,6 +28,14 @@ const VoiceTab = () => {
     console.log("VoiceTab unmounted");
     };
   }, []);
+
+  // Add auto-scroll effect when messages change
+  useEffect(() => {
+    if (conversationWrapperRef.current) {
+      const wrapper = conversationWrapperRef.current;
+      wrapper.scrollTop = wrapper.scrollHeight;
+    }
+  }, [messages]); // Run when messages change
 
   // Add debug logging for audio events
   const setupAudioHandlers = (audio) => {
@@ -193,10 +202,14 @@ const VoiceTab = () => {
           const response = await fetchWithAuth('/voice-chat/', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ audio: base64Data })
+            body: JSON.stringify({ 
+              audio: base64Data,
+              messages: messages // Using messages from props
+            })
           });
 
           const data = await response.json();
+          setMessages(data.messages); // Using setMessages from props
           setResponse(data);
           
           // Handle the response audio
@@ -342,8 +355,8 @@ const VoiceTab = () => {
 
   return (
     <Card className="voice-chat-interface">
-      <Card.Body>
-        <div className="voice-controls">
+      <Card.Body className="voice-controls">
+        <div className="controls-container">
           {error && (
             <div className="error-message alert alert-danger">
               {error}
@@ -417,12 +430,27 @@ const VoiceTab = () => {
               Processing...
             </div>
           )}
+        </div>
 
-          {response && (
-            <div className="response-section">
-              <pre className="response-text">
-                {response.text}
-              </pre>
+        <div className="conversation-wrapper" ref={conversationWrapperRef}>
+          {messages && messages.length > 0 && (
+            <div className="conversation-container">
+              {messages.map((message, index) => (
+                <div 
+                  key={index} 
+                  className={`message ${message.role === 'user' ? 'user-message' : 'agent-message'}`}
+                >
+                  <div className="message-avatar">
+                    {message.role === 'user' ? 
+                      <User size={16} color="white" /> : 
+                      <Bot size={16} color="#2d3436" />
+                    }
+                  </div>
+                  <div className="message-content">
+                    {message.content}
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </div>

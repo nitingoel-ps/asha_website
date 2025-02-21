@@ -37,6 +37,7 @@ function PatientDashboard() {
   const [isThinking, setIsThinking] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [selectedPersona, setSelectedPersona] = useState(null);
+  const [voiceMessages, setVoiceMessages] = useState([]);
   const navigate = useNavigate();
   const memoizedEncounters = useMemo(() => 
     patientData?.encounters?.sort((a, b) => 
@@ -285,7 +286,12 @@ function PatientDashboard() {
                   </React.Suspense>
                 } 
               />
-              <Route path="voice" element={<VoiceTab />} />
+              <Route path="voice" element={
+                <VoiceTab 
+                  messages={voiceMessages} 
+                  setMessages={setVoiceMessages}
+                />
+              } />
               <Route path="streaming-voice" element={<StreamingVoiceTab />} />
             </Routes>
           </div>
