@@ -14,14 +14,14 @@
   font-size: 0.875rem;
 }
 
-/* Main scrollable container */
+/* Main container */
 .h-100.d-flex.flex-column {
-  height: calc(100vh - 60px) !important;
-  overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: #CBD5E0 #F7FAFC;
+  height: 100% !important;
+  display: flex;
+  flex-direction: column;
   background-color: #fff;
-  padding: 0; /* Remove padding from parent */
+  padding: 0;
+  overflow: hidden; /* Container itself shouldn't scroll */
 }
 
 .h-100.d-flex.flex-column::-webkit-scrollbar {
@@ -39,6 +39,23 @@
 
 .visits-grid-container {
   padding: 0 24px;
+  height: 100%;
+  overflow-y: auto; /* Make this container scrollable */
+  scrollbar-width: thin;
+  scrollbar-color: #CBD5E0 #F7FAFC;
+}
+
+.visits-grid-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.visits-grid-container::-webkit-scrollbar-track {
+  background: #F7FAFC;
+}
+
+.visits-grid-container::-webkit-scrollbar-thumb {
+  background-color: #CBD5E0;
+  border-radius: 4px;
 }
 
 /* Card height constraints */
@@ -69,12 +86,13 @@
   transition: opacity 300ms, transform 300ms;
 }
 
+/* Sticky year header */
 .year-header {
   position: sticky;
   top: 0;
   background-color: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(5px);
-  padding: 16px 0;
+  padding: 16px 24px; /* Added horizontal padding to match container */
   margin-bottom: 20px;
   z-index: 10;
   border-bottom: 1px solid #E2E8F0;
@@ -93,4 +111,16 @@
 
 .year-section:last-child {
   margin-bottom: 100px;
+}
+
+/* Mobile adjustments */
+@media (max-width: 640px) {
+  .visits-grid-container {
+    height: calc(100vh - 120px); /* Adjust for mobile header/footer */
+    padding: 0 16px;
+  }
+  
+  .year-header {
+    padding: 12px 16px;
+  }
 }

@@ -61,14 +61,12 @@
 
 .content-area {
   flex: 1;
-  overflow-y: auto;
+  position: relative;
   background-color: #F7FAFC;
-  height: 100%;
+  overflow: hidden; /* Changed from overflow-y: auto */
   padding: 15px;
   display: flex;
   flex-direction: column;
-  position: relative;
-  overflow: hidden;
 }
 
 .back-button {
@@ -82,10 +80,11 @@
 
 .tab-content-wrapper {
   position: relative;
-  min-height: 0;
+  height: 100%;
   flex: 1;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 /* Remove any existing transition effects on route changes */
@@ -145,7 +144,7 @@
     height: auto;
     position: relative;
     top: 0;
-    padding-bottom: 80px; /* Add padding at bottom to ensure last items are visible */
+    padding-bottom: 100px; /* Add padding at bottom to ensure last items are visible */
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
   }
@@ -156,10 +155,10 @@
     position: absolute;
     top: 0;
     left: 0;
-    overflow-y: auto;
+    overflow: hidden; /* Changed from overflow-y: auto */
     background: white;
     display: none;
-    padding-top: 0px; /* Add small padding at top */
+    padding-top: 0;
   }
 
   .dashboard-container.tab-active .content-area {

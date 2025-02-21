@@ -4,6 +4,15 @@ import { Calendar, MapPin, User } from 'lucide-react';
 import './VisitCard.css';
 
 function VisitCard({ visit, onClick }) {
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { 
+      month: 'short', 
+      day: 'numeric', 
+      year: 'numeric'
+    });
+  };
+
   const handleClick = (e) => {
     e.preventDefault();
     onClick();
@@ -23,7 +32,7 @@ function VisitCard({ visit, onClick }) {
         <div className="text-muted small d-flex flex-column gap-2 mt-auto">
           <div className="d-flex align-items-center gap-2">
             <Calendar size={16} />
-            <span>{new Date(visit.start).toLocaleDateString()}</span>
+            <span>{formatDate(visit.start)}</span>
           </div>
           
           <div className="d-flex align-items-center gap-2">

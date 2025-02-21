@@ -1,13 +1,22 @@
+.visit-detail-wrapper {
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  overflow: hidden;
+  position: relative;
+}
+
 .visit-detail {
-  padding: 24px;
-  background-color: #fff;
-  animation: fadeIn 0.3s ease-out;
-  max-width: 1600px;
+  max-width: 1200px;
   margin: 0 auto;
-  height: calc(100vh - 300px);
+  padding: 24px;
+  height: 100%;
   overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-color: #CBD5E0 #F7FAFC;
+  position: relative;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .visit-detail::-webkit-scrollbar {
@@ -47,16 +56,22 @@
   font-weight: 500;
 }
 
+.visit-header {
+  margin-bottom: 32px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #E2E8F0;
+}
+
 .visit-title {
-  color: #2D3748;
   font-size: 1.75rem;
-  font-weight: 600;
-  margin-bottom: 1rem;
+  color: #1A202C;
+  margin-bottom: 16px;
 }
 
 .visit-meta {
-  display: flex;
-  gap: 2rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
   color: #4A5568;
   font-size: 0.9rem;
   border-top: 1px solid #E2E8F0;
@@ -66,8 +81,141 @@
 
 .meta-item {
   display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.meta-label {
+  font-size: 0.875rem;
+  color: #718096;
+}
+
+.visit-section {
+  margin-bottom: 32px;
+}
+
+.visit-section h3 {
+  font-size: 1.25rem;
+  color: #2D3748;
+  margin-bottom: 16px;
+}
+
+.content-card {
+  background: #F7FAFC;
+  padding: 24px;
+  border-radius: 8px;
+  border: 1px solid #E2E8F0;
+}
+
+.content-card p {
+  margin: 0;
+  line-height: 1.6;
+  color: #4A5568;
+}
+
+.grid-list {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+}
+
+.list-item {
+  display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 12px;
+  padding: 16px;
+  background: white;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #2D3748;
+  width: 100%;
+  text-align: left;
+}
+
+.list-item:hover {
+  background: #F7FAFC;
+  border-color: #CBD5E0;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.item-icon {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  color: #4A5568;
+}
+
+.item-text {
+  flex: 1;
+  font-size: 0.9375rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.item-arrow {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  color: #A0AEC0;
+}
+
+@media (max-width: 640px) {
+  .visit-detail {
+    /* Adjust height calculation to account for the back button and padding */
+    height: calc(100vh - 160px);
+    padding: 16px;
+    overflow-x: hidden;
+    margin: 0;
+  }
+
+  .visit-header {
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+  }
+
+  .visit-title {
+    font-size: 1.5rem;
+    margin-bottom: 12px;
+  }
+
+  .visit-meta {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    padding-top: 12px;
+    margin-top: 12px;
+  }
+
+  .grid-list {
+    grid-template-columns: 1fr;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .list-item {
+    padding: 12px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .content-card {
+    padding: 16px;
+    margin: 0 -8px;
+    width: calc(100% + 16px);
+  }
+
+  .visit-section {
+    margin-bottom: 24px;
+    width: 100%;
+  }
+
+  .visit-section:last-child {
+    margin-bottom: 32px; /* Add space at the bottom for better scrolling */
+    padding-bottom: 32px;
+  }
 }
 
 .visit-summary {
@@ -153,4 +301,17 @@
   to {
     opacity: 1;
   }
+}
+
+/* Add these new utility classes */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+.visit-detail-wrapper {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
 }

@@ -1,124 +1,119 @@
-import React, { useState } from 'react';
-import { Button, Nav, Tab } from 'react-bootstrap';
-import { ArrowLeft } from 'lucide-react';
+import React from 'react';
+import { Button } from 'react-bootstrap';
+import { FileText, ExternalLink, ChevronRight, Activity } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import axiosInstance from '../../../utils/axiosInstance';
 import './VisitDetail.css';
 
-function VisitDetail({ visit, onBack }) {
-  const [activeDocumentTab, setActiveDocumentTab] = useState(0);
-  const [documentContents, setDocumentContents] = useState({});
+function VisitDetail({ visit }) {
   const navigate = useNavigate();
+
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { 
+      month: 'short', 
+      day: 'numeric', 
+      year: 'numeric'
+    });
+  };
 
   const handleLabReportClick = (reportId) => {
     navigate(`/patient-dashboard/medical-reports/${reportId}`);
   };
 
-  const loadDocumentContent = async (attachment, index) => {
-    if (documentContents[index]) return;
+  const handleDocumentClick = async (document) => {
+    if (!document.content?.[0]?.attachment) return;
 
-    const binaryId = attachment.replace("Binary/", "");
+    const binaryId = document.content[0].attachment.replace("Binary/", "");
     try {
       const response = await axiosInstance.get(`/get-binary`, {
-        params: { binary_id: binaryId }
+        params: { binary_id: binaryId },
+        responseType: 'blob'
       });
-      setDocumentContents(prev => ({
-        ...prev,
-        [index]: {
-          content: response.data,
-          contentType: response.headers['content-type']
-        }
-      }));
+
+      // Create blob URL and open in new window
+      const blob = new Blob([response.data], { type: response.headers['content-type'] });
+      const blobUrl = window.URL.createObjectURL(blob);
+      window.open(blobUrl, '_blank');
+      
+      // Cleanup blob URL after window opens
+      setTimeout(() => window.URL.revokeObjectURL(blobUrl), 100);
     } catch (error) {
       console.error("Failed to fetch document content", error);
     }
   };
 
   return (
-    <div className="visit-detail">
-
-      <div className="visit-header mb-5">
-        <h2 className="visit-title mt-3">{visit.type}</h2>
-        
-        <div className="visit-meta mt-3">
-          <div className="meta-item">
-            <span className="meta-icon">📅</span>
-            {new Date(visit.start).toLocaleDateString()}
-          </div>
-          <div className="meta-item">
-            <span className="meta-icon">👤</span>
-            {visit.participant || 'N/A'}
-          </div>
-          <div className="meta-item">
-            <span className="meta-icon">📍</span>
-            {visit.location || 'N/A'}
-          </div>
-        </div>
-      </div>
-
-      {visit.encounter_summary && (
-        <div className="visit-summary mb-4">
-          <h3>Visit Summary</h3>
-          <p>{visit.encounter_summary}</p>
-        </div>
-      )}
-
-      {visit.reports && visit.reports.length > 0 && (
-        <div className="visit-reports mb-4">
-          <h3>Lab Reports</h3>
-          <div className="report-links">
-            {visit.reports.map((report) => (
-              <Button
-                key={report.id}
-                variant="link"
-                onClick={() => handleLabReportClick(report.id)}
-                className="report-link"
-              >
-                {report.report_name}
-              </Button>
-            ))}
+    <div className="visit-detail-wrapper">
+      <div className="visit-detail">
+        <div className="visit-header">
+          <h2 className="visit-title">{visit.type}</h2>
+          
+          <div className="visit-meta">
+            <div className="meta-item">
+              <span className="meta-label">Date:</span>
+              {formatDate(visit.start)}
+            </div>
+            <div className="meta-item">
+              <span className="meta-label">Provider:</span>
+              {visit.participant || 'N/A'}
+            </div>
+            <div className="meta-item">
+              <span className="meta-label">Location:</span>
+              {visit.location || 'N/A'}
+            </div>
           </div>
         </div>
-      )}
 
-      {visit.documents && visit.documents.length > 0 && (
-        <div className="visit-documents">
-          <h3>Documents</h3>
-          <Tab.Container 
-            activeKey={activeDocumentTab}
-            onSelect={(k) => {
-              setActiveDocumentTab(k);
-              const doc = visit.documents[k];
-              loadDocumentContent(doc.content[0]?.attachment, k);
-            }}
-          >
-            <Nav variant="tabs" className="mb-3">
+        {visit.encounter_summary && (
+          <section className="visit-section">
+            <h3>Visit Summary</h3>
+            <div className="content-card">
+              <p>{visit.encounter_summary}</p>
+            </div>
+          </section>
+        )}
+
+        {visit.reports && visit.reports.length > 0 && (
+          <section className="visit-section">
+            <h3>Lab Reports</h3>
+            <div className="grid-list">
+              {visit.reports.map((report) => (
+                <button
+                  key={report.id}
+                  className="list-item"
+                  onClick={() => handleLabReportClick(report.id)}
+                >
+                  <Activity className="item-icon" />
+                  <span className="item-text">{report.report_name}</span>
+                  <ChevronRight className="item-arrow" />
+                </button>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {visit.documents && visit.documents.length > 0 && (
+          <section className="visit-section">
+            <h3>Documents</h3>
+            <div className="grid-list">
               {visit.documents.map((doc, index) => (
-                <Nav.Item key={index}>
-                  <Nav.Link eventKey={index}>
+                <button
+                  key={index}
+                  className="list-item"
+                  onClick={() => handleDocumentClick(doc)}
+                >
+                  <FileText className="item-icon" />
+                  <span className="item-text">
                     {doc.type} ({doc.category})
-                  </Nav.Link>
-                </Nav.Item>
+                  </span>
+                  <ExternalLink className="item-arrow" />
+                </button>
               ))}
-            </Nav>
-            <Tab.Content>
-              {visit.documents.map((doc, index) => (
-                <Tab.Pane key={index} eventKey={index}>
-                  {documentContents[index] ? (
-                    documentContents[index].contentType === "text/html" ? (
-                      <div dangerouslySetInnerHTML={{ __html: documentContents[index].content }} />
-                    ) : (
-                      <pre>{documentContents[index].content}</pre>
-                    )
-                  ) : (
-                    <div>Loading document...</div>
-                  )}
-                </Tab.Pane>
-              ))}
-            </Tab.Content>
-          </Tab.Container>
-        </div>
-      )}
+            </div>
+          </section>
+        )}
+      </div>
     </div>
   );
 }
