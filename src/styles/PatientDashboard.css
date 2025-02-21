@@ -11,8 +11,8 @@
   background-color: #fff;
   border-right: 1px solid #E2E8F0;
   width: 240px;
-  height: calc(100vh - 100px);
-  overflow-y: auto;
+  height: calc(100vh - 200px);
+  overflow-y: scroll;
   flex-shrink: 0;
   position: sticky;
   top: 2000px;
@@ -104,23 +104,20 @@
 @media (max-width: 767px) {
   .dashboard-container {
     margin-top: 56px;
-    overflow: hidden;
+    overflow-y: auto;
+    height: calc(100vh - 56px);
     position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    width: 100%;
   }
   
   .nav-menu {
     width: 100%;
-    height: calc(100vh - 56px);
+    height: auto;
     position: relative;
-    top: 50px;
-    left: 0;
+    top: 0;
+    padding-bottom: 80px; /* Add padding at bottom to ensure last items are visible */
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
-    display: block;
   }
 
   .content-area {
