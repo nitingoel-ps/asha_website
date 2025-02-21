@@ -36,7 +36,7 @@ const PERSONAS = [
     name: 'Search the internet',
     icon: '🌐',
     description: '',
-    welcomeMessage: "Hi!. Are there any specific topics you would like me to research on the internet for you? I will use both the internet resources and your own health data to get meaningful results.",
+    welcomeMessage: "Hi!. Are there any topics related to your health you would like me to research on the internet for you? ",
     suggestedQuestions: [
       "What are best practices for reducing cholesterol",
       "How can I reduce my blood glucose"

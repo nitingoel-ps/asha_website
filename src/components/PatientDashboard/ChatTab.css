@@ -20,6 +20,7 @@
   word-break: break-word;
   white-space: normal;/*pre-wrap; -- good ones are normal, inherit, */
   margin-bottom: 10px; /* Add spacing between messages */
+  font-size: 16px; /* Base font size for chat messages */
 }
 
 /* AI Messages */
@@ -27,6 +28,7 @@
     background-color: #fafafa; /* Subtle light gray */
     color: #333;
     align-self: flex-start; /* Align to left */
+    font-size: 15px; /* Slightly smaller for AI messages */
 }
 
 /* User Messages */
@@ -34,6 +36,7 @@
     background-color: #007bff;
     color: white;
     align-self: flex-end; /* Align to right */
+    font-size: 15px; /* Same size for user messages */
 }
 
 /* Chat Input Styling */
@@ -263,6 +266,15 @@
   border-bottom: 1px solid #eee;
 }
 
+.suggested-questions h6 {
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+.suggested-questions .small-text {
+  font-size: 13px;
+}
+
 /* Add new styles for persona selector */
 .persona-selector {
   border-bottom: 1px solid #eee;
@@ -371,70 +383,101 @@
   }
 
   .chat-interface {
-    height: calc(100vh - 60px); /* Adjust card height to fit viewport */
-    display: flex;
-    flex-direction: column;
-  }
-
-  .chat-interface .card-body {
-    padding: 10px;
+    position: fixed;
+    top: 5px; /* Match the header height */
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: calc(100vh - 56px);
+    margin: 0;
     display: flex;
     flex-direction: column;
     overflow: hidden;
   }
 
   .chat-interface {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    height: 100vh;
-    margin: 0;
+    margin: 0; /* Remove any margin */
+    border: none; /* Remove any border */
+    border-radius: 0; /* Remove border radius */
   }
 
   .chat-interface .card-body {
+    flex: 1;
     display: flex;
     flex-direction: column;
-    height: 100%;
     padding: 10px;
+    padding-bottom: 70px; /* Increased padding to prevent footer overlap */
     overflow: hidden;
-  }
-
-  .persona-selector {
-    flex-shrink: 0; /* Prevent persona selector from shrinking */
-  }
-
-  .suggested-questions {
-    flex-shrink: 0; /* Prevent suggested questions from shrinking */
+    height: 100%;
   }
 
   .chat-messages {
     flex: 1;
-    min-height: 0; /* Important for Firefox */
-    height: 0; /* Allow flex to control the height */
-    max-height: none; /* Remove max-height constraint */
+    height: auto;
+    max-height: none;
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 20px; /* Reduced padding since we added it to card-body */
   }
 
   .chat-footer {
-    position: sticky;
+    position: fixed;
     bottom: 0;
     left: 0;
     right: 0;
+    height: 60px; /* Fixed height for footer */
     background-color: #f9f9f9;
     padding: 10px;
     z-index: 1000;
-    flex-shrink: 0; /* Prevent footer from shrinking */
     border-top: 1px solid #ddd;
   }
 
   .chat-input-container {
     width: 100%;
+    padding: 0 10px;
   }
 
   .chat-input {
-    max-height: 100px; /* Limit how tall the input can get */
+    max-height: 100px;
     overflow-y: auto;
+  }
+
+  .persona-selector {
+    padding-top: 0;
+    padding-bottom: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .persona-selector {
+    padding: 0.5rem;
+    margin: 0;
+    border-bottom: 1px solid #eee;
+  }
+
+  .persona-description {
+    padding-left: 0.5rem;
+    margin-top: 0.25rem;
+    font-size: 0.9em;
+  }
+
+  .chat-message {
+    font-size: 16px; /* Smaller base font size for mobile */
+  }
+
+  .chat-message.text-start,
+  .chat-message.text-end {
+    font-size: 20px; /* Consistent font size for both AI and user messages on mobile */
+  }
+
+  .suggested-questions h6 {
+    font-size: 13px;
+  }
+
+  .suggested-questions .small-text {
+    font-size: 12px;
+  }
+
+  .persona-select {
+    font-size: 14px; /* Adjust dropdown font size for mobile */
   }
 }

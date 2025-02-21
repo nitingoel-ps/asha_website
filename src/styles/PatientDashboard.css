@@ -189,4 +189,10 @@
   .nav-item + .nav-item {
     border-top: 1px solid #F0F0F0;
   }
+
+  .back-button {
+    margin-bottom: 5px;  /* Reduced from 15px to 5px */
+    margin-top: 5px;     /* Reduced from 15px to 5px */
+    padding: 4px 12px;   /* Slightly reduced padding */
+  }
 }
