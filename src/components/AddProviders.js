@@ -5,6 +5,7 @@ import { Container, Card, Button, Form, Table, Alert, Collapse } from "react-boo
 import { format, parseISO, formatDistanceToNow } from "date-fns";
 import './AddProviders.css';
 import { FaCheck, FaSpinner, FaTimes } from 'react-icons/fa';
+import { isMobileDevice } from '../utils/deviceDetector';
 
 function AddProviders() {
   const [message, setMessage] = useState("");
@@ -228,6 +229,13 @@ function AddProviders() {
       const response = await axiosInstance.get(`/oauth/authorize-url?provider=${providerId}`);
       const oauthUrl = response.data.url;
       
+      if (isMobileDevice()) {
+        // For mobile devices, redirect in the same window
+        window.location.href = oauthUrl;
+        return;
+      }
+
+      // For desktop devices, continue with popup behavior
       const width = 600;
       const height = 700;
       const left = window.screenX + (window.outerWidth - width) / 2;
@@ -524,11 +532,19 @@ function AddProviders() {
                     <td>{connection.patient_name}</td>
                     <td>{getStatusDisplay(connection.last_fetch_status, connection.last_fetched_at)}</td>
                     <td>
-                      <Button
-                        variant="primary"
-                        disabled={connection.last_fetch_status === "PENDING"}
-                        onClick={() => handleConnectProvider(connection.id)}
-                      >Refresh</Button>
+                      {connection.last_fetch_status === "PENDING" ? (
+                        <span className="task-progress-pulse">
+                          <FaSpinner className="task-spinner me-1" />
+                          In Progress...
+                        </span>
+                      ) : (
+                        <Button
+                          variant="primary"
+                          onClick={() => handleConnectProvider(connection.id)}
+                        >
+                          Refresh
+                        </Button>
+                      )}
                     </td>
                   </tr>
                   <tr className="progress-row">

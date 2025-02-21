@@ -186,7 +186,7 @@ function LoggedOutHome() {
                     of your healthcare journey with our secure and intelligent platform.
                   </p>
                   <div className="hero-buttons fade-in">
-                    <Button variant="info" as={Link} to="/register" size="lg" style={{ backgroundColor: '#00CED1', borderColor: '#00CED1' }}>
+                    <Button variant="info" as={Link} to="/login" size="lg" style={{ backgroundColor: '#00CED1', borderColor: '#00CED1' }}>
                       Get Started
                     </Button>
                     <Button variant="outline-light" href="#features" size="lg">

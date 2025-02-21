@@ -49,10 +49,10 @@ function LoggedInNavbar() {
               <FaTachometerAlt /> Dashboard
             </Nav.Link>
             <Nav.Link as={Link} to="/add-providers" onClick={() => setExpanded(false)}>
-              <FaHospital /> Add Providers
+              <FaHospital /> Connect Providers
             </Nav.Link>
-            <Nav.Link as={Link} to="/upload-files" onClick={() => setExpanded(false)}>
-              <FaFileUpload /> Upload Files
+            <Nav.Link as={Link} to="/my-documents" onClick={() => setExpanded(false)}>
+              <FaFileUpload /> Manage Files
             </Nav.Link>
             <Nav.Link onClick={() => { setExpanded(false); handleLogout(); }}>
               <FaSignOutAlt /> Logout

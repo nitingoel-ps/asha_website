@@ -91,7 +91,7 @@ function Login() {
             </Card.Body>
           </Card>
           <p className="mt-3 text-center">
-            Don't have an account? Please join the waitlist and we will send you an invitation link. <a href="/register">Register here</a>
+            Don't have an account? Please join the waitlist and we will send you an invitation link. <a href="/#waitlist">Join up here</a>
           </p>
         </Col>
       </Row>
