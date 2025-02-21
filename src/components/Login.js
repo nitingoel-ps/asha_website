@@ -25,8 +25,14 @@ function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      // Convert username to lowercase before authentication
+      const loginData = {
+        ...credentials,
+        username: credentials.username.toLowerCase()
+      };
+
       // Step 1: Authenticate and get tokens
-      const response = await axiosInstance.post('/token/', credentials);
+      const response = await axiosInstance.post('/token/', loginData);
       const { access, refresh } = response.data;
 
       // Step 2: Save tokens to localStorage
