@@ -40,7 +40,7 @@ function LoggedInNavbar() {
     >
       <Container>
         <Navbar.Brand as={Link} to="/" onClick={() => setExpanded(false)}>
-          <FaHome /> Asha AI
+          <FaHome /> ASHA AI
         </Navbar.Brand>
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
         <Navbar.Collapse id="basic-navbar-nav">

@@ -175,6 +175,12 @@ function PatientDashboard() {
         <Mic size={16} /> Talk
       </div>      
       <div 
+        className={`nav-item ${activeTab === "streaming-voice" ? "active" : ""}`} 
+        onClick={() => handleTabChange("streaming-voice")}
+      >
+        <Mic size={16} /> Talk (Testing Streaming)
+      </div>       
+      <div 
         className={`nav-item ${activeTab === "vital-signs" ? "active" : ""}`} 
         onClick={() => handleTabChange("vital-signs")}
       >

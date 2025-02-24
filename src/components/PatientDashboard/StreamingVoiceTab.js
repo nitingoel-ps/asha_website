@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Button, Card, Spinner } from 'react-bootstrap';
-import { Mic, Square, X } from 'lucide-react';
+import { Mic, Square, X, Pause, Play } from 'lucide-react';
 import './StreamingVoiceTab.css';
 import { fetchWithAuth } from "../../utils/fetchWithAuth";
 
@@ -10,7 +10,14 @@ const StreamingVoiceTab = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState(null);
   const [canPlay, setCanPlay] = useState(false);
-  const [responseUrl, setResponseUrl] = useState(null);
+  const [isPaused, setIsPaused] = useState(false);
+  const [responseUrl, setResponseUrl] = useState(null); // Add missing state
+
+  // Add new ref for synchronous stream state tracking
+  const isStreamCompleteRef = useRef(false);
+
+  // Update state definition to use ref initial value
+  const [isStreamComplete, setIsStreamComplete] = useState(false);
 
   const mediaRecorderRef = useRef(null);
   const audioContextRef = useRef(null);
@@ -34,6 +41,10 @@ const StreamingVoiceTab = () => {
     return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || !window.MediaSource;
   });
 
+  // Add a new ref to track the last time we received audio data
+  const lastAudioUpdateRef = useRef(Date.now());
+  const playbackTimeoutRef = useRef(null);
+
   useEffect(() => {
     // Initialize AudioContext
     audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
@@ -44,13 +55,38 @@ const StreamingVoiceTab = () => {
     };
   }, []);
 
+  // Add effect to monitor stream completion state changes
+  useEffect(() => {
+    console.log('Stream completion state changed:', {
+      isStreamComplete,
+      refValue: isStreamCompleteRef.current
+    });
+  }, [isStreamComplete]);
+
+  // Update setupMediaSource to better handle playback completion
   const setupMediaSource = () => {
     return new Promise((resolve) => {
-      // Create new audio element and MediaSource
       const audio = new Audio();
       audio.autoplay = true;
       const mediaSource = new MediaSource();
       
+      // Update timeupdate handler to detect stalled playback
+      audio.addEventListener('timeupdate', () => {
+        lastAudioUpdateRef.current = Date.now(); // Update timestamp during active playback
+        
+        console.log('Desktop Audio timeupdate:', {
+          currentTime: audio.currentTime,
+          timeSinceLastUpdate: Date.now() - lastAudioUpdateRef.current,
+          isStreamComplete
+        });
+      });
+
+      // Still keep the ended event as backup
+      audio.addEventListener('ended', () => {
+        console.log('Desktop Audio playback COMPLETED via ended event');
+        cleanupStates(true);
+      });
+
       mediaSource.addEventListener('sourceopen', () => {
         console.log('MediaSource opened');
         try {
@@ -201,36 +237,105 @@ const StreamingVoiceTab = () => {
     }
   };
 
+  // First, improve the waitForUpdateEnd function to handle multiple source buffers
   const waitForUpdateEnd = () => {
     return new Promise((resolve) => {
-      if (!sourceBufferRef.current || !sourceBufferRef.current.updating) {
-        resolve();
-        return;
-      }
-
-      const handleUpdateEnd = () => {
-        sourceBufferRef.current.removeEventListener('updateend', handleUpdateEnd);
-        resolve();
+      const checkUpdate = () => {
+        if (!sourceBufferRef.current || !sourceBufferRef.current.updating) {
+          resolve();
+          return;
+        }
+        
+        // Check again in a few milliseconds
+        setTimeout(checkUpdate, 50);
       };
-
-      sourceBufferRef.current.addEventListener('updateend', handleUpdateEnd);
+      
+      checkUpdate();
     });
   };
 
+  // Update endMediaStream to handle the case when buffer is still updating
   const endMediaStream = async () => {
-    try {
-      if (mediaSourceRef.current?.readyState === 'open') {
-        // Wait for any pending updates to complete
-        await waitForUpdateEnd();
-        mediaSourceRef.current.endOfStream();
-      }
-    } catch (error) {
-      console.warn('Error ending media stream:', error);
-    }
+    console.log('In endMediaStream');
+    return new Promise((resolve) => {
+      let attempts = 0;
+      const maxAttempts = 10; // Try for about 1 second total
+
+      const checkAndEnd = async () => {
+        if (attempts >= maxAttempts) {
+          console.warn('Could not end media stream after maximum attempts');
+          setIsStreamComplete(true);
+          // Don't cleanup states here, let the playback completion detection handle it
+          resolve();
+          return;
+        }
+
+        attempts++;
+
+        if (!mediaSourceRef.current || mediaSourceRef.current.readyState !== 'open') {
+          setIsStreamComplete(true);
+          cleanupStates(false); // Don't cleanup playback states
+          resolve();
+          return;
+        }
+
+        if (sourceBufferRef.current?.updating) {
+          // Still updating, check again in a bit
+          setTimeout(checkAndEnd, 100);
+          return;
+        }
+
+        try {
+          mediaSourceRef.current.endOfStream();
+          setIsStreamComplete(true);
+          cleanupStates(false); // Don't cleanup playback states
+        } catch (error) {
+          console.warn('Non-critical: Could not end media stream', error);
+          setIsStreamComplete(true);
+          cleanupStates(false); // Don't cleanup playback states
+        }
+        resolve();
+      };
+
+      checkAndEnd();
+    });
   };
 
+  const cleanupStates = (includePlayback = true) => {
+    console.log('Cleaning up states:', {
+      includePlayback,
+      currentStates: {
+        isPlaying,
+        isPaused,
+        isProcessing,
+        canPlay
+      }
+    });
+
+    if (includePlayback) {
+      setIsPlaying(false);
+      setIsPaused(false);
+      isPlayingRef.current = false;
+    }
+    setIsProcessing(false);
+    setCanPlay(false);
+  };
+
+  // Add stream state reset to cleanupAudio
+  // Update cleanupAudio to reset both state and ref
   const cleanupAudio = () => {
     console.log('Cleaning up audio resources');
+    
+    // Reset both state and ref
+    isStreamCompleteRef.current = false;
+    setIsStreamComplete(false);
+    lastAudioUpdateRef.current = Date.now();
+    
+    if (playbackTimeoutRef.current) {
+      clearInterval(playbackTimeoutRef.current);
+      playbackTimeoutRef.current = null;
+    }
+
     if (audioElementRef.current) {
       console.log('Stopping and cleaning audio element');
       audioElementRef.current.pause();
@@ -243,7 +348,17 @@ const StreamingVoiceTab = () => {
     console.log('Audio buffers cleared');
   };
 
+  // Add markStreamComplete function
+  const markStreamComplete = () => {
+    console.log('Marking stream as complete');
+    isStreamCompleteRef.current = true;
+    setIsStreamComplete(true);
+  };
+
+  // Update handleAudioChunk for mobile playback
   const handleAudioChunk = async (arrayBuffer, isFirstChunk = false) => {
+    lastAudioUpdateRef.current = Date.now(); // Update timestamp when we receive new data
+    
     console.log(`Handling audio chunk, isFirstChunk: ${isFirstChunk}, size: ${arrayBuffer.byteLength}`);
     if (isMobile) {
       audioBuffersRef.current.push(arrayBuffer);
@@ -263,28 +378,89 @@ const StreamingVoiceTab = () => {
         setCanPlay(true);
         
         const audio = new Audio();
-        audio.oncanplay = () => console.log('Audio can play');
+        audio.oncanplay = () => console.log('Mobile Audio can play, duration:', audio.duration);
         audio.onplay = () => {
-          console.log('Audio started playing');
+          console.log('Mobile Audio started playing');
           setIsPlaying(true);
         };
+        
+        // Add timeupdate listener for mobile
+        audio.addEventListener('timeupdate', () => {
+          console.log('Mobile Audio timeupdate:', {
+            currentTime: audio.currentTime,
+            duration: audio.duration,
+            ended: audio.ended
+          });
+        });
+        
         audio.onended = () => {
-          console.log('Audio playback ended');
-          setIsPlaying(false);
+          console.log('Mobile Audio playback COMPLETED via ended event');
+          cleanupStates(true);
         };
-        audio.onerror = (e) => console.error('Audio error:', e);
+
+        audio.onerror = (e) => console.error('Received audio.onerror. Audio error:', e);
         
         audio.src = url;
         audioElementRef.current = audio;
       }
     } else {
       await appendChunkToSourceBuffer(arrayBuffer);
+      // Set isPlaying to true when we start receiving chunks
+      if (isFirstChunk) {
+        setIsPlaying(true);
+        setIsProcessing(false);  // Stop showing processing indicator
+        
+        // Start checking for completion
+        if (playbackTimeoutRef.current) {
+          clearInterval(playbackTimeoutRef.current);
+        }
+        playbackTimeoutRef.current = setInterval(checkPlaybackCompletion, 1000);
+      }
     }
   };
 
+  // Add function to check for playback completion
+  // Update checkPlaybackCompletion to use ref
+  const checkPlaybackCompletion = () => {
+    const audio = audioElementRef.current;
+    if (!audio) return;
+
+    const now = Date.now();
+    const timeSinceLastUpdate = now - lastAudioUpdateRef.current;
+    
+    console.log('Checking playback completion:', {
+      currentTime: audio.currentTime,
+      timeSinceLastUpdate,
+      isStreamComplete: isStreamComplete,
+      isStreamCompleteRef: isStreamCompleteRef.current,
+      isPlaying,
+      lastUpdateTime: new Date(lastAudioUpdateRef.current).toISOString()
+    });
+
+    // Consider playback complete if:
+    // 1. We haven't received new data for 2 seconds AND
+    // 2. The stream is complete AND
+    // 3. Audio is still marked as playing
+    // Use ref instead of state for immediate value
+    if (timeSinceLastUpdate > 2000) { //&& isStreamCompleteRef.current && isPlaying) {
+      console.log('Detected playback completion via timeout');
+      cleanupStates(true);
+      
+      // Clear the interval since we're done
+      if (playbackTimeoutRef.current) {
+        clearInterval(playbackTimeoutRef.current);
+        playbackTimeoutRef.current = null;
+      }
+    }
+  };
+
+  // Update handleAudioStream to handle stream completion separately
+  // Update handleAudioStream
   const handleAudioStream = async (response) => {
     console.log('Starting to handle audio stream');
     cleanupAudio(); // Clean up before starting new stream
+    isStreamCompleteRef.current = false; // Reset ref
+    setIsStreamComplete(false); // Reset state
     
     // Reset audio state
     audioBuffersRef.current = [];
@@ -306,8 +482,15 @@ const StreamingVoiceTab = () => {
       while (true) {
         const { value, done } = await reader.read();
         if (done) {
+          console.log('Stream complete - all chunks received');
+          markStreamComplete(); // Use new function
+          lastAudioUpdateRef.current = Date.now(); // Reset the update time
           if (mediaSourceRef.current?.readyState === 'open') {
-            mediaSourceRef.current.endOfStream();
+            try {
+              mediaSourceRef.current.endOfStream();
+            } catch (error) {
+              console.warn('Error calling endOfStream:', error);
+            }
           }
           break;
         }
@@ -335,6 +518,7 @@ const StreamingVoiceTab = () => {
             } catch (error) {
               console.error('Error processing chunk:', error);
               console.log('Problematic chunk:', chunk.slice(0, 100) + '...');
+              setIsStreamComplete(true);
             }
           }
         }
@@ -351,16 +535,26 @@ const StreamingVoiceTab = () => {
           await handleAudioChunk(arrayBuffer.buffer, isFirstChunk);
         } catch (error) {
           console.error('Error processing final chunk:', error);
+          setIsStreamComplete(true);
         }
       }
 
-      // End the stream properly
-      if (!isMobile && mediaSourceRef.current?.readyState === 'open') {
+      // After processing all chunks, mark stream as complete
+      if (!isMobile) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
         await endMediaStream();
       }
     } catch (error) {
-      console.error('Error processing audio stream:', error);
-      setError('Error processing audio stream');
+      // Update error handlers to use markStreamComplete
+      if (error instanceof DOMException && error.name === 'InvalidStateError') {
+        console.warn('Non-critical stream end error:', error);
+        markStreamComplete();
+        cleanupStates(false); // Don't cleanup playback states
+      } else {
+        console.error('Error processing audio stream:', error);
+        setError('Error processing audio stream');
+        markStreamComplete();
+      }
     } finally {
       setIsProcessing(false);
     }
@@ -401,11 +595,10 @@ const StreamingVoiceTab = () => {
           });
 
           setIsProcessing(true);
-          const response = await fetchWithAuth('/voice-chat/', {
+          const response = await fetchWithAuth('/streaming-voice-chat/', {
             method: 'POST',
             headers: { 
               'Content-Type': 'application/json'
-              // Removed Accept: 'audio/mpeg' since we're expecting base64
             },
             body: JSON.stringify({ 
               audio: base64Audio.split(',')[1],
@@ -443,7 +636,7 @@ const StreamingVoiceTab = () => {
 
   const cancelRecording = () => {
     if (mediaRecorderRef.current) {
-      mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
+      mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop()); // Fix stop() call
     }
     if (audioSourceRef.current) {
       audioSourceRef.current.stop();
@@ -510,6 +703,34 @@ const StreamingVoiceTab = () => {
     }
   };
 
+  const handlePausePlayback = () => {
+    if (isMobile && audioElementRef.current) {
+      audioElementRef.current.pause();
+      setIsPaused(true);
+      setIsPlaying(false);
+    } else if (mediaSourceRef.current) {
+      if (audioElementRef.current) {
+        audioElementRef.current.pause();
+        setIsPaused(true);
+        setIsPlaying(false);
+      }
+    }
+  };
+
+  const handleResumePlayback = () => {
+    if (isMobile && audioElementRef.current) {
+      audioElementRef.current.play();
+      setIsPaused(false);
+      setIsPlaying(true);
+    } else if (mediaSourceRef.current) {
+      if (audioElementRef.current) {
+        audioElementRef.current.play();
+        setIsPaused(false);
+        setIsPlaying(true);
+      }
+    }
+  };
+
   useEffect(() => {
     return () => {
       console.log('Component unmounting, cleaning up resources');
@@ -523,8 +744,42 @@ const StreamingVoiceTab = () => {
           URL.revokeObjectURL(audioElementRef.current.src);
         }
       }
+      if (playbackTimeoutRef.current) {
+        clearInterval(playbackTimeoutRef.current);
+      }
     };
   }, [isMobile]);
+
+  // Update useEffect for monitoring audio playback
+  useEffect(() => {
+    const audio = audioElementRef.current;
+    if (audio) {
+      console.log('Setting up global audio completion monitoring');
+      
+      const handleTimeUpdate = () => {
+        const progress = audio.currentTime / audio.duration;
+        console.log('Global Audio progress:', {
+          currentTime: audio.currentTime,
+          duration: audio.duration,
+          progress: `${(progress * 100).toFixed(1)}%`,
+          ended: audio.ended
+        });
+      };
+
+      const handleEnded = () => {
+        console.log('Global Audio playback COMPLETED via ended event');
+        cleanupStates(true); // Include playback cleanup
+      };
+
+      audio.addEventListener('ended', handleEnded);
+      audio.addEventListener('timeupdate', handleTimeUpdate);
+      
+      return () => {
+        audio.removeEventListener('ended', handleEnded);
+        audio.removeEventListener('timeupdate', handleTimeUpdate);
+      };
+    }
+  }, []);
 
   return (
     <Card className="streaming-voice-interface">
@@ -543,7 +798,8 @@ const StreamingVoiceTab = () => {
             </div>
           )}
 
-          {!isRecording && !isProcessing && (
+          {/* Only show record button when not recording, not processing, and not playing/paused */}
+          {!isRecording && !isProcessing && !isPlaying && !isPaused && (
             <Button 
               variant="primary" 
               className="record-button"
@@ -577,10 +833,41 @@ const StreamingVoiceTab = () => {
             </div>
           )}
 
-          {isProcessing && (
+          {/* Only show processing indicator when processing and not yet playing */}
+          {isProcessing && !isPlaying && !isPaused && (
             <div className="streaming-indicator">
               <Spinner animation="border" size="sm" />
-              {isPlaying ? 'Playing response...' : 'Processing...'}
+              Processing...
+            </div>
+          )}
+
+          {/* Show playback controls when playing or paused, regardless of processing state */}
+          {(isPlaying || isPaused) && (
+            <div className="playback-controls">
+              {isPaused ? (
+                <Button 
+                  variant="primary"
+                  onClick={handleResumePlayback}
+                  className="control-button"
+                >
+                  <Play size={20} />
+                </Button>
+              ) : (
+                <Button 
+                  variant="primary"
+                  onClick={handlePausePlayback}
+                  className="control-button"
+                >
+                  <Pause size={20} />
+                </Button>
+              )}
+              <Button 
+                variant="danger"
+                onClick={cancelRecording}
+                className="control-button"
+              >
+                <Square size={20} />
+              </Button>
             </div>
           )}
 
