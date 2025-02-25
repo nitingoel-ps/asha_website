@@ -7,7 +7,7 @@ function ConfigurationLayout() {
   return (
     <Container fluid className="configuration-container">
       <Row>
-        <Col md={3} className="sidebar">
+        <Col md={2} className="sidebar">
           <h4 className="sidebar-header">Configuration</h4>
           <div className="nav flex-column">
             <div className="nav-group">
@@ -18,7 +18,7 @@ function ConfigurationLayout() {
             </div>
           </div>
         </Col>
-        <Col md={9} className="content-area">
+        <Col md={10} className="content-area">
           <Outlet />
         </Col>
       </Row>

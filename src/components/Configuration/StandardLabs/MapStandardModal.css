@@ -1,0 +1,17 @@
+.standard-labs-list {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.standard-labs-list .list-group-item {
+  cursor: pointer;
+}
+
+.standard-labs-list .list-group-item:hover {
+  background-color: #f8f9fa;
+}
+
+.standard-labs-list .list-group-item.active {
+  background-color: #007bff;
+  border-color: #007bff;
+}
