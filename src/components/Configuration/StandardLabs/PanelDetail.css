@@ -1,0 +1,51 @@
+.panel-detail-container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 76px);
+  padding: 20px;
+  overflow: hidden;
+}
+
+.header-container {
+  flex: 0 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.panel-info {
+  flex: 0 0 auto;
+  background-color: #f8f9fa;
+  padding: 15px;
+  border-radius: 4px;
+  margin-bottom: 20px;
+}
+
+.panel-info p {
+  margin-bottom: 0.5rem;
+}
+
+.panel-content {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding-right: 5px;
+}
+
+.panel-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.panel-content::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.panel-content::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+.panel-content::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
