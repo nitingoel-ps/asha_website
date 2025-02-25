@@ -11,6 +11,7 @@ function ObservationDetail({ standardPanels }) {
 
   // Find the observation by ID from any panel
   const findObservation = () => {
+    console.log("In findObservation, looking for ",observationId);
     for (const panel of standardPanels || []) {
       const observation = panel.observations.find(o => o.id === observationId);
       if (observation) {
@@ -39,7 +40,7 @@ function ObservationDetail({ standardPanels }) {
 
   // Prepare data for the graph
   const graphData = {
-    observationName: observation.long_name,
+    observationName: observation.name, // Changed from observation.long_name
     points: observation.values.map(v => ({
       date: v.date,
       value: v.observation_value

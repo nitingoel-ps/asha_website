@@ -162,6 +162,10 @@ function ObservationGraph({ data }) {
             size: window.innerWidth < 768 ? 10 : 12,
           },
         },
+        grid: {
+          display: true,
+          drawBorder: true,
+        },
       },
       y: {
         title: {
@@ -190,20 +194,19 @@ function ObservationGraph({ data }) {
             size: window.innerWidth < 768 ? 10 : 12,
           },
         },
+        grid: {
+          display: true,
+          drawBorder: true,
+        },
       },
     },
   };
 
   return (
     <div style={{ 
-      padding: 0,
-      margin: 0,
-      height: window.innerWidth < 768 ? "70vh" : "70vh",
-      width: "100%", // Changed from 100vw
-      position: "relative",
-      display: "flex",
-      alignItems: "stretch",
-      maxWidth: "100%" // Changed from 100vw
+      width: '100%',
+      height: '100%',
+      position: 'relative'
     }}>
       <Line 
         data={chartData} 
@@ -212,9 +215,9 @@ function ObservationGraph({ data }) {
           maintainAspectRatio: false,
           layout: {
             padding: {
-              left: 20, // Increased padding for axis labels
+              left: 10,
               right: 20,
-              top: 10,
+              top: 20,
               bottom: 10
             }
           },
@@ -235,12 +238,6 @@ function ObservationGraph({ data }) {
             }
           }
         }} 
-        style={{
-          width: "100%", // Changed from 100vw
-          maxWidth: "100%", // Changed from 100vw
-          margin: 0,
-          padding: 0
-        }}
       />
     </div>
   );

@@ -9,10 +9,31 @@
 
 .lab-panel-card {
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  border: 1px solid rgba(0,0,0,.125);
+  border-radius: 4px;
 }
 
 .lab-panel-card .card-header {
   background-color: #f8f9fa;
+}
+
+.lab-panel-card .accordion-button {
+  padding: 1rem;
+  background-color: #f8f9fa;
+}
+
+.accordion-button:not(.collapsed) {
+  background-color: #f8f9fa;
+  box-shadow: none;
+}
+
+.accordion-button:focus {
+  box-shadow: none;
+  border-color: rgba(0,0,0,.125);
+}
+
+.panel-header-content {
+  flex: 1;
 }
 
 .observation-item {
@@ -47,4 +68,32 @@
 .observation-subtitle {
   font-size: 0.85rem;
   margin-bottom: 4px;
+}
+
+.observation-count {
+  font-size: 0.875rem;
+  font-weight: normal;
+}
+
+.accordion-body {
+  padding: 0;
+}
+
+/* Override default accordion styles */
+.accordion-item {
+  border: none;
+}
+
+.accordion {
+  --bs-accordion-border-width: 0;
+}
+
+/* Override accordion button styles to remove the arrow */
+.accordion-button::after {
+  display: none;
+}
+
+/* Remove hover background effect from accordion button */
+.accordion-button:hover {
+  background-color: #f8f9fa !important;
 }
