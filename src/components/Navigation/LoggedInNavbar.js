@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { Navbar, Nav, Container } from 'react-bootstrap';
-import { FaHome, FaSignOutAlt, FaTachometerAlt, FaFileUpload, FaHospital } from 'react-icons/fa';
+import { FaHome, FaSignOutAlt, FaTachometerAlt, FaFileUpload, FaHospital, FaCog } from 'react-icons/fa';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from "react-router-dom";
 
@@ -54,6 +54,9 @@ function LoggedInNavbar() {
             <Nav.Link as={Link} to="/my-documents" onClick={() => setExpanded(false)}>
               <FaFileUpload /> Manage Files
             </Nav.Link>
+            <Nav.Link as={Link} to="/configuration" onClick={() => setExpanded(false)}>
+              <FaCog /> Configuration
+            </Nav.Link>
             <Nav.Link onClick={() => { setExpanded(false); handleLogout(); }}>
               <FaSignOutAlt /> Logout
             </Nav.Link>
@@ -64,4 +67,4 @@ function LoggedInNavbar() {
   );
 }
 
-export default LoggedInNavbar; 
+export default LoggedInNavbar;

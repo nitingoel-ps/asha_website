@@ -57,6 +57,18 @@ function LoggedInHome() {
             </Card.Body>
           </Card>
         </Col>
+        <Col md={4} sm={6} className="mb-4">
+          <Card className="action-card shadow">
+            <Card.Body>
+              <i className="bi bi-gear display-4 text-secondary mb-3"></i>
+              <h5>Configuration Management</h5>
+              <p>Manage application settings and configurations.</p>
+              <Button as={Link} to="/configuration" variant="secondary">
+                Manage Settings
+              </Button>
+            </Card.Body>
+          </Card>
+        </Col>
       </Row>
     </Container>
   );
