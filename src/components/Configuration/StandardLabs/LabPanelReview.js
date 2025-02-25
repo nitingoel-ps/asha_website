@@ -25,7 +25,7 @@ function LabPanelReview() {
   const [selectedRows, setSelectedRows] = useState(new Set());
   const [showMapModal, setShowMapModal] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const itemsPerPage = 10;
+  const itemsPerPage = 20;  // Changed from 10 to 20
 
   const fetchData = async () => {
     try {
