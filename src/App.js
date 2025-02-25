@@ -11,6 +11,11 @@ import PrivateRoute from './components/PrivateRoute';
 import UploadFiles from "./components/UploadFiles";
 import { LoggedInNavbar, LoggedOutNavbar } from './components/Navigation';
 import InvitationCodeEntry from './components/InvitationCodeEntry';
+import ConfigurationLayout from './components/Configuration/ConfigurationLayout';
+import ConfigurationHome from './components/Configuration/ConfigurationHome';
+import LabPanelReview from './components/Configuration/StandardLabs/LabPanelReview';
+import ManageStandardLabs from './components/Configuration/StandardLabs/ManageStandardLabs';
+import ManageStandardPanels from './components/Configuration/StandardLabs/ManageStandardPanels';
 
 import './theme.css';
 
@@ -50,6 +55,12 @@ function AppContent() {
         />
         <Route path="/my-documents" element={<MyDocuments />} />
         <Route path="/registration" element={<InvitationCodeEntry />} />
+        <Route path="/configuration" element={<ConfigurationLayout />}>
+          <Route index element={<ConfigurationHome />} />
+          <Route path="lab-panel-review" element={<LabPanelReview />} />
+          <Route path="manage-standard-labs" element={<ManageStandardLabs />} />
+          <Route path="manage-standard-panels" element={<ManageStandardPanels />} />
+        </Route>
       </Routes>
     </>
   );
