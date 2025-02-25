@@ -1,0 +1,50 @@
+.lab-panels-container {
+  padding: 20px;
+  max-width: 900px;
+  margin: 0 auto;
+  height: calc(100vh - 100px); /* Adjust for any headers/nav */
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+}
+
+.lab-panel-card {
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.lab-panel-card .card-header {
+  background-color: #f8f9fa;
+}
+
+.observation-item {
+  padding: 15px;
+}
+
+.observation-item:hover {
+  background-color: #f8f9fa;
+}
+
+.observation-name {
+  font-weight: 500;
+  flex: 1;
+  padding-right: 15px;
+}
+
+.observation-value {
+  font-weight: 500;
+  color: #2c3e50;
+}
+
+.reference-range {
+  margin-top: 5px;
+}
+
+.observation-title {
+  font-weight: 600;
+  font-size: 1rem;
+  margin-bottom: 2px;
+}
+
+.observation-subtitle {
+  font-size: 0.85rem;
+  margin-bottom: 4px;
+}

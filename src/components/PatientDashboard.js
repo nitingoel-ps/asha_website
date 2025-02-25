@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { Button, Card, Container, Spinner } from "react-bootstrap";
-import { Activity, Pill, FileText, Clipboard, Microscope, Syringe, MessageCircle, BarChart2, Heart, Calendar, ArrowLeft, Mic } from "lucide-react";
+import { Activity, Pill, FileText, Clipboard, Microscope, Syringe, MessageCircle, BarChart2, Heart, Calendar, ArrowLeft, Mic, LucideTestTubes } from "lucide-react";
 import ConditionsTab from "./PatientDashboard/ConditionsTab";
 import ChartsTab from "./PatientDashboard/ChartsTab";
 import ProceduresTab from "./PatientDashboard/ProceduresTab";
@@ -21,6 +21,8 @@ import "../styles/PatientDashboard.css";
 import { NewImmunizationsTab } from "./PatientDashboard/NewImmunizations/NewImmunizationsTab";
 import VoiceTab from "./PatientDashboard/VoiceTab";
 import StreamingVoiceTab from "./PatientDashboard/StreamingVoiceTab";
+import LabPanelsTab from './PatientDashboard/LabPanels/LabPanelsTab';
+import ObservationDetail from './PatientDashboard/LabPanels/ObservationDetail';
 
 function PatientDashboard() {
   const location = useLocation();
@@ -199,7 +201,7 @@ function PatientDashboard() {
         <Calendar size={16} /> Visits
       </div>      
       <div 
-        className={`nav-item ${activeTab === "medical-reports" ? "active" : ""}`} 
+        class={`nav-item ${activeTab === "medical-reports" ? "active" : ""}`} 
         onClick={() => handleTabChange("medical-reports")}
       >
         <FileText size={16} /> Medical Reports
@@ -215,6 +217,12 @@ function PatientDashboard() {
         onClick={() => handleTabChange("med")}
       >
         <Pill size={16} /> Medications
+      </div>
+      <div 
+        className={`nav-item ${activeTab === "lab-panels" ? "active" : ""}`} 
+        onClick={() => handleTabChange("lab-panels")}
+      >
+        <LucideTestTubes size={16} /> Lab Panels
       </div>
     </div>
   );
@@ -299,6 +307,12 @@ function PatientDashboard() {
                 />
               } />
               <Route path="streaming-voice" element={<StreamingVoiceTab />} />
+              <Route path="lab-panels" element={
+                <LabPanelsTab standardPanels={patientData?.all_observations?.standard_panels} />
+              } />
+              <Route path="observation/:observationId" element={
+                <ObservationDetail standardPanels={patientData?.all_observations?.standard_panels} />
+              } />
             </Routes>
           </div>
         </div>

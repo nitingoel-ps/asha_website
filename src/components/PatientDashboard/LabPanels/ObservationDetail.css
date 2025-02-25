@@ -1,0 +1,49 @@
+.observation-detail-container {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  height: calc(100vh - 100px); /* Adjust for any headers/nav */
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+}
+
+.graph-container {
+  height: 400px;
+  width: 100%;
+  background-color: white;
+  border-radius: 4px;
+  padding: 20px;
+  margin-bottom: 40px; /* Increase space between graph and table section */
+}
+
+.observation-meta {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.observation-meta-item {
+  flex: 1;
+  min-width: 200px;
+}
+
+/* Add styles to keep the back button visible while scrolling */
+.observation-detail-container .mb-3 {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background-color: #fff;
+  padding: 10px 0;
+}
+
+/* Add styles for the history section */
+.history-section {
+  padding: 20px;
+  background-color: white;
+  border-radius: 4px;
+}
+
+.history-section h6 {
+  margin-bottom: 20px;
+}
