@@ -1,5 +1,10 @@
 .vital-signs-tab {
   padding: 20px;
+  height: 100%;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  display: flex;
+  flex-direction: column;
 }
 
 .vital-signs-tab .row {
@@ -7,6 +12,7 @@
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
   gap: 16px;
   margin-bottom: 24px;
+  flex-shrink: 0; /* Prevent grid from shrinking */
 }
 
 .vital-signs-card {
@@ -86,18 +92,19 @@
 
 /* Graph styles */
 .graph-container {
-  width: 80%;
-  /*max-width: 800px;*/
-  margin: 20px auto;
+  width: 100%;  /* Changed from 80% to 100% for better responsiveness */
+  margin: 20px 0;  /* Changed from auto to 0 to prevent horizontal scrolling */
   padding: 20px;
   background: #fff;
   border-radius: 8px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  flex-shrink: 0; /* Prevent graph from shrinking */
 }
 
 /* Table styles */
 .vital-signs-tab table {
   margin-top: 20px;
+  flex-shrink: 0; /* Prevent table from shrinking */
 }
 
 .vital-signs-card:hover .vital-icon {
@@ -107,4 +114,4 @@
 .vital-signs-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-} 
+}

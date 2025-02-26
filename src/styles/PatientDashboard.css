@@ -65,20 +65,20 @@
   flex: 1;
   position: relative;
   background-color: #F7FAFC;
-  overflow: hidden;
   padding: 15px;
   display: flex;
   flex-direction: column;
   height: calc(100vh - 60px);
+  overflow: hidden; /* Changed from auto */
 }
 
 .tab-content-wrapper {
   flex: 1;
-  overflow: hidden; /* Change from auto to hidden */
-  height: 100%;
+  overflow: hidden;
   position: relative;
   padding: 0;
-  -webkit-overflow-scrolling: touch; /* For smooth scrolling on iOS */
+  display: flex;
+  flex-direction: column;
 }
 
 .back-button {
