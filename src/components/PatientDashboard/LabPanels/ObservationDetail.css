@@ -2,9 +2,10 @@
   padding: 20px;
   max-width: 1200px;
   margin: 0 auto;
-  height: calc(100vh - 100px); /* Adjust for any headers/nav */
+  height: 100%; /* Remove fixed height calculation */
   overflow-y: auto; /* Main scroll container */
   -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+  padding-bottom: 60px; /* Add extra padding at bottom to ensure visibility */
 }
 
 /* Remove .back-button-container styles since we're not using it anymore */
@@ -87,7 +88,8 @@
 @media (max-width: 767px) {
   .observation-detail-container {
     padding: 10px;
-    height: calc(100vh - 60px);
+    padding-bottom: 40px; /* Add extra padding at bottom for mobile */
+    height: 100%; /* Remove fixed height calculation */
   }
 
   .graph-container {

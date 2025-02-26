@@ -162,20 +162,112 @@ function ObservationGraph({ data }) {
         },
       },
       y: {
-        suggestedMin: Math.min(
-          referenceRange?.low - 1 || 0,
-          ...points.map((p) => {
-            if (!p.value) return 0;
-            return p.value.split ? Math.min(...p.value.split("/").map(Number)) : Number(p.value);
-          })
-        ),
-        suggestedMax: Math.max(
-          referenceRange?.high + 1 || 100,
-          ...points.map((p) => {
-            if (!p.value) return 0;
-            return p.value.split ? Math.max(...p.value.split("/").map(Number)) : Number(p.value);
-          })
-        ),
+        suggestedMin: (() => {
+          const values = points
+            .map(p => {
+              if (!p.value) return null;
+              if (typeof p.value === 'string' && p.value.includes('/')) {
+                return Math.min(...p.value.split('/').map(Number));
+              }
+              return Number(p.value);
+            })
+            .filter(v => v !== null);
+
+          console.log('Y-axis Min Calculation:', {
+            values,
+            dataMin: Math.min(...values),
+            refLow: referenceRange?.low,
+          });
+
+          const dataMin = Math.min(...values);
+          const dataMax = Math.max(...values);
+          const dataRange = dataMax - dataMin;
+          
+          // If we have a reference range, use it to inform the padding
+          if (referenceRange?.low !== null && referenceRange?.low !== undefined) {
+            const min = Math.min(dataMin, referenceRange.low);
+            // Use 5% of the total range or 5% of the minimum value, whichever is smaller
+            const padding = Math.min(
+              dataRange * 0.05,
+              Math.abs(min) * 0.05
+            );
+            const finalMin = Math.max(0, min - padding); // Prevent negative values if not needed
+            
+            console.log('Y-axis Min (with ref range):', {
+              dataMin,
+              refLow: referenceRange.low,
+              min,
+              padding,
+              finalMin
+            });
+            return finalMin;
+          }
+          
+          // Without reference range, use data-based padding
+          const padding = dataRange * 0.05;
+          const finalMin = Math.max(0, dataMin - padding); // Prevent negative values if not needed
+          
+          console.log('Y-axis Min (without ref range):', {
+            dataMin,
+            dataRange,
+            padding,
+            finalMin
+          });
+          return finalMin;
+        })(),
+
+        suggestedMax: (() => {
+          const values = points
+            .map(p => {
+              if (!p.value) return null;
+              if (typeof p.value === 'string' && p.value.includes('/')) {
+                return Math.max(...p.value.split('/').map(Number));
+              }
+              return Number(p.value);
+            })
+            .filter(v => v !== null);
+
+          console.log('Y-axis Max Calculation:', {
+            values,
+            dataMax: Math.max(...values),
+            refHigh: referenceRange?.high,
+          });
+
+          const dataMin = Math.min(...values);
+          const dataMax = Math.max(...values);
+          const dataRange = dataMax - dataMin;
+          
+          if (referenceRange?.high !== null && referenceRange?.high !== undefined) {
+            const max = Math.max(dataMax, referenceRange.high);
+            // Use 5% of the total range or 5% of the maximum value, whichever is smaller
+            const padding = Math.min(
+              dataRange * 0.05,
+              max * 0.05
+            );
+            const finalMax = max + padding;
+            
+            console.log('Y-axis Max (with ref range):', {
+              dataMax,
+              refHigh: referenceRange.high,
+              max,
+              padding,
+              finalMax
+            });
+            return finalMax;
+          }
+          
+          const padding = dataRange * 0.05;
+          const finalMax = dataMax + padding;
+          
+          console.log('Y-axis Max (without ref range):', {
+            dataMax,
+            dataRange,
+            padding,
+            finalMax
+          });
+          return finalMax;
+        })(),
+
         ticks: {
           font: {
             size: window.innerWidth < 768 ? 10 : 12,
@@ -185,7 +277,7 @@ function ObservationGraph({ data }) {
           display: true,
           drawBorder: true,
         },
-      },
+      }
     },
   };
 
