@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { Button, Card, Container, Spinner } from "react-bootstrap";
-import { Activity, Pill, FileText, Clipboard, Microscope, Syringe, MessageCircle, BarChart2, Heart, Calendar, ArrowLeft, Mic, LucideTestTubes } from "lucide-react";
+import { Activity, Pill, FileText, Clipboard, Microscope, Syringe, MessageCircle, BarChart2, Heart, Calendar, ArrowLeft, Mic, FlaskConical } from "lucide-react";
 import ConditionsTab from "./PatientDashboard/ConditionsTab";
 import ChartsTab from "./PatientDashboard/ChartsTab";
 import ProceduresTab from "./PatientDashboard/ProceduresTab";
@@ -222,7 +222,7 @@ function PatientDashboard() {
         className={`nav-item ${activeTab === "lab-panels" ? "active" : ""}`} 
         onClick={() => handleTabChange("lab-panels")}
       >
-        <LucideTestTubes size={16} /> Lab Panels
+        <FlaskConical size={16} /> Lab Panels
       </div>
     </div>
   );

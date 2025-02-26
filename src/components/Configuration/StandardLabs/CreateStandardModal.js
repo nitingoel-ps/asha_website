@@ -48,12 +48,12 @@ function CreateStandardModal({ show, onHide, onSave, selectedObservations }) {
       .filter(code => code && code.trim())
       .filter((code, index, self) => self.indexOf(code) === index)
       .sort(),
-    units: selectedObservations
-      .map(obs => obs.unique_uoms)
-      .flat()
-      .filter(unit => unit && unit.trim())
-      .filter((unit, index, self) => self.indexOf(unit) === index)
-      .sort()
+    // Fix: Use a more robust method to get unique units
+    units: Array.from(new Set(
+      selectedObservations
+        .flatMap(obs => obs.unique_uoms || [])
+        .filter(unit => unit && unit.trim())
+    )).sort()
   }), [selectedObservations]);
 
   const handleChange = (e) => {
@@ -139,7 +139,7 @@ function CreateStandardModal({ show, onHide, onSave, selectedObservations }) {
           
           <Form.Group className="mb-3">
             <Form.Label>Name <span className="text-danger">*</span></Form.Label>
-            {uniqueValues.names.length > 0 ? (
+            {!customInputs.name ? (
               <Form.Select
                 name="name"
                 value={formData.name}
@@ -155,25 +155,27 @@ function CreateStandardModal({ show, onHide, onSave, selectedObservations }) {
                 <option value="custom">Enter custom name...</option>
               </Form.Select>
             ) : (
-              <Form.Control
-                type="text"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                required
-                placeholder="Enter standard lab name"
-              />
-            )}
-            {formData.name === 'custom' && (
-              <Form.Control
-                type="text"
-                name="name"
-                value=""
-                onChange={handleChange}
-                placeholder="Enter custom name"
-                className="mt-2"
-                required
-              />
+              <>
+                <Form.Control
+                  type="text"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleCustomInputChange}
+                  placeholder="Enter custom name"
+                  required
+                />
+                <Button 
+                  variant="link" 
+                  size="sm" 
+                  className="mt-1 p-0"
+                  onClick={() => {
+                    setCustomInputs(prev => ({ ...prev, name: false }));
+                    setFormData(prev => ({ ...prev, name: '' }));
+                  }}
+                >
+                  Back to dropdown
+                </Button>
+              </>
             )}
           </Form.Group>
 

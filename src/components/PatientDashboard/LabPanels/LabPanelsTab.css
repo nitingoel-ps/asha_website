@@ -1,4 +1,4 @@
-.lab-panels-container {
+.lp-panels-container {
   padding: 20px;
   max-width: 900px;
   margin: 0 auto;
@@ -7,17 +7,17 @@
   -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
 }
 
-.lab-panel-card {
+.lp-panel-card {
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   border: 1px solid rgba(0,0,0,.125);
   border-radius: 4px;
 }
 
-.lab-panel-card .card-header {
+.lp-panel-card .card-header {
   background-color: #f8f9fa;
 }
 
-.lab-panel-card .accordion-button {
+.lp-panel-card .accordion-button {
   padding: 1rem;
   background-color: #f8f9fa;
 }

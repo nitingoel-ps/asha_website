@@ -48,12 +48,14 @@
 .nav-item:nth-child(1) svg { color: #4299E1; }  /* Summary - Blue */
 .nav-item:nth-child(2) svg { color: #48BB78; }  /* Chat - Green */
 .nav-item:nth-child(3) svg { color: #9F7AEA; }  /* Talk - Purple */
-.nav-item:nth-child(4) svg { color: #F56565; }  /* Vital Signs - Red */
-.nav-item:nth-child(5) svg { color: #38B2AC; }  /* Immunizations - Teal */
-.nav-item:nth-child(6) svg { color: #ED8936; }  /* Visits - Orange */
-.nav-item:nth-child(7) svg { color: #667EEA; }  /* Medical Reports - Indigo */
-.nav-item:nth-child(8) svg { color: #ED64A6; }  /* Key Lab Results - Pink */
-.nav-item:nth-child(9) svg { color: #48BB78; }  /* Medications - Green */
+.nav-item:nth-child(4) svg { color: #9F7AEA; }  /* Talk Streaming - Purple */
+.nav-item:nth-child(5) svg { color: #F56565; }  /* Vital Signs - Red */
+.nav-item:nth-child(6) svg { color: #38B2AC; }  /* Immunizations - Teal */
+.nav-item:nth-child(7) svg { color: #ED8936; }  /* Visits - Orange */
+.nav-item:nth-child(8) svg { color: #667EEA; }  /* Medical Reports - Indigo */
+.nav-item:nth-child(9) svg { color: #ED64A6; }  /* Key Lab Results - Pink */
+.nav-item:nth-child(10) svg { color: #48BB78; }  /* Medications - Green */
+.nav-item:nth-child(11) svg { color: #F56565; }  /* Lab Panels - Red */
 
 .nav-item.active svg {
   color: inherit;

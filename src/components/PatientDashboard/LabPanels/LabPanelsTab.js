@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, ListGroup, Badge, Accordion } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
-import { LucideTestTubes } from 'lucide-react';
+import { FlaskConical } from 'lucide-react';
 import './LabPanelsTab.css';
 
 function LabPanelsTab({ standardPanels }) {
@@ -46,17 +46,17 @@ function LabPanelsTab({ standardPanels }) {
   }
 
   return (
-    <div className="lab-panels-container">
+    <div className="lp-panels-container">
       <Accordion>
         {standardPanels.map((panel, index) => (
-          <Accordion.Item key={panel.name} eventKey={index.toString()} className="lab-panel-card mb-4">
+          <Accordion.Item key={panel.name} eventKey={index.toString()} className="lp-panel-card mb-4">
             <Accordion.Header>
               <div className="d-flex align-items-center w-100">
-                <LucideTestTubes size={24} className="me-2" />
-                <div className="panel-header-content">
+                <FlaskConical size={24} className="me-2" color="#667EEA" />
+                <div className="lp-panel-header-content">
                   <h5 className="mb-0">{panel.long_name}</h5>
                 </div>
-                <Badge bg="primary" className="ms-auto observation-count">
+                <Badge bg="primary" className="ms-auto lp-observation-count">
                   {panel.observations.length} tests
                 </Badge>
               </div>
@@ -72,12 +72,12 @@ function LabPanelsTab({ standardPanels }) {
                       key={observation.name}
                       action
                       onClick={() => handleObservationClick(observation.id)}
-                      className="observation-item"
+                      className="lp-observation-item"
                     >
                       <div className="d-flex justify-content-between align-items-start">
-                        <div className="observation-name">
-                          <div className="observation-title">{observation.name}</div>
-                          <div className="observation-subtitle text-muted">
+                        <div className="lp-observation-name">
+                          <div className="lp-observation-title">{observation.name}</div>
+                          <div className="lp-observation-subtitle text-muted">
                             {observation.long_name}
                           </div>
                           {latestObs?.is_normal === false && (
@@ -88,7 +88,7 @@ function LabPanelsTab({ standardPanels }) {
                         </div>
                         {latestObs && (
                           <div className="text-end">
-                            <div className="observation-value">
+                            <div className="lp-observation-value">
                               {latestObs.observation_value} {observation.uom}
                             </div>
                             <small className="text-muted">
@@ -97,7 +97,7 @@ function LabPanelsTab({ standardPanels }) {
                           </div>
                         )}
                       </div>
-                      <div className="reference-range">
+                      <div className="lp-reference-range">
                         <small className="text-muted">
                           Reference Range: {referenceRange}
                         </small>
