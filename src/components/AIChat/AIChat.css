@@ -1,0 +1,256 @@
+.ai-chat-container {
+  height: calc(100vh - 56px);
+  padding: 20px;
+}
+
+.chat-sidebar {
+  border-right: 1px solid #dee2e6;
+  height: 100%;
+  overflow-y: auto;
+}
+
+.chat-main {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.chat-window {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.messages-container {
+  flex-grow: 1;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+.message-input-form {
+  padding: 20px;
+  border-top: 1px solid #dee2e6;
+}
+
+.message {
+  margin-bottom: 15px;
+  max-width: 80%;
+}
+
+.user-message {
+  margin-left: auto;
+  background-color: #007bff;
+  color: white;
+  padding: 10px 15px;
+  border-radius: 15px 15px 0 15px;
+}
+
+.ai-message {
+  margin-right: auto;
+  background-color: #f8f9fa;
+  padding: 10px 15px;
+  border-radius: 15px 15px 15px 0;
+}
+
+.chat-session-item {
+  cursor: pointer;
+}
+
+.chat-session-item .delete-button {
+  opacity: 0;
+  transition: opacity 0.2s;
+  color: #dc3545;
+}
+
+.chat-session-item:hover .delete-button {
+  opacity: 1;
+}
+
+.chat-session-item .edit-button {
+  opacity: 0;
+  transition: opacity 0.2s;
+  color: #6c757d;
+  padding: 0.25rem 0.5rem;
+}
+
+.chat-session-item:hover .edit-button {
+  opacity: 1;
+}
+
+.chat-session-item .form-control {
+  height: 28px;
+  padding: 2px 8px;
+}
+
+.chat-session-item .btn-link {
+  text-decoration: none;
+}
+
+.message-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.message-content {
+  word-break: break-word;
+}
+
+.message-content > *:first-child {
+  margin-top: 0;
+}
+
+.message-content > *:last-child {
+  margin-bottom: 0;
+}
+
+/* Updated Markdown List Styles */
+.message ol,
+.message ul {
+  margin: 0.5em 0;
+  padding-left: 2em;
+  line-height: 1.4;
+}
+
+.message li {
+  margin: 0.2em 0;
+  padding-left: 0;
+  list-style-position: outside;
+}
+
+.message li p {
+  margin: 0;
+  padding: 0;
+  display: inline;
+  line-height: inherit;
+}
+
+.message p {
+  margin: 0.5em 0;
+  line-height: 1.4;
+}
+
+/* Remove extra spacing between nested lists */
+.message li > ol,
+.message li > ul {
+  margin: 0.2em 0 0.2em 1em;
+}
+
+/* Ensure consistent spacing for all list types 
+
+Removing these in favor of just keeping the message ol etc.. equivalents
+.markdown-ol,
+.markdown-ul {
+  margin: 0.5em 0;
+  padding-left: 2em;
+  line-height: 1.4;
+}
+
+.markdown-li {
+  margin: 0.2em 0;
+  padding: 0;
+  list-style-position: outside;
+}
+
+.markdown-li p {
+  display: inline;
+  margin: 0;
+  padding: 0;
+}
+
+.markdown-ol,
+.markdown-ul {
+  margin: 0;
+  padding-left: 1.5rem;
+  line-height: 1.5;
+}
+
+.markdown-li {
+  margin: 5px;
+  list-style-position: inside;
+  font-size: 1rem;
+  text-align: left;
+}
+*/
+
+/* Keep your .message-based list rules tight & consistent */
+.message ol {
+  display: block;
+  margin: 0;
+  list-style-position: outside;
+  list-style-type: decimal;
+  padding-left: 1.5rem;
+  line-height: 1.5;
+}
+
+.message ul {
+  margin: 0;
+  padding-left: 1.5rem;
+  line-height: 1.5;
+}
+.message li {
+  display: inline-block;
+  margin-bottom: 0.5rem;
+  margin-top: 0.5rem;
+  list-style-type: decimal;
+  padding-left: 1rem; /* Add padding for the marker */
+}
+
+.message li p {
+  display: inline;
+  margin: 0;
+  padding: 0;
+}
+
+.message h3 {
+  margin-top: 1.0rem;
+  font-size: larger;
+}
+
+.message h4 {
+  margin-top: 1.0rem;
+  font-size: large;
+}
+
+/* Math Equation Styles */
+.katex-display {
+  margin: 0.5em 0;
+  padding: 0.5em 0;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.message .katex-html {
+  max-width: 100%;
+  overflow-wrap: break-word;
+  white-space: normal;
+}
+
+.message .katex {
+  font-size: 1.1em;
+  line-height: 1.2;
+  max-width: 100%;
+  display: inline-block;
+}
+
+/* Reference Styles */
+.reference {
+  color: #0066cc;
+  font-size: 0.9em;
+  font-weight: 500;
+  vertical-align: super;
+  line-height: 0;
+  padding: 0 1px;
+}
+
+/* Pre-formatted text */
+.message pre {
+  font-family: inherit;
+  background: none;
+  padding: 0;
+  margin: 0;
+  font-size: inherit;
+  color: inherit;
+  white-space: pre-wrap;
+}

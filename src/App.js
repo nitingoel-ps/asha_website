@@ -17,6 +17,7 @@ import LabPanelReview from './components/Configuration/StandardLabs/LabPanelRevi
 import ManageStandardLabs from './components/Configuration/StandardLabs/ManageStandardLabs';
 import ManageStandardPanels from './components/Configuration/StandardLabs/ManageStandardPanels';
 import PanelDetail from './components/Configuration/StandardLabs/PanelDetail';
+import AIChat from './components/AIChat/AIChat';
 
 import './theme.css';
 
@@ -63,6 +64,14 @@ function AppContent() {
           <Route path="manage-standard-panels" element={<ManageStandardPanels />} />
           <Route path="manage-standard-panels/:panelId" element={<PanelDetail />} />
         </Route>
+        <Route
+          path="/ai-chat/*"
+          element={
+            <PrivateRoute>
+              <AIChat />
+            </PrivateRoute>
+          }
+        />
       </Routes>
     </>
   );

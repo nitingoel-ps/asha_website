@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { Navbar, Nav, Container } from 'react-bootstrap';
-import { FaHome, FaSignOutAlt, FaTachometerAlt, FaFileUpload, FaHospital, FaCog } from 'react-icons/fa';
+import { FaHome, FaSignOutAlt, FaTachometerAlt, FaFileUpload, FaHospital, FaCog, FaRobot } from 'react-icons/fa';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from "react-router-dom";
 
@@ -56,6 +56,9 @@ function LoggedInNavbar() {
             </Nav.Link>
             <Nav.Link as={Link} to="/configuration" onClick={() => setExpanded(false)}>
               <FaCog /> Configuration
+            </Nav.Link>
+            <Nav.Link as={Link} to="/ai-chat" onClick={() => setExpanded(false)}>
+              <FaRobot /> AI Chat
             </Nav.Link>
             <Nav.Link onClick={() => { setExpanded(false); handleLogout(); }}>
               <FaSignOutAlt /> Logout
