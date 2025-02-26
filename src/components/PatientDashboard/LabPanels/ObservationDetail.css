@@ -7,10 +7,7 @@
   -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
 }
 
-.back-button-container {
-  background-color: #fff;
-  margin-bottom: 10px;
-}
+/* Remove .back-button-container styles since we're not using it anymore */
 
 .observation-card {
   border: 1px solid rgba(0,0,0,.125);
@@ -28,6 +25,62 @@
 .history-section {
   padding: 20px;
   background-color: white;
+}
+
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.history-item {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.history-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.history-item-date {
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+.history-item-value {
+  font-weight: 600;
+  color: #1a202c;
+}
+
+.history-item-details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.history-detail {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 0;
+}
+
+.detail-label {
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+.detail-value {
+  color: #1a202c;
+  font-size: 0.9rem;
 }
 
 /* Mobile specific adjustments */
@@ -49,5 +102,18 @@
 
   .history-section h6 {
     margin-bottom: 10px;
+  }
+}
+
+/* Adjust desktop table styles */
+@media (min-width: 768px) {
+  .history-section table {
+    font-size: 0.9rem;
+  }
+  
+  .history-section th {
+    background-color: #f8fafc;
+    color: #64748b;
+    font-weight: 600;
   }
 }

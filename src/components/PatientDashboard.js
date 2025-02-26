@@ -132,6 +132,11 @@ function PatientDashboard() {
   const getBackButtonText = () => {
     const pathSegments = location.pathname.split('/').filter(Boolean);
     
+    // Special case for observation detail
+    if (pathSegments.includes('observation')) {
+      return 'Back to Lab Panels';
+    }
+    
     // If we're in a detail view (has more than 2 segments after patient-dashboard)
     if (pathSegments.length > 2) {
       // Map the parent route to a friendly name
@@ -140,6 +145,7 @@ function PatientDashboard() {
         visits: 'Visits',
         'medical-reports': 'Medical Reports',
         immunizations: 'Immunizations',
+        'lab-panels': 'Lab Panels'
       };
       return `Back to ${parentRouteNames[pathSegments[1]] || 'Menu'}`;
     }
@@ -149,6 +155,13 @@ function PatientDashboard() {
 
   const handleBack = () => {
     const pathSegments = location.pathname.split('/').filter(Boolean);
+    
+    // Special case for observation detail
+    if (pathSegments.includes('observation')) {
+      navigate('/patient-dashboard/lab-panels');
+      return;
+    }
+    
     if (pathSegments.length > 2) {
       // Go back to the parent route
       navigate(`/patient-dashboard/${pathSegments[1]}`);
