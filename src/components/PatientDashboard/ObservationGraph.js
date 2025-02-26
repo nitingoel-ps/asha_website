@@ -147,17 +147,11 @@ function ObservationGraph({ data }) {
             month: "MMM yyyy", // Customize the format
           },
         },
-        title: {
-          display: true,
-          text: "Date",
-          font: {
-            size: 13,
-          },
-        },
         ticks: {
-          // Rotate labels to 45 degrees
-          maxRotation: window.innerWidth < 768 ? 90 : 45, // Vertical labels on mobile
-          minRotation: window.innerWidth < 768 ? 90 : 45,
+          autoSkip: true,
+          maxTicksLimit: window.innerWidth < 768 ? 4 : 8, // Fewer ticks on mobile
+          maxRotation: 0, // Keep labels horizontal
+          minRotation: 0,
           font: {
             size: window.innerWidth < 768 ? 10 : 12,
           },
@@ -168,13 +162,6 @@ function ObservationGraph({ data }) {
         },
       },
       y: {
-        title: {
-          display: true,
-          text: `${observationName} (${uom})`,
-          font: {
-            size: 13,
-          },
-        },
         suggestedMin: Math.min(
           referenceRange?.low - 1 || 0,
           ...points.map((p) => {
