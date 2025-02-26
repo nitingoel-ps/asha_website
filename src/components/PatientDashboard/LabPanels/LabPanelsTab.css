@@ -1,7 +1,7 @@
 .lp-panels-container {
   padding: 20px;
   max-width: 900px;
-  margin: 0 auto;
+  margin: 0;
   height: calc(100vh - 100px); /* Adjust for any headers/nav */
   overflow-y: auto;
   -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */

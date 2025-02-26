@@ -41,16 +41,14 @@ function ObservationDetail({ standardPanels }) {
     const options = { 
       year: 'numeric', 
       month: 'short', 
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+      day: 'numeric'
     };
     return new Date(dateString).toLocaleDateString(undefined, options);
   };
 
   // Prepare data for the graph
   const graphData = {
-    observationName: observation.name, // Changed from observation.long_name
+    observationName: observation.observation_name || observation.name, // Added observation_name
     points: observation.values.map(v => ({
       date: v.date,
       value: v.observation_value
@@ -63,76 +61,71 @@ function ObservationDetail({ standardPanels }) {
     explanation: observation.explanation
   };
 
-  const HistoryItemMobile = ({ value }) => (
-    <div className="history-item">
-      <div className="history-item-header">
-        <div className="history-item-date">{formatDate(value.date)}</div>
-        <div className="history-item-value">
-          {value.observation_value} {observation.uom}
-          {value.is_normal === false && (
-            <span className="text-warning ms-2">⚠</span>
-          )}
-        </div>
-      </div>
-      <div className="history-item-details">
-        <div className="history-detail">
-          <span className="detail-label">Reference Range:</span>
-          <span className="detail-value">{value.observation_ref_range || 'N/A'}</span>
-        </div>
-        <div className="history-detail">
-          <span className="detail-label">Source:</span>
-          <span className="detail-value">{value.source}</span>
-        </div>
-        <div className="history-detail">
-          <span className="detail-label">Lab:</span>
-          <span className="detail-value">{value.lab}</span>
-        </div>
-      </div>
-    </div>
-  );
+const HistoryItem = ({ value }) => (
+    <Card className="history-card mb-3">
+        <Card.Body>
+            <div className="history-card-main">
+                <div className="history-main-line">
+                    <div className="history-name-container">
+                        <span className="history-name">{value.observation_name}</span>
+                    </div>
+                    <div className="history-value-container">
+                        <div className="value-uom-group">
+                            <span className="history-value">{value.observation_value}</span>
+                            <span className="history-uom">{observation.uom}</span>
+                            {value.is_normal === false && (
+                                <span className="abnormal-indicator">⚠ Abnormal</span>
+                            )}
+                        </div>
+                        <div className="history-date">{formatDate(value.date)}</div>
+                    </div>
+                </div>
+            </div>
+            <div className="history-details">
+                <div className="detail-row">
+                    <span className="detail-label">Reference Range:</span>
+                    <span className="detail-value">{value.observation_ref_range || 'N/A'}</span>
+                </div>
+                {value.report_name && (
+                    <div className="detail-row">
+                        <span className="detail-label">Report:</span>
+                        <span className="detail-value">{value.report_name}</span>
+                    </div>
+                )}
+                <div className="detail-row">
+                    <span className="detail-label">Lab:</span>
+                    <span className="detail-value">{value.lab}</span>
+                </div>
+                <div className="detail-row">
+                    <span className="detail-label">Source:</span>
+                    <span 
+                        className="detail-value" 
+                        data-tooltip={value.source}
+                    >
+                        {value.source}
+                    </span>
+                </div>
+                {value.notes && (
+                    <div className="detail-row">
+                        <span className="detail-label">Notes:</span>
+                        <span className="detail-value">{value.notes}</span>
+                    </div>
+                )}
+            </div>
+        </Card.Body>
+    </Card>
+);
 
   const renderHistory = () => {
     const sortedValues = observation.values
       .sort((a, b) => new Date(b.date) - new Date(a.date));
 
-    if (isMobile) {
-      return (
-        <div className="history-list">
-          {sortedValues.map((value, index) => (
-            <HistoryItemMobile key={index} value={value} />
-          ))}
-        </div>
-      );
-    }
-
     return (
-      <Table responsive striped hover>
-        <thead>
-          <tr>
-            <th>Date</th>
-            <th>Value</th>
-            <th>Reference Range</th>
-            <th>Source</th>
-            <th>Lab</th>
-          </tr>
-        </thead>
-        <tbody>
-          {sortedValues.map((value, index) => (
-            <tr key={index}>
-              <td>{formatDate(value.date)}</td>
-              <td>
-                {value.observation_value} {observation.uom}
-                {value.is_normal === false && (
-                  <span className="text-warning ms-2">⚠</span>
-                )}
-              </td>
-              <td>{value.observation_ref_range || 'N/A'}</td>
-              <td>{value.source}</td>
-              <td>{value.lab}</td>
-            </tr>
-          ))}
-        </tbody>
-      </Table>
+      <div className="history-grid">
+        {sortedValues.map((value, index) => (
+          <HistoryItem key={index} value={value} />
+        ))}
+      </div>
     );
   };
 
@@ -142,7 +135,7 @@ return (
             <Card.Header className="py-2">
                 <div className="d-flex align-items-center">
                     <FlaskConical size={24} className="me-2" color="#667EEA"/>
-                    <h5 className="mb-0">{observation.long_name}</h5>
+                    <h5 className="mb-0">{observation.observation_name || observation.name}</h5>
                 </div>
                 <div className="text-muted">
                     <small>{panel.long_name}</small>
