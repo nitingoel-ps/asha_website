@@ -3,48 +3,51 @@
   max-width: 1200px;
   margin: 0 auto;
   height: calc(100vh - 100px); /* Adjust for any headers/nav */
-  overflow-y: auto;
+  overflow-y: auto; /* Main scroll container */
   -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+}
+
+.back-button-container {
+  background-color: #fff;
+  margin-bottom: 10px;
+}
+
+.observation-card {
+  border: 1px solid rgba(0,0,0,.125);
+  background-color: #fff;
 }
 
 .graph-container {
   height: 400px;
   width: 100%;
   background-color: white;
-  border-radius: 4px;
   padding: 20px;
-  margin-bottom: 40px; /* Increase space between graph and table section */
-  overflow: hidden; /* Add this to prevent any spillover */
-}
-
-.observation-meta {
-  display: flex;
-  gap: 20px;
-  flex-wrap: wrap;
   margin-bottom: 20px;
 }
 
-.observation-meta-item {
-  flex: 1;
-  min-width: 200px;
-}
-
-/* Add styles to keep the back button visible while scrolling */
-.observation-detail-container .mb-3 {
-  position: sticky;
-  top: 0;
-  z-index: 1;
-  background-color: #fff;
-  padding: 10px 0;
-}
-
-/* Add styles for the history section */
 .history-section {
   padding: 20px;
   background-color: white;
-  border-radius: 4px;
 }
 
-.history-section h6 {
-  margin-bottom: 20px;
+/* Mobile specific adjustments */
+@media (max-width: 767px) {
+  .observation-detail-container {
+    padding: 10px;
+    height: calc(100vh - 60px);
+  }
+
+  .graph-container {
+    height: 300px;
+    padding: 5px;
+    margin-bottom: 15px;
+  }
+
+  .history-section {
+    padding: 10px;
+  }
+
+  .history-section h6 {
+    margin-bottom: 10px;
+  }
 }

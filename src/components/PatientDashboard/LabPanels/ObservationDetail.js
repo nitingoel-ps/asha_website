@@ -55,17 +55,19 @@ function ObservationDetail({ standardPanels }) {
 
   return (
     <div className="observation-detail-container">
-      <Button 
-        variant="outline-primary" 
-        className="mb-3"
-        onClick={() => navigate('/patient-dashboard/lab-panels')}
-      >
-        <ArrowLeft size={16} className="me-2" />
-        Back to Lab Panels
-      </Button>
+      <div className="back-button-container">
+        <Button 
+          variant="outline-primary" 
+          className="mb-2"
+          onClick={() => navigate('/patient-dashboard/lab-panels')}
+        >
+          <ArrowLeft size={16} className="me-2" />
+          Back to Lab Panels
+        </Button>
+      </div>
 
-      <Card className="mb-4">
-        <Card.Header className="d-flex align-items-center">
+      <Card className="observation-card">
+        <Card.Header className="py-2">
           <LucideTestTubes size={24} className="me-2" />
           <div>
             <h5 className="mb-0">{observation.long_name}</h5>
@@ -77,8 +79,8 @@ function ObservationDetail({ standardPanels }) {
             </div>
           </div>
         </Card.Header>
-        <Card.Body>
-          <div className="graph-container mb-4">
+        <Card.Body className="p-0">
+          <div className="graph-container">
             <ObservationGraph data={graphData} />
           </div>
 
