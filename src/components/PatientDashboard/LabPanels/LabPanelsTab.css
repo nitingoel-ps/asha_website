@@ -1,16 +1,70 @@
 .lp-panels-container {
   padding: 20px;
   max-width: 900px;
-  margin: 0;
+  width: 80%; /* Set width relative to parent */
+  margin: 0 auto;
   height: calc(100vh - 100px); /* Adjust for any headers/nav */
   overflow-y: auto;
   -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
 }
 
+/* Search styles */
+.lp-search-container {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background-color: white;
+  padding: 10px 0;
+  width: 100%; /* Full width of container */
+}
+
+.lp-search-input {
+  height: 46px;
+  border-radius: 8px;
+  border: 1px solid #dfe3e8;
+}
+
+.lp-search-icon {
+  background-color: white;
+  border-right: none;
+  border-top-left-radius: 8px;
+  border-bottom-left-radius: 8px;
+}
+
+.lp-search-clear {
+  background-color: white;
+  border-left: none;
+  cursor: pointer;
+  color: #6c757d;
+  border-top-right-radius: 8px;
+  border-bottom-right-radius: 8px;
+}
+
+.lp-search-clear:hover {
+  color: #343a40;
+}
+
+.lp-no-results {
+  text-align: center;
+  color: #6c757d;
+  padding: 40px 0;
+  font-size: 16px;
+}
+
 .lp-panel-card {
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   border: 1px solid rgba(0,0,0,.125);
-  border-radius: 4px;
+  border-radius: 8px;
+  margin-bottom: 15px;
+  overflow: hidden;
+  width: 100%; /* Full width of container */
+}
+
+.lp-panel-header-content {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .lp-panel-card .card-header {
@@ -36,41 +90,49 @@
   flex: 1;
 }
 
-.observation-item {
+.lp-observation-item {
   padding: 15px;
+  transition: background-color 0.2s;
 }
 
-.observation-item:hover {
+.lp-observation-item:hover {
   background-color: #f8f9fa;
 }
 
-.observation-name {
+.lp-observation-name {
   font-weight: 500;
   flex: 1;
   padding-right: 15px;
+  overflow: hidden;
 }
 
-.observation-value {
+.lp-observation-value {
   font-weight: 500;
   color: #2c3e50;
+  text-align: right;
 }
 
-.reference-range {
+.lp-reference-range {
   margin-top: 5px;
 }
 
-.observation-title {
+.lp-observation-title {
   font-weight: 600;
   font-size: 1rem;
   margin-bottom: 2px;
 }
 
-.observation-subtitle {
+.lp-observation-subtitle {
   font-size: 0.85rem;
   margin-bottom: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
 
-.observation-count {
+.lp-observation-count {
   font-size: 0.875rem;
   font-weight: normal;
 }
@@ -96,4 +158,64 @@
 /* Remove hover background effect from accordion button */
 .accordion-button:hover {
   background-color: #f8f9fa !important;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 767.98px) {
+  .lp-panels-container {
+    padding: 10px;
+    width: 95%; /* Use most of available width on mobile */
+    height: calc(100vh - 80px);
+  }
+  
+  .lp-search-container {
+    padding: 5px 0;
+  }
+  
+  .lp-observation-item {
+    padding: 10px;
+  }
+  
+  .lp-observation-title {
+    font-size: 0.95rem;
+  }
+  
+  .lp-observation-subtitle {
+    font-size: 0.8rem;
+  }
+  
+  /* Adjust flex direction for small screens */
+  .lp-observation-item .d-flex {
+    flex-direction: column;
+    align-items: flex-start !important;
+  }
+  
+  .lp-observation-item .text-end {
+    text-align: left !important;
+    margin-top: 8px;
+    width: 100%;
+  }
+}
+
+/* Medium screens */
+@media (min-width: 768px) and (max-width: 991.98px) {
+  .lp-panels-container {
+    width: 85%;
+  }
+}
+
+/* Large screens */
+@media (min-width: 992px) {
+  .lp-panels-container {
+    width: 80%;
+    max-width: 900px;
+  }
+}
+
+/* Extra large screens */
+@media (min-width: 1200px) {
+  .lp-panels-container {
+    width: 70%;
+    max-width: 1000px;
+  }
 }
