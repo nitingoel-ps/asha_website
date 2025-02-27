@@ -89,7 +89,7 @@ function AIChat() {
   return (
     <Container fluid className="ai-chat-container">
       <Row className="h-100">
-        <Col md={3} className="chat-sidebar">
+        <Col md={3} className="ai-chat-sidebar">
           <div className="d-grid gap-2 mb-3">
             <Button variant="primary" onClick={handleNewChat}>
               New Chat
@@ -104,13 +104,18 @@ function AIChat() {
             loading={loading}
           />
         </Col>
-        <Col md={9} className="chat-main">
+        <Col md={9} className="ai-chat-main">
           <ChatWindow
             session={selectedSession}
             onSessionCreated={(newSession) => {
               setSessions([newSession, ...sessions]);
               setSelectedSession(newSession);
             }}
+            sessions={sessions}
+            onSelectSession={handleSelectSession}
+            onDeleteSession={handleDeleteSession}
+            onRenameSession={handleRenameSession}
+            loading={loading}
           />
         </Col>
       </Row>

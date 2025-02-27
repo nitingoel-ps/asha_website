@@ -1,22 +1,28 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Form, Button, Spinner } from 'react-bootstrap';
+import { FaPaperPlane, FaBars, FaPen } from 'react-icons/fa';
 import axiosInstance from '../../utils/axiosInstance';
 import MessageList from './MessageList';
+import ChatList from './ChatList';
 
-function ChatWindow({ session, onSessionCreated }) {
+function ChatWindow({ session, onSessionCreated, sessions = [], onSelectSession, onDeleteSession, onRenameSession, loading }) {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isChatListVisible, setIsChatListVisible] = useState(false);
   const messageEndRef = useRef(null);
 
   useEffect(() => {
+    console.log('ChatWindow loaded with sessions:', sessions);
+    console.log('Selected session:', session);
+
     // Reset messages when switching sessions
     setMessages([]);
     
     if (session?.id) {
       fetchMessages(session.id);
     }
-  }, [session]);
+  }, [session, sessions]);
 
   const fetchMessages = async (sessionId) => {
     try {
@@ -151,14 +157,54 @@ function ChatWindow({ session, onSessionCreated }) {
     }
   };
 
+  const handleNewChat = async () => {
+    try {
+      setIsLoading(true);
+      const response = await axiosInstance.post('/chat-sessions/', {
+        session_name: 'New Chat'
+      });
+      const newSession = response.data;
+      onSessionCreated(newSession);
+    } catch (error) {
+      console.error('Error creating new chat session:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
-    <div className="chat-window">
-      <div className="messages-container">
+    <div className="ai-chat-window">
+      <Button
+        className="d-md-none toggle-chat-list-btn"
+        onClick={() => setIsChatListVisible(!isChatListVisible)}
+      >
+        <FaBars size={20} />
+      </Button>
+      <Button
+        className="d-md-none new-chat-btn"
+        onClick={handleNewChat}
+      >
+        <FaPen size={20} />
+      </Button>
+      <div className={`ai-chat-sidebar ${isChatListVisible ? 'd-block' : 'd-none'}`}>
+        <ChatList
+          sessions={sessions}
+          selectedSession={session}
+          onSelectSession={(session) => {
+            setIsChatListVisible(false);
+            onSelectSession(session);
+          }}
+          onDeleteSession={onDeleteSession}
+          onRenameSession={onRenameSession}
+          loading={loading}
+        />
+      </div>
+      <div className="ai-chat-messages-container">
         <MessageList messages={messages} />
         <div ref={messageEndRef} />
       </div>
-      <Form onSubmit={handleSend} className="message-input-form">
-        <Form.Group className="d-flex">
+      <Form onSubmit={handleSend} className="ai-chat-message-input-form">
+        <Form.Group className="d-flex align-items-center">
           <Form.Control
             type="text"
             value={newMessage}
@@ -166,8 +212,8 @@ function ChatWindow({ session, onSessionCreated }) {
             placeholder="Type your message..."
             disabled={isLoading}
           />
-          <Button type="submit" disabled={isLoading || !newMessage.trim()}>
-            {isLoading ? <Spinner size="sm" animation="border" /> : 'Send'}
+          <Button type="submit" disabled={isLoading || !newMessage.trim()} className="ms-2">
+            {isLoading ? <Spinner size="sm" animation="border" /> : <FaPaperPlane size={20} />}
           </Button>
         </Form.Group>
       </Form>

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { ListGroup, Button, Spinner, Form } from 'react-bootstrap';
 import { FaTrash, FaPen, FaCheck, FaTimes } from 'react-icons/fa';
 
-function ChatList({ sessions, selectedSession, onSelectSession, onDeleteSession, onRenameSession, loading }) {
+function ChatList({ sessions = [], selectedSession, onSelectSession, onDeleteSession, onRenameSession, loading }) {
   const [editingId, setEditingId] = useState(null);
   const [editName, setEditName] = useState('');
 
@@ -37,7 +37,7 @@ function ChatList({ sessions, selectedSession, onSelectSession, onDeleteSession,
         <ListGroup.Item
           key={session.id}
           active={selectedSession?.id === session.id}
-          className="d-flex justify-content-between align-items-center chat-session-item"
+          className="d-flex justify-content-between align-items-center ai-chat-session-item"
           onClick={() => onSelectSession(session)}
         >
           {editingId === session.id ? (

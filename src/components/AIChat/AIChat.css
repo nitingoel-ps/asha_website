@@ -3,41 +3,50 @@
   padding: 20px;
 }
 
-.chat-sidebar {
+.ai-chat-sidebar {
   border-right: 1px solid #dee2e6;
   height: 100%;
   overflow-y: auto;
 }
 
-.chat-main {
+.ai-chat-main {
   height: 100%;
   display: flex;
   flex-direction: column;
 }
 
-.chat-window {
+.ai-chat-window {
   display: flex;
   flex-direction: column;
   height: 100%;
 }
 
-.messages-container {
+.ai-chat-messages-container {
   flex-grow: 1;
   overflow-y: auto;
   padding: 20px;
 }
 
-.message-input-form {
+.ai-chat-message-input-form {
   padding: 20px;
   border-top: 1px solid #dee2e6;
 }
 
-.message {
+.ai-chat-message-input-form .form-control {
+  height: calc(1.5em + 1.25rem + 2px); /* Default height */
+  height: calc(2.25em + 1.875rem + 3px); /* 50% bigger */
+}
+
+.ai-chat-message-input-form .btn {
+  margin-left: 10px; /* Add gap between text box and icon */
+}
+
+.ai-chat-message {
   margin-bottom: 15px;
   max-width: 80%;
 }
 
-.user-message {
+.ai-chat-user-message {
   margin-left: auto;
   background-color: #007bff;
   color: white;
@@ -45,172 +54,92 @@
   border-radius: 15px 15px 0 15px;
 }
 
-.ai-message {
+.ai-chat-ai-message {
   margin-right: auto;
   background-color: #f8f9fa;
   padding: 10px 15px;
   border-radius: 15px 15px 15px 0;
 }
 
-.chat-session-item {
+.ai-chat-session-item {
   cursor: pointer;
 }
 
-.chat-session-item .delete-button {
+.ai-chat-session-item .delete-button {
   opacity: 0;
   transition: opacity 0.2s;
   color: #dc3545;
 }
 
-.chat-session-item:hover .delete-button {
+.ai-chat-session-item:hover .delete-button {
   opacity: 1;
 }
 
-.chat-session-item .edit-button {
+.ai-chat-session-item .edit-button {
   opacity: 0;
   transition: opacity 0.2s;
   color: #6c757d;
   padding: 0.25rem 0.5rem;
 }
 
-.chat-session-item:hover .edit-button {
+.ai-chat-session-item:hover .edit-button {
   opacity: 1;
 }
 
-.chat-session-item .form-control {
+.ai-chat-session-item .form-control {
   height: 28px;
   padding: 2px 8px;
 }
 
-.chat-session-item .btn-link {
+.ai-chat-session-item .btn-link {
   text-decoration: none;
 }
 
-.message-list {
+.ai-chat-message-list {
   display: flex;
   flex-direction: column;
   gap: 15px;
 }
 
-.message-content {
+.ai-chat-message-content {
   word-break: break-word;
 }
 
-.message-content > *:first-child {
-  margin-top: 0;
-}
-
-.message-content > *:last-child {
-  margin-bottom: 0;
-}
-
-/* Updated Markdown List Styles */
-.message ol,
-.message ul {
+/* Improved Markdown Styles */
+.ai-chat-message ul {
   margin: 0.5em 0;
   padding-left: 2em;
-  line-height: 1.4;
+  line-height: 1.5;
 }
 
-.message li {
-  margin: 0.2em 0;
-  padding-left: 0;
-  list-style-position: outside;
-}
-
-.message li p {
-  margin: 0;
-  padding: 0;
-  display: inline;
-  line-height: inherit;
-}
-
-.message p {
+.ai-chat-message ol {
   margin: 0.5em 0;
-  line-height: 1.4;
+  padding-left: 1.0em;
+  line-height: 1.5;
 }
 
-/* Remove extra spacing between nested lists */
-.message li > ol,
-.message li > ul {
-  margin: 0.2em 0 0.2em 1em;
-}
-
-/* Ensure consistent spacing for all list types 
-
-Removing these in favor of just keeping the message ol etc.. equivalents
-.markdown-ol,
-.markdown-ul {
-  margin: 0.5em 0;
-  padding-left: 2em;
-  line-height: 1.4;
-}
-
-.markdown-li {
+.ai-chat-message li {
   margin: 0.2em 0;
-  padding: 0;
+  padding-left: 0.5em;
   list-style-position: outside;
 }
 
-.markdown-li p {
-  display: inline;
-  margin: 0;
-  padding: 0;
+.ai-chat-message p {
+  margin: 0.75em 0;
+  line-height: 1.6;
 }
 
-.markdown-ol,
-.markdown-ul {
-  margin: 0;
-  padding-left: 1.5rem;
-  line-height: 1.5;
+/* Nested list styles */
+.ai-chat-message li > ol {
+  margin: 0.5em 0;
+  padding-left: 0.5em;
 }
 
-.markdown-li {
-  margin: 5px;
-  list-style-position: inside;
-  font-size: 1rem;
-  text-align: left;
-}
-*/
-
-/* Keep your .message-based list rules tight & consistent */
-.message ol {
-  display: block;
-  margin: 0;
-  list-style-position: outside;
-  list-style-type: decimal;
-  padding-left: 1.5rem;
-  line-height: 1.5;
+.ai-chat-message li > ul {
+  margin: 0.5em 0;
+  padding-left: 1.5em;
 }
 
-.message ul {
-  margin: 0;
-  padding-left: 1.5rem;
-  line-height: 1.5;
-}
-.message li {
-  display: inline-block;
-  margin-bottom: 0.5rem;
-  margin-top: 0.5rem;
-  list-style-type: decimal;
-  padding-left: 1rem; /* Add padding for the marker */
-}
-
-.message li p {
-  display: inline;
-  margin: 0;
-  padding: 0;
-}
-
-.message h3 {
-  margin-top: 1.0rem;
-  font-size: larger;
-}
-
-.message h4 {
-  margin-top: 1.0rem;
-  font-size: large;
-}
 
 /* Math Equation Styles */
 .katex-display {
@@ -221,13 +150,13 @@ Removing these in favor of just keeping the message ol etc.. equivalents
   overflow-y: hidden;
 }
 
-.message .katex-html {
+.ai-chat-message .katex-html {
   max-width: 100%;
   overflow-wrap: break-word;
   white-space: normal;
 }
 
-.message .katex {
+.ai-chat-message .katex {
   font-size: 1.1em;
   line-height: 1.2;
   max-width: 100%;
@@ -235,7 +164,7 @@ Removing these in favor of just keeping the message ol etc.. equivalents
 }
 
 /* Reference Styles */
-.reference {
+.ai-chat-reference {
   color: #0066cc;
   font-size: 0.9em;
   font-weight: 500;
@@ -245,7 +174,7 @@ Removing these in favor of just keeping the message ol etc.. equivalents
 }
 
 /* Pre-formatted text */
-.message pre {
+.ai-chat-message pre {
   font-family: inherit;
   background: none;
   padding: 0;
@@ -253,4 +182,100 @@ Removing these in favor of just keeping the message ol etc.. equivalents
   font-size: inherit;
   color: inherit;
   white-space: pre-wrap;
+}
+
+.toggle-chat-list-btn {
+  position: absolute;
+  top: 0px; /* Move slightly to the top */
+  left: 5px; /* Move slightly to the left */
+  z-index: 1000;
+  padding: 5px 10px;
+  font-size: 14px;
+  background-color: rgba(128, 128, 128, 0.7) !important; /* Grey background with transparency */
+  border: none !important;
+  color: white !important;
+  border-radius: 5px !important; /* Add border radius for better appearance */
+}
+
+.new-chat-btn {
+  position: absolute;
+  top: 0px; /* Align with the toggle button */
+  right: 5px; /* Position to the right */
+  z-index: 1000;
+  padding: 5px 10px;
+  font-size: 14px;
+  background-color: rgba(128, 128, 128, 0.7) !important; /* Grey background with transparency */
+  border: none !important;
+  color: white !important;
+  border-radius: 5px !important; /* Add border radius for better appearance */
+}
+
+@media (max-width: 768px) {
+  .ai-chat-container {
+    padding: 10px;
+  }
+
+  .ai-chat-sidebar {
+    display: none;
+  }
+
+  .ai-chat-sidebar.d-block {
+    display: block;
+    position: absolute;
+    top: 50px; /* Shift down to avoid overlapping with the button */
+    left: 0;
+    width: 100%;
+    height: calc(100% - 50px); /* Adjust height to account for the button */
+    background: white;
+    z-index: 999;
+    overflow-y: auto;
+  }
+
+  .ai-chat-main {
+    padding: 10px;
+  }
+
+  .ai-chat-window {
+    padding: 10px;
+    position: relative;
+  }
+
+  .ai-chat-messages-container {
+    padding: 30px 10px 10px 10px;
+    flex-grow: 1;
+    overflow-y: auto;
+  }
+
+  .ai-chat-message-input-form {
+    padding: 10px;
+    border-top: 1px solid #dee2e6;
+    position: sticky;
+    bottom: 0;
+    background: white;
+    z-index: 100;
+  }
+
+  .ai-chat-message-input-form .form-control {
+    height: calc(2.25em + 1.875rem + 3px); /* 50% bigger */
+  }
+
+  .ai-chat-message-input-form .btn {
+    margin-left: 10px; /* Add gap between text box and icon */
+  }
+
+  .ai-chat-message {
+    max-width: 100%;
+  }
+
+  .ai-chat-user-message {
+    border-radius: 15px;
+  }
+
+  .ai-chat-ai-message {
+    border-radius: 15px;
+  }
+
+  .ai-chat-message-list {
+    gap: 10px;
+  }
 }
