@@ -24,24 +24,66 @@ function ObservationGraph({ data }) {
   const sortedPoints = points
     .slice() // Create a shallow copy to avoid mutating the original array
     .sort((a, b) => new Date(a.date) - new Date(b.date));
+  
+  // Extract numeric values for range calculations
+  const numericValues = sortedPoints
+    .map(point => {
+      if (!point.value) return null;
+      if (typeof point.value === 'string') {
+        // Handle BP values (e.g., "120/80")
+        if (point.value.includes('/')) {
+          return Math.max(...point.value.split('/').map(Number));
+        }
+        // Try to parse other string values
+        return parseFloat(point.value);
+      }
+      return Number(point.value);
+    })
+    .filter(v => v !== null && !isNaN(v));
+  
+  // Calculate min and max from data for one-sided reference ranges
+  const dataMin = Math.min(...numericValues);
+  const dataMax = Math.max(...numericValues);
+  
+  // Process reference range to handle null values
+  let processedRange = null;
+  if (referenceRange) {
+    // Create a copy to avoid modifying the original
+    processedRange = { ...referenceRange };
+    
+    // If low is null, use a reasonable minimum based on data
+    if (processedRange.low === null || processedRange.low === undefined) {
+      // Use the minimum value from the data as a reasonable lower bound,
+      // or 0 if the minimum is positive (common for lab values)
+      processedRange.low = dataMin > 0 ? 0 : dataMin * 0.9;
+      console.log(`Using calculated minimum for reference range: ${processedRange.low}`);
+    }
+    
+    // If high is null, use a reasonable maximum based on data
+    if (processedRange.high === null || processedRange.high === undefined) {
+      // Use the maximum value from the data, plus a small buffer
+      processedRange.high = dataMax * 1.1; // 10% higher than the maximum observed value
+      console.log(`Using calculated maximum for reference range: ${processedRange.high}`);
+    }
+  }
 
   // Prepare the data for Chart.js
   const chartData = {
     labels: sortedPoints.map((point) => point.date), // Sorted dates
     datasets: [
       // Reference range (background area)
-      referenceRange ? {
+      processedRange ? {
         label: "Reference Range",
         data: sortedPoints.map((point) => ({
           x: point.date,
-          y: referenceRange.high
+          y: processedRange.high
         })),
         backgroundColor: "rgba(231, 248, 231, 0.5)", // Light green fill
         borderWidth: 0, // No border for the reference range
         pointRadius: 0, // No points for this dataset
         fill: {
           target: {
-            value: referenceRange.low
+            value: processedRange.low
           },
           above: "rgba(190, 243, 190, 0.5)",
           below: "transparent"
@@ -57,18 +99,34 @@ function ObservationGraph({ data }) {
         })),
         borderColor: "#007bff",
         borderWidth: 2,
-        pointBackgroundColor: sortedPoints.map((point) =>
-          observationName === "Blood Pressure" ? "blue" : (point.value < referenceRange?.low || point.value > referenceRange?.high ? "red" : "green")
-        ),
-        pointBorderColor: sortedPoints.map((point) =>
-          observationName === "Blood Pressure" ? "blue" : (point.value < referenceRange?.low || point.value > referenceRange?.high ? "red" : "green")
-        ),
-        pointRadius: sortedPoints.map((point) =>
-          observationName === "Blood Pressure" ? 4 : (point.value < referenceRange?.low || point.value > referenceRange?.high ? 6 : 4)
-        ),
-        pointStyle: sortedPoints.map((point) =>
-          observationName === "Blood Pressure" ? "circle" : (point.value < referenceRange?.low || point.value > referenceRange?.high ? "rect" : "circle")
-        ),
+        pointBackgroundColor: sortedPoints.map((point) => {
+          if (observationName === "Blood Pressure") return "blue";
+          if (!processedRange) return "green"; // Default to green if no range
+          
+          const value = parseFloat(point.value);
+          return (value < processedRange.low || value > processedRange.high) ? "red" : "green";
+        }),
+        pointBorderColor: sortedPoints.map((point) => {
+          if (observationName === "Blood Pressure") return "blue";
+          if (!processedRange) return "green"; // Default to green if no range
+          
+          const value = parseFloat(point.value);
+          return (value < processedRange.low || value > processedRange.high) ? "red" : "green";
+        }),
+        pointRadius: sortedPoints.map((point) => {
+          if (observationName === "Blood Pressure") return 4;
+          if (!processedRange) return 4; // Default size if no range
+          
+          const value = parseFloat(point.value);
+          return (value < processedRange.low || value > processedRange.high) ? 6 : 4;
+        }),
+        pointStyle: sortedPoints.map((point) => {
+          if (observationName === "Blood Pressure") return "circle";
+          if (!processedRange) return "circle"; // Default style if no range
+          
+          const value = parseFloat(point.value);
+          return (value < processedRange.low || value > processedRange.high) ? "rect" : "circle";
+        }),
         order: 1,
       },
       observationName === "Blood Pressure" ? {
@@ -88,6 +146,27 @@ function ObservationGraph({ data }) {
     ].filter(Boolean), // Filter out null datasets
   };
 
+  // Create a human-readable description of the reference range
+  const getRangeDescription = () => {
+    if (!referenceRange) return '';
+    
+    // Case where both bounds are provided
+    if (referenceRange.low !== null && referenceRange.low !== undefined && 
+        referenceRange.high !== null && referenceRange.high !== undefined) {
+      return `Normal range: ${referenceRange.low} - ${referenceRange.high}`;
+    }
+    // Case where only low bound is provided
+    else if (referenceRange.low !== null && referenceRange.low !== undefined) {
+      return `Normal range: > ${referenceRange.low}`;
+    }
+    // Case where only high bound is provided
+    else if (referenceRange.high !== null && referenceRange.high !== undefined) {
+      return `Normal range: < ${referenceRange.high}`;
+    }
+    
+    return '';
+  };
+
   // Chart options
   const options = {
     responsive: true,
@@ -100,13 +179,24 @@ function ObservationGraph({ data }) {
         callbacks: {
           label: function (context) {
             const pointValue = context.raw.y;
-            const isOutOfRange =
-              pointValue < referenceRange?.low || pointValue > referenceRange?.high;
-            const rangeLabel = isOutOfRange
-              ? pointValue < referenceRange?.low
-                ? "Below Normal Range"
-                : "Above Normal Range"
-              : "Within Normal Range";
+            let rangeLabel = "No Range Data";
+            
+            if (processedRange) {
+              // Determine if point is out of range
+              const isOutOfRange = pointValue < processedRange.low || pointValue > processedRange.high;
+              
+              // Create appropriate label based on which boundary is crossed
+              if (isOutOfRange) {
+                if (pointValue < processedRange.low) {
+                  rangeLabel = "Below Normal Range";
+                } else {
+                  rangeLabel = "Above Normal Range";
+                }
+              } else {
+                rangeLabel = "Within Normal Range";
+              }
+            }
+            
             return `${context.dataset.label}: ${pointValue} (${rangeLabel})`;
           },
         },
@@ -124,7 +214,7 @@ function ObservationGraph({ data }) {
       subtitle: {
         display: true,
         text: [
-          referenceRange ? `Normal range: ${referenceRange.low} - ${referenceRange.high}` : '',
+          getRangeDescription(),
           explanation
         ].filter(Boolean),
         align: "start",
@@ -176,7 +266,7 @@ function ObservationGraph({ data }) {
           console.log('Y-axis Min Calculation:', {
             values,
             dataMin: Math.min(...values),
-            refLow: referenceRange?.low,
+            refLow: processedRange?.low,
           });
 
           const dataMin = Math.min(...values);
@@ -184,8 +274,8 @@ function ObservationGraph({ data }) {
           const dataRange = dataMax - dataMin;
           
           // If we have a reference range, use it to inform the padding
-          if (referenceRange?.low !== null && referenceRange?.low !== undefined) {
-            const min = Math.min(dataMin, referenceRange.low);
+          if (processedRange?.low !== null && processedRange?.low !== undefined) {
+            const min = Math.min(dataMin, processedRange.low);
             // Use 5% of the total range or 5% of the minimum value, whichever is smaller
             const padding = Math.min(
               dataRange * 0.05,
@@ -195,7 +285,7 @@ function ObservationGraph({ data }) {
             
             console.log('Y-axis Min (with ref range):', {
               dataMin,
-              refLow: referenceRange.low,
+              refLow: processedRange.low,
               min,
               padding,
               finalMin
@@ -230,15 +320,15 @@ function ObservationGraph({ data }) {
           console.log('Y-axis Max Calculation:', {
             values,
             dataMax: Math.max(...values),
-            refHigh: referenceRange?.high,
+            refHigh: processedRange?.high,
           });
 
           const dataMin = Math.min(...values);
           const dataMax = Math.max(...values);
           const dataRange = dataMax - dataMin;
           
-          if (referenceRange?.high !== null && referenceRange?.high !== undefined) {
-            const max = Math.max(dataMax, referenceRange.high);
+          if (processedRange?.high !== null && processedRange?.high !== undefined) {
+            const max = Math.max(dataMax, processedRange.high);
             // Use 5% of the total range or 5% of the maximum value, whichever is smaller
             const padding = Math.min(
               dataRange * 0.05,
@@ -248,7 +338,7 @@ function ObservationGraph({ data }) {
             
             console.log('Y-axis Max (with ref range):', {
               dataMax,
-              refHigh: referenceRange.high,
+              refHigh: processedRange.high,
               max,
               padding,
               finalMax

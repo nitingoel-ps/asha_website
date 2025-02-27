@@ -46,6 +46,64 @@ function ObservationDetail({ standardPanels }) {
     return new Date(dateString).toLocaleDateString(undefined, options);
   };
 
+  // Find reference range from observation history if not available on the observation itself
+  const findReferenceRange = () => {
+    // Check if observation has its own reference range
+    if (observation.ref_low !== null || observation.ref_high !== null) {
+      return {
+        low: observation.ref_low,
+        high: observation.ref_high
+      };
+    }
+    
+    // Sort values by date (newest first) to search through them
+    const sortedValues = [...observation.values].sort((a, b) => new Date(b.date) - new Date(a.date));
+    
+    // Try to find a reference range from any of the observation values
+    for (const value of sortedValues) {
+      if (value.observation_ref_range) {
+        // Parse reference range string (typically in format "X-Y" or "< X" or "> Y")
+        const rangeMatch = value.observation_ref_range.match(/(\d+\.?\d*)\s*-\s*(\d+\.?\d*)/);
+        if (rangeMatch) {
+          return {
+            low: parseFloat(rangeMatch[1]),
+            high: parseFloat(rangeMatch[2])
+          };
+        }
+        
+        // Check for "less than" format
+        const lessThanMatch = value.observation_ref_range.match(/\<\s*(\d+\.?\d*)/);
+        if (lessThanMatch) {
+          return {
+            low: 0, // Assume 0 as the lower bound
+            high: parseFloat(lessThanMatch[1])
+          };
+        }
+        
+        // Check for "greater than" format
+        const greaterThanMatch = value.observation_ref_range.match(/\>\s*(\d+\.?\d*)/);
+        if (greaterThanMatch) {
+          return {
+            low: parseFloat(greaterThanMatch[1]),
+            high: null // No upper bound
+          };
+        }
+      }
+      
+      // If there's a numeric ref_low and ref_high directly in the value
+      if ((value.ref_low !== null && value.ref_low !== undefined) || 
+          (value.ref_high !== null && value.ref_high !== undefined)) {
+        return {
+          low: value.ref_low,
+          high: value.ref_high
+        };
+      }
+    }
+    
+    // No reference range found
+    return null;
+  };
+
   // Prepare data for the graph
   const graphData = {
     observationName: observation.observation_name || observation.name, // Added observation_name
@@ -54,12 +112,12 @@ function ObservationDetail({ standardPanels }) {
       value: v.observation_value
     })),
     uom: observation.uom,
-    referenceRange: observation.ref_low !== null || observation.ref_high !== null ? {
-      low: observation.ref_low,
-      high: observation.ref_high
-    } : null,
+    referenceRange: findReferenceRange(),
     explanation: observation.explanation
   };
+
+  // Log the reference range found for debugging
+  console.log("Reference range used for graph:", graphData.referenceRange);
 
 const HistoryItem = ({ value }) => (
     <Card className="history-card mb-3">
