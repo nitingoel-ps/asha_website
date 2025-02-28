@@ -357,26 +357,6 @@
   text-decoration: underline;
 }
 
-/* Add styles for scroll to bottom button */
-.scroll-to-bottom-btn {
-  position: absolute;
-  bottom: 20px;
-  right: 20px;
-  z-index: 100;
-  opacity: 0.8;
-  border-radius: 50%;
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-}
-
-.scroll-to-bottom-btn:hover {
-  opacity: 1;
-}
-
 /* Mobile-specific styles */
 @media (max-width: 768px) {
   .model-selector-inline {
@@ -503,13 +483,5 @@
 
   .persona-select {
     font-size: 14px; /* Adjust dropdown font size for mobile */
-  }
-
-  .scroll-to-bottom-btn {
-    bottom: 70px; /* Adjust position on mobile to not overlap with input area */
-    right: 10px;
-    width: 35px;
-    height: 35px;
-    font-size: 0.8em;
   }
 }

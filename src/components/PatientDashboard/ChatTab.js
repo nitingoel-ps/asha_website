@@ -701,19 +701,7 @@ function ChatTab({
               <div 
                 className={`chat-messages ${hasUserStartedChat ? 'chat-messages-full' : ''}`} 
                 ref={chatContainerRef}
-                // Add an onScroll handler to detect when user manually scrolls
-                onScroll={() => {
-                  if (chatContainerRef.current) {
-                    const container = chatContainerRef.current;
-                    // Check if scroll is at bottom (or very close)
-                    const isAtBottom = Math.abs(
-                      container.scrollHeight - container.clientHeight - container.scrollTop
-                    ) < 10;
-                    
-                    // Store whether we're at bottom to decide auto-scroll behavior
-                    hasScrolledRef.current = !isAtBottom;
-                  }
-                }}
+                // Remove the onScroll handler that was tracking position for the button
               >
                 {chatMessages.map((message, index) => (
                   <div
@@ -732,18 +720,6 @@ function ChatTab({
                   </div>
                 )}
               </div>
-
-              {/* Add a "Scroll to bottom" button that appears when not at bottom */}
-              {hasScrolledRef.current && (
-                <Button
-                  variant="outline-secondary"
-                  size="sm"
-                  className="scroll-to-bottom-btn"
-                  onClick={scrollToBottom}
-                >
-                  ↓ New messages
-                </Button>
-              )}
 
               {/* Chat Input and Model Selector */}
               <div className="chat-footer">
