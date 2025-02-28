@@ -240,7 +240,14 @@ function ChatTab({
   const [currentMessage, setCurrentMessage] = useState("");
   const [models, setModels] = useState([]);
   const [selectedModel, setSelectedModel] = useState(null);
-  const [hasUserStartedChat, setHasUserStartedChat] = useState(false);
+  
+  // Change this to be derived from chatMessages to prevent stale state issues
+  // When navigating between tabs, this will now correctly reflect the conversation state
+  const hasUserStartedChat = useMemo(() => {
+    // Check if there are any user messages in the chat history
+    return chatMessages.some(message => message.type === "user");
+  }, [chatMessages]);
+  
   const chatContainerRef = useRef(null);
   const lastUserMessageRef = useRef(null);
   const hasScrolledRef = useRef(false); // To ensure scroll happens only once per message
@@ -425,11 +432,6 @@ function ChatTab({
   // Handle sending a message
   const handleSendMessage = async (message) => {
     if (!message.trim() || !selectedModel || !selectedPersona) return;
-
-    // Set flag when user sends their first message
-    if (!hasUserStartedChat) {
-      setHasUserStartedChat(true);
-    }
 
     // Add user's message to the chat
     setChatMessages((prevMessages) => [
@@ -617,7 +619,6 @@ function ChatTab({
   const handlePersonaChange = (personaId) => {
     const newPersona = PERSONAS.find(p => p.id === personaId);
     setSelectedPersona(newPersona);
-    setHasUserStartedChat(false);
     setChatMessages([]); // Clear chat history
     
     // Set the preferred model if it exists
@@ -666,9 +667,6 @@ function ChatTab({
     </div>
   );
 
-  // Only show suggested questions when no chat messages exist
-  const showSuggestedQuestions = chatMessages.length === 0;
-
   return (
     <>
       <Card className="chat-interface mb-4">
@@ -679,7 +677,7 @@ function ChatTab({
           {/* Only show chat area if persona is selected */}
           {selectedPersona && (
             <>
-              {/* Suggested Questions - Only show before user starts chatting */}
+              {/* Only show suggested questions if hasUserStartedChat is false */}
               {!hasUserStartedChat && (
                 <div className="suggested-questions mb-3">
                   <h6>Suggested Questions:</h6>
