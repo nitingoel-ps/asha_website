@@ -195,7 +195,7 @@ function VisitDetail({ visit }) {
                 >
                   <FileText className="item-icon" />
                   <span className="item-text">
-                    {doc.type} {doc.category ? `(${doc.category})` : ''}
+                    {doc.type} {doc.category && doc.category.toLowerCase() !== "unknown" ? `(${doc.category})` : ''}
                   </span>
                   <ExternalLink className="item-arrow" />
                 </button>
