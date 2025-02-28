@@ -158,12 +158,12 @@
     position: absolute;
     top: 0;
     left: 0;
-    overflow-y: auto !important; /* Changed from hidden */
+    overflow: hidden; /* Changed from auto */
     background: white;
     display: none;
     padding: 0;
   }
-
+  
   .dashboard-container.tab-active .content-area {
     display: block;
   }

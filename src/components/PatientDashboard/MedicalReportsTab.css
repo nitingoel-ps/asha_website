@@ -204,6 +204,7 @@
   overflow-y: auto;
   height: calc(100vh - 80px); /* Adjusted to account for smaller header */
   padding: 0 16px;
+  padding-bottom: 120px;
 }
 
 .year-group {

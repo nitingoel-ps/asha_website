@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { Card, Row, Col, Table } from "react-bootstrap";
 import ObservationGraph from "./ObservationGraph";
 import "./VitalSignsTab.css";
@@ -13,6 +13,7 @@ import {
 
 function VitalSignsTab({ vitals = [] }) {  // Add default empty array
   const [selectedVital, setSelectedVital] = useState(null);
+  const graphRef = useRef(null);
 
   const keyVitals = vitals ? {
     "Blood Pressure": {
@@ -43,6 +44,16 @@ function VitalSignsTab({ vitals = [] }) {  // Add default empty array
 
   const handleCardClick = (vitalSign) => {
     setSelectedVital(keyVitals[vitalSign].data);
+    
+    // Wait for the state update and rendering to complete
+    setTimeout(() => {
+      if (graphRef.current) {
+        graphRef.current.scrollIntoView({ 
+          behavior: 'smooth',
+          block: 'start'
+        });
+      }
+    }, 100);
   };
 
   return (
@@ -86,7 +97,7 @@ function VitalSignsTab({ vitals = [] }) {  // Add default empty array
       </div>
       {selectedVital && selectedVital.length > 0 && (
         <>
-          <div className="graph-container">
+          <div className="graph-container" ref={graphRef}>
             <ObservationGraph
               data={{
                 observationName: selectedVital[0]?.vital_sign || '',

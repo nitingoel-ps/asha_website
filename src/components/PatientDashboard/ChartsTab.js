@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Card } from 'react-bootstrap';
 import { FaFlask } from 'react-icons/fa';
 import ObservationGraph from './ObservationGraph';
@@ -6,6 +6,7 @@ import './ChartsTab.css';
 
 function ChartsTab({ chartData }) {
   const [selectedChart, setSelectedChart] = useState(null);
+  const graphRef = useRef(null);
 
   // Add useEffect for debugging
   useEffect(() => {
@@ -64,6 +65,16 @@ function ChartsTab({ chartData }) {
     };
     console.log('Transformed chart data:', transformedChart); // Debug log
     setSelectedChart(transformedChart);
+    
+    // Add delay to ensure the graph renders before scrolling
+    setTimeout(() => {
+      if (graphRef.current) {
+        graphRef.current.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start'
+        });
+      }
+    }, 100);
   };
 
   const formatDate = (dateString) => {
@@ -139,7 +150,7 @@ function ChartsTab({ chartData }) {
       </div>
 
       {selectedChart && (
-        <div className="graph-container">
+        <div className="graph-container" ref={graphRef}>
           <ObservationGraph data={selectedChart} />
         </div>
       )}

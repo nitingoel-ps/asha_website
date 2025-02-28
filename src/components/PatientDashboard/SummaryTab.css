@@ -1,5 +1,16 @@
 .summary-tab {
   padding: 20px;
+  height: calc(100vh - 150px); /* Adjust height to fit viewport minus header/footer */
+  overflow-y: auto; /* Enable vertical scrolling */
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS devices */
+}
+
+@media (max-width: 768px) {
+  .summary-tab {
+    height: calc(100vh - 120px); /* Slightly smaller offset for mobile */
+    padding: 15px;
+    padding-bottom: 100px; /* Increase bottom padding on mobile */
+  }
 }
 
 .vital-summary-card {

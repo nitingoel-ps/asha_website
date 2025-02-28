@@ -244,6 +244,7 @@ function ChatTab({
   const chatContainerRef = useRef(null);
   const lastUserMessageRef = useRef(null);
   const hasScrolledRef = useRef(false); // To ensure scroll happens only once per message
+  const scrollToBottomTimeout = useRef(null); // Add this to manage scroll timing
 
   // Custom renderers for ReactMarkdown
   // This object defines how different markdown elements should be rendered
@@ -368,6 +369,59 @@ function ChatTab({
     return () => clearInterval(scrollInterval); // Cleanup interval on unmount or when effect re-runs
   }, [isThinking]);
 
+  // Add this new function to scroll to bottom
+  const scrollToBottom = () => {
+    if (chatContainerRef.current) {
+      const chatContainer = chatContainerRef.current;
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+  };
+
+  // Use this effect to scroll to bottom whenever messages change or thinking state changes
+  useEffect(() => {
+    // Clear any existing timeout to avoid race conditions
+    if (scrollToBottomTimeout.current) {
+      clearTimeout(scrollToBottomTimeout.current);
+    }
+    
+    // Set a small timeout to ensure DOM updates are complete
+    scrollToBottomTimeout.current = setTimeout(() => {
+      scrollToBottom();
+    }, 100);
+
+    return () => {
+      if (scrollToBottomTimeout.current) {
+        clearTimeout(scrollToBottomTimeout.current);
+      }
+    };
+  }, [chatMessages, isThinking]);
+
+  // Modify the existing scroll handling effect to preserve auto-scrolling
+  useEffect(() => {
+    let scrollInterval;
+
+    if (chatContainerRef.current && isThinking) {
+      const chatContainer = chatContainerRef.current;
+      
+      scrollInterval = setInterval(() => {
+        if (!chatContainer || !isThinking) {
+          clearInterval(scrollInterval);
+          return;
+        }
+
+        // Calculate if we're near the bottom already
+        const isNearBottom = chatContainer.scrollHeight - chatContainer.clientHeight - chatContainer.scrollTop < 50;
+        
+        // Only auto-scroll if we're already near the bottom
+        if (isNearBottom) {
+          scrollToBottom();
+        }
+      }, 300);
+    }
+
+    return () => clearInterval(scrollInterval);
+  }, [isThinking]);
+
   // Handle sending a message
   const handleSendMessage = async (message) => {
     if (!message.trim() || !selectedModel || !selectedPersona) return;
@@ -450,6 +504,9 @@ function ChatTab({
             ];
           }
         });
+        
+        // Force a scroll to bottom after updating messages
+        setTimeout(scrollToBottom, 50);
       };
 
       // Process the response stream
@@ -516,6 +573,8 @@ function ChatTab({
       ]);
     } finally {
       setIsThinking(false); // Clear thinking status
+      // Force final scroll to bottom when message is complete
+      setTimeout(scrollToBottom, 100);
     }
   };
 
@@ -639,7 +698,23 @@ function ChatTab({
               )}
 
               {/* Chat Messages - Full height when suggestions are hidden */}
-              <div className={`chat-messages ${hasUserStartedChat ? 'chat-messages-full' : ''}`} ref={chatContainerRef}>
+              <div 
+                className={`chat-messages ${hasUserStartedChat ? 'chat-messages-full' : ''}`} 
+                ref={chatContainerRef}
+                // Add an onScroll handler to detect when user manually scrolls
+                onScroll={() => {
+                  if (chatContainerRef.current) {
+                    const container = chatContainerRef.current;
+                    // Check if scroll is at bottom (or very close)
+                    const isAtBottom = Math.abs(
+                      container.scrollHeight - container.clientHeight - container.scrollTop
+                    ) < 10;
+                    
+                    // Store whether we're at bottom to decide auto-scroll behavior
+                    hasScrolledRef.current = !isAtBottom;
+                  }
+                }}
+              >
                 {chatMessages.map((message, index) => (
                   <div
                     key={index}
@@ -657,6 +732,18 @@ function ChatTab({
                   </div>
                 )}
               </div>
+
+              {/* Add a "Scroll to bottom" button that appears when not at bottom */}
+              {hasScrolledRef.current && (
+                <Button
+                  variant="outline-secondary"
+                  size="sm"
+                  className="scroll-to-bottom-btn"
+                  onClick={scrollToBottom}
+                >
+                  ↓ New messages
+                </Button>
+              )}
 
               {/* Chat Input and Model Selector */}
               <div className="chat-footer">

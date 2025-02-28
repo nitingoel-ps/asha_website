@@ -5,6 +5,7 @@
   -webkit-overflow-scrolling: touch;
   display: flex;
   flex-direction: column;
+  padding-bottom: 130px;
 }
 
 .vital-signs-tab .row {

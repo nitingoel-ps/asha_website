@@ -3,9 +3,11 @@
   max-width: 900px;
   width: 80%; /* Set width relative to parent */
   margin: 0 auto;
-  height: calc(100vh - 100px); /* Adjust for any headers/nav */
-  overflow-y: auto;
+  height: auto; /* Change from fixed height to auto */
+  min-height: calc(100vh - 120px); /* Use min-height instead of fixed height */
+  overflow-y: visible; /* Change from auto to visible */
   -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+  padding-bottom: 80px; /* Add extra padding at the bottom */
 }
 
 /* Search styles */
@@ -165,7 +167,9 @@
   .lp-panels-container {
     padding: 10px;
     width: 95%; /* Use most of available width on mobile */
-    height: calc(100vh - 80px);
+    min-height: calc(100vh - 100px);
+    padding-bottom: 120px; /* Increase bottom padding on mobile */
+    overflow-y: auto;
   }
   
   .lp-search-container {
@@ -217,5 +221,11 @@
   .lp-panels-container {
     width: 70%;
     max-width: 1000px;
+    padding-bottom: 100px; /* Consistent bottom padding */
   }
+}
+
+/* Add bottom margin to the last accordion item */
+.lp-panel-card:last-child {
+  margin-bottom: 60px;
 }

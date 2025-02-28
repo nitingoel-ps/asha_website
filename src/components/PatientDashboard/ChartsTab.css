@@ -3,6 +3,7 @@
   height: 100%;
   overflow-y: auto;
   padding: 1rem;
+  -webkit-overflow-scrolling: touch; /* Improve smooth scrolling on iOS */
 }
 
 /* Grid layout for KPI cards - adjust minmax() for card width */
@@ -160,25 +161,45 @@
 /* Mobile-specific styles */
 @media (max-width: 767px) {
   .charts-tab {
-    padding: 0;
-    height: auto;
-    min-height: 100%;
-    overflow-y: visible;
+    padding: 0.5rem;
+    height: 100%;
+    overflow-y: auto !important; /* Force scrolling */
     -webkit-overflow-scrolling: touch;
     position: relative;
+    display: flex;
+    flex-direction: column;
+    padding-bottom: 120px; /* Add padding at the bottom */
+  }
+
+  /* Keep the chart grid and graph container within the scrollable area */
+  .charts-grid {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+    width: 100%;
   }
 
   .graph-container {
     width: 100%;
-    margin: 0 !important;
-    padding: 0 !important;
+    margin: 1rem 0;
+    padding: 10px;
     overflow: visible;
     height: auto;
-    min-height: 70vh;
+    min-height: 350px; /* Set a reasonable fixed height */
     position: relative;
-    background: none;
-    box-shadow: none;
-    border-radius: 0;
+    background: #fff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    padding-bottom: 120px;
+  }
+
+  /* Remove conflicting scroll behavior */
+  body, html {
+    overflow: auto;
+  }
+
+  /* Ensure parent containers don't restrict scrolling */
+  .charts-tab > * {
+    max-width: 100%;
   }
 
   /* Bottom spacing for scrolling */
