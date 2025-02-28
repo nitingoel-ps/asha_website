@@ -114,7 +114,7 @@ function EncountersTab({ encounters = [] }) {
                             onClick={() => handleDocumentClick(doc.content[0]?.attachment)}
                             className="document-button"
                           >
-                            {doc.type} ({doc.category})
+                            {doc.type} {doc.category && doc.category.toLowerCase() !== "unknown" ? `(${doc.category})` : ''}
                           </Button>
                         ))}
                       </div>
