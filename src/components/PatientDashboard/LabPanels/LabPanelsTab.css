@@ -5,9 +5,10 @@
   margin: 0 auto;
   height: auto; /* Change from fixed height to auto */
   min-height: calc(100vh - 120px); /* Use min-height instead of fixed height */
-  overflow-y: visible; /* Change from auto to visible */
+  overflow-y: auto; /* Changed from visible to auto to enable scrolling */
   -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
   padding-bottom: 80px; /* Add extra padding at the bottom */
+  position: relative; /* Added to establish a positioning context */
 }
 
 /* Search styles */
@@ -141,6 +142,8 @@
 
 .accordion-body {
   padding: 0;
+  max-height: none;
+  overflow: visible;
 }
 
 /* Override default accordion styles */
@@ -150,6 +153,7 @@
 
 .accordion {
   --bs-accordion-border-width: 0;
+  overflow: visible;
 }
 
 /* Override accordion button styles to remove the arrow */
@@ -162,6 +166,11 @@
   background-color: #f8f9fa !important;
 }
 
+/* Ensure expanded content is visible */
+.accordion-collapse {
+  overflow: visible !important;
+}
+
 /* Mobile responsiveness */
 @media (max-width: 767.98px) {
   .lp-panels-container {
@@ -169,7 +178,7 @@
     width: 95%; /* Use most of available width on mobile */
     min-height: calc(100vh - 100px);
     padding-bottom: 120px; /* Increase bottom padding on mobile */
-    overflow-y: auto;
+    overflow-y: auto; /* Keep auto here for mobile scrolling */
   }
   
   .lp-search-container {
