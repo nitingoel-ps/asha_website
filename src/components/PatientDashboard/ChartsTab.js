@@ -151,7 +151,10 @@ function ChartsTab({ chartData }) {
 
       {selectedChart && (
         <div className="graph-container" ref={graphRef}>
-          <ObservationGraph data={selectedChart} />
+          <ObservationGraph 
+            data={selectedChart} 
+            isMobile={window.innerWidth <= 767} 
+          />
         </div>
       )}
     </div>

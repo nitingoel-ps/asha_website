@@ -182,14 +182,14 @@
     width: 100%;
     margin: 1rem 0;
     padding: 10px;
-    overflow: visible;
+    overflow: hidden; /* Changed from visible to prevent overflow */
     height: auto;
-    min-height: 350px; /* Set a reasonable fixed height */
+    min-height: 300px; /* Reduced from 350px */
+    max-height: 400px; /* Add max-height constraint */
     position: relative;
     background: #fff;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     border-radius: 8px;
-    padding-bottom: 120px;
   }
 
   /* Remove conflicting scroll behavior */
@@ -202,23 +202,26 @@
     max-width: 100%;
   }
 
-  /* Bottom spacing for scrolling */
+  /* Remove these conflicting rules as they create overflows */
   .graph-container::after {
-    content: '';
-    display: block;
-    height: 80px;
+    display: none; /* Remove extra space elements */
   }
 
-  /* Remove any conflicting height constraints */
+  /* Correct the conflicting sizing for graph children */
   .graph-container > div {
-    height: auto;
-    min-height: 70vh;
+    height: 100% !important;
+    min-height: auto !important; 
+    max-height: 350px !important;
     width: 100% !important;
+    overflow: hidden;
   }
 
+  /* Fix canvas styling - these are currently contradicting each other */
   canvas.chartjs-render-monitor {
-    height: auto !important;
     width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    max-height: 300px !important;
   }
 
   /* Add padding at the bottom to ensure we can scroll past the graph */
