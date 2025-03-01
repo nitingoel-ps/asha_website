@@ -170,7 +170,7 @@
   .canvas-container, 
   .html-container,
   .text-container {
-    touch-action: pinch-zoom;
+    touch-action: pan-x pan-y pinch-zoom; /* Enable all touch gestures */
   }
 
   .doc-nav-button {
@@ -186,7 +186,20 @@
 
   .document-viewer-content {
     /* Add pinch-to-zoom functionality for mobile devices */
-    touch-action: manipulation;
+    touch-action: pan-x pan-y pinch-zoom; /* Enable all touch gestures */
+    padding: 0; /* Reset padding to ensure full use of space */
+    align-items: flex-start; /* Align content to the top */
+    -webkit-overflow-scrolling: touch; /* Improve iOS scrolling */
+  }
+
+  /* Fix for mobile PDF view */
+  .canvas-container {
+    margin: 10px;
+    padding: 10px;
+    width: calc(100% - 20px);
+    max-width: calc(100% - 20px);
+    box-sizing: border-box;
+    transform-origin: 0 0; /* Ensure zoom works correctly */
   }
 
   /* Reset the desktop styles in mobile view */
@@ -280,6 +293,7 @@
   background-color: #e0e0e0;
   position: relative;
   -webkit-overflow-scrolling: touch; /* For smooth scrolling on iOS */
+  touch-action: pan-x pan-y pinch-zoom; /* Allow all touch actions */
 }
 
 /* PDF rendering */
@@ -287,6 +301,17 @@
   margin: 20px auto;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
   background-color: #fff;
+  padding: 20px; /* Change from padding: 0 20px to add vertical padding too */
+  max-width: calc(100% - 40px); /* Ensure it doesn't overflow */
+  display: flex;
+  justify-content: center;
+  touch-action: pan-x pan-y pinch-zoom; /* Enable all touch gestures */
+}
+
+.canvas-container canvas {
+  max-width: 100%; /* Ensure canvas doesn't overflow its container */
+  height: auto !important; /* Maintain aspect ratio */
+  display: block; /* Prevent inline spacing issues */
 }
 
 /* HTML rendering */
@@ -297,6 +322,7 @@
   background: white;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
   transform-origin: top center;
+  touch-action: pan-x pan-y pinch-zoom; /* Enable all touch gestures */
 }
 
 .html-iframe {
@@ -317,6 +343,7 @@
   background: white;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
   line-height: 1.6;
+  touch-action: pan-x pan-y pinch-zoom; /* Enable all touch gestures */
 }
 
 .text-content {
@@ -402,15 +429,6 @@
 
 /* Document navigation styles */
 .doc-nav-button {
-  color: #0066cc;
-  background-color: rgba(0, 102, 204, 0.1);
-}
-
-.doc-nav-button:hover:not(:disabled) {
-  background-color: rgba(0, 102, 204, 0.2);
-}
-
-.doc-nav-info {
   font-size: 14px;
   min-width: 60px;
   text-align: center;
@@ -504,7 +522,7 @@
   .canvas-container, 
   .html-container,
   .text-container {
-    touch-action: pinch-zoom;
+    touch-action: pan-x pan-y pinch-zoom; /* Enable all touch gestures */
   }
 
   .doc-nav-button {
@@ -520,7 +538,20 @@
 
   .document-viewer-content {
     /* Add pinch-to-zoom functionality for mobile devices */
-    touch-action: manipulation;
+    touch-action: pan-x pan-y pinch-zoom; /* Enable all touch gestures */
+    padding: 0; /* Reset padding to ensure full use of space */
+    align-items: flex-start; /* Align content to the top */
+    -webkit-overflow-scrolling: touch; /* Improve iOS scrolling */
+  }
+
+  /* Fix for mobile PDF view */
+  .canvas-container {
+    margin: 10px;
+    padding: 10px;
+    width: calc(100% - 20px);
+    max-width: calc(100% - 20px);
+    box-sizing: border-box;
+    transform-origin: 0 0; /* Ensure zoom works correctly */
   }
 
   /* Reset the desktop styles in mobile view */

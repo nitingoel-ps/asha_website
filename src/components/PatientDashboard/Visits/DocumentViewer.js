@@ -29,6 +29,7 @@ const DocumentViewer = ({
   const iframeRef = useRef(null);
   const textContainerRef = useRef(null);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const contentContainerRef = useRef(null); // Add this ref for the content container
 
   // Add a console log to check if onClose is being triggered
   const handleClose = (e) => {
@@ -252,6 +253,64 @@ const DocumentViewer = ({
     
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
+
+  // Add a useEffect to handle touch events for mobile zooming and panning
+  useEffect(() => {
+    if (!isMobile) return;
+    
+    const contentContainer = contentContainerRef.current;
+    if (!contentContainer) return;
+    
+    // Variables to track touch state
+    let isPanning = false;
+    let startX, startY;
+    let lastZoomLevel = scale;
+    
+    const handleTouchStart = (e) => {
+      // Don't interfere with pinch-zoom
+      if (e.touches.length !== 1) return;
+      
+      // Start panning if we're zoomed in
+      if (scale > 1.1) {
+        isPanning = true;
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+        e.preventDefault(); // Prevent default to enable panning
+      }
+    };
+    
+    const handleTouchMove = (e) => {
+      // Only handle single touch panning (not pinch-zoom)
+      if (!isPanning || e.touches.length !== 1) return;
+      
+      const deltaX = e.touches[0].clientX - startX;
+      const deltaY = e.touches[0].clientY - startY;
+      
+      // Apply the pan movement
+      contentContainer.scrollLeft -= deltaX;
+      contentContainer.scrollTop -= deltaY;
+      
+      // Update start position
+      startX = e.touches[0].clientX;
+      startY = e.touches[0].clientY;
+    };
+    
+    const handleTouchEnd = () => {
+      isPanning = false;
+    };
+    
+    // Add event listeners
+    contentContainer.addEventListener('touchstart', handleTouchStart, { passive: false });
+    contentContainer.addEventListener('touchmove', handleTouchMove, { passive: false });
+    contentContainer.addEventListener('touchend', handleTouchEnd);
+    
+    return () => {
+      // Clean up event listeners
+      contentContainer.removeEventListener('touchstart', handleTouchStart);
+      contentContainer.removeEventListener('touchmove', handleTouchMove);
+      contentContainer.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, [isMobile, scale]);
 
   const handleKeyDown = (e) => {
     switch(e.key) {
@@ -479,7 +538,10 @@ const DocumentViewer = ({
           )}
         </div>
 
-        <div className="document-viewer-content">
+        <div 
+          className="document-viewer-content" 
+          ref={contentContainerRef} // Add the ref here
+        >
           {renderContent()}
         </div>
 
