@@ -188,6 +188,12 @@ function PatientDashboard() {
   const NavigationMenu = () => (
     <div className="nav-menu">
       <div 
+        className={`nav-item ${activeTab === "health-priorities" ? "active" : ""}`} 
+        onClick={() => handleTabChange("health-priorities")}
+      >
+        <Target size={16} /> Health Priorities
+      </div>
+      <div 
         className={`nav-item ${activeTab === "dashboard-summary" ? "active" : ""}`} 
         onClick={() => handleTabChange("dashboard-summary")}
       >
@@ -250,12 +256,6 @@ function PatientDashboard() {
         onClick={() => handleTabChange("lab-panels")}
       >
         <FlaskConical size={16} /> Lab Panels
-      </div>
-      <div 
-        className={`nav-item ${activeTab === "health-priorities" ? "active" : ""}`} 
-        onClick={() => handleTabChange("health-priorities")}
-      >
-        <Target size={16} /> Health Priorities
       </div>
     </div>
   );

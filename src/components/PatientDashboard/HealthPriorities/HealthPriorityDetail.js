@@ -298,8 +298,8 @@ const HealthPriorityDetail = ({ focusAreas = [] }) => {
                   title={`Active (${groupedActions.active.length})`}
                 />
                 <Tab 
-                  eventKey="completed" 
-                  title={`Completed (${groupedActions.completed.length})`}
+                  eventKey="inactive" 
+                  title={`Inactive (${groupedActions.completed.length})`}
                 />
               </Tabs>
             )}
