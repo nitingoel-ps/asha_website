@@ -1,13 +1,13 @@
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Card, Button, Table, Row, Col } from 'react-bootstrap';
+import { Card, Button, Table } from 'react-bootstrap';
 import { ArrowLeft } from 'lucide-react';
 import './MedicationDetailView.css';
 
 const DetailItem = ({ label, value }) => (
-  <div className="detail-item mb-3">
-    <div className="detail-label text-muted">{label}</div>
-    <div className="detail-value">{value}</div>
+  <div className="medication-detail-item">
+    <div className="medication-detail-label">{label}</div>
+    <div className="medication-detail-value">{value || 'Not Available'}</div>
   </div>
 );
 
@@ -38,6 +38,10 @@ export function MedicationDetailView({ medications }) {
 
   return (
     <div className="medication-detail-container">
+      <Button variant="link" className="back-button mb-3 ps-0" onClick={handleBack}>
+        <ArrowLeft size={16} />
+        Back to Medications
+      </Button>
 
       <Card className="detail-card mb-4">
         <Card.Body>
@@ -48,20 +52,16 @@ export function MedicationDetailView({ medications }) {
             </span>
           </div>
           
-          <Row>
-            <Col md={6}>
-              <DetailItem label="Prescribed" value={formatDate(medication.authoredOn)} />
-              <DetailItem label="Instructions" value={medication.dosageInstruction || 'No specific instructions'} />
-              <DetailItem label="Explanation" value={medication.medication_explanation || 'Not Available'} />
-            </Col>
-            <Col md={6}>
+          <div className="medication-details">
+            <DetailItem label="Prescribed By" value={medication.prescriber} />
+            <DetailItem label="Prescribed On" value={formatDate(medication.authoredOn)} />
+            {medication.startDate && <DetailItem label="Start Date" value={formatDate(medication.startDate)} />}
+            {medication.endDate && <DetailItem label="End Date" value={formatDate(medication.endDate)} />}
             {medication.reason && <DetailItem label="Reason" value={medication.reason} />}
-            <DetailItem label="Prescribed By" value={medication.prescriber || 'Not specified'} />
-              <DetailItem label="Source" value={medication.source || 'Not specified'} />
-              {medication.startDate && <DetailItem label="Start Date" value={formatDate(medication.startDate)} />}
-              {medication.endDate && <DetailItem label="End Date" value={formatDate(medication.endDate)} />}
-            </Col>
-          </Row>
+            <DetailItem label="Source" value={medication.source} />
+            <DetailItem label="Instructions" value={medication.dosageInstruction || 'No specific instructions'} />
+            <DetailItem label="Explanation" value={medication.medication_explanation} />
+          </div>
         </Card.Body>
       </Card>
 
