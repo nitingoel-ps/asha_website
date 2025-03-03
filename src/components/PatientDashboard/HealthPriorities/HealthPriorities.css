@@ -399,6 +399,33 @@
   padding: 1rem 0 !important;
 }
 
+/* Additional specific fixes for action-items-header height on mobile */
+.health-priority-detail .action-items-header {
+  /* More specific selector to override any other styles */
+  padding: 0.25rem 0 !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  height: auto !important;
+}
+
+.health-priority-detail .action-items-header .d-flex {
+  align-items: center !important;
+}
+
+.health-priority-detail .action-items-header h4 {
+  margin: 0 !important;
+  font-size: 1.1rem !important; /* Slightly smaller font size */
+  line-height: 1.2 !important; /* Tighter line height */
+}
+
+/* Make the tabs more compact */
+.health-priority-detail .action-items-inline-tabs .nav-link {
+  padding: 0.3rem 0.75rem !important;
+  height: auto !important;
+  min-height: 0 !important;
+  line-height: 1.2 !important;
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
   .health-priority-detail .evidence-list {
@@ -429,6 +456,26 @@
     gap: 0.5rem;
   }
   
+  .health-priority-detail .action-items-header {
+    padding: 0.25rem 0 !important; /* Even smaller padding on mobile */
+  }
+  
+  .health-priority-detail .action-items-inline-tabs .nav-link {
+    padding: 0.25rem 0.5rem !important;
+    font-size: 0.75rem !important;
+    border-radius: 3px !important;
+  }
+  
+  /* Very specific selector to override any Bootstrap or other styles */
+  .health-priority-detail .action-items-header .action-items-inline-tabs {
+    margin: 0 !important;
+  }
+  
+  /* Fix the tab container height */
+  .health-priority-detail .tab-content {
+    padding-top: 0.5rem !important;
+  }
+  
   @media (max-width: 480px) {
     .action-items-header .d-flex {
       flex-direction: column;
@@ -447,5 +494,36 @@
       padding: 0.4rem;
       font-size: 0.75rem;
     }
+
+    .health-priority-detail .action-items-header .d-flex {
+      flex-direction: row !important; /* Keep on same line to save vertical space */
+      justify-content: space-between !important;
+      align-items: center !important;
+    }
+    
+    .health-priority-detail .action-items-header h4 {
+      margin-bottom: 0 !important;
+      font-size: 1rem !important; /* Even smaller font on very small screens */
+    }
+    
+    .health-priority-detail .action-items-inline-tabs {
+      width: auto !important;
+    }
+    
+    .health-priority-detail .action-items-inline-tabs .nav-link {
+      padding: 0.2rem 0.4rem !important;
+      font-size: 0.7rem !important;
+    }
   }
+}
+
+/* Directly target any hidden elements that might be taking up space */
+.action-items-header .nav-tabs .hidden,
+.action-items-header .nav-tabs [style*="display: none"],
+.action-items-header .nav-tabs [aria-hidden="true"] {
+  display: none !important;
+  height: 0 !important;
+  width: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
 }

@@ -139,6 +139,11 @@ function PatientDashboard() {
       return 'Back to Lab Panels';
     }
     
+    // Add special case for health priorities detail
+    if (pathSegments.includes('health-priorities') && pathSegments.length > 2) {
+      return 'Back to Health Priorities';
+    }
+    
     // If we're in a detail view (has more than 2 segments after patient-dashboard)
     if (pathSegments.length > 2) {
       // Map the parent route to a friendly name
@@ -147,7 +152,8 @@ function PatientDashboard() {
         visits: 'Visits',
         'medical-reports': 'Medical Reports',
         immunizations: 'Immunizations',
-        'lab-panels': 'Lab Panels'
+        'lab-panels': 'Lab Panels',
+        'health-priorities': 'Health Priorities'
       };
       return `Back to ${parentRouteNames[pathSegments[1]] || 'Menu'}`;
     }
@@ -161,6 +167,12 @@ function PatientDashboard() {
     // Special case for observation detail
     if (pathSegments.includes('observation')) {
       navigate('/patient-dashboard/lab-panels');
+      return;
+    }
+    
+    // Add handling for health priorities detail
+    if (pathSegments.includes('health-priorities') && pathSegments.length > 2) {
+      navigate('/patient-dashboard/health-priorities');
       return;
     }
     

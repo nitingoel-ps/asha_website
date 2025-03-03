@@ -1,6 +1,6 @@
 import React, { useMemo, useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Card, Badge, Container, Row, Col, Alert, Button, Tabs, Tab } from 'react-bootstrap';
+import { Card, Badge, Container, Row, Col, Alert, Tabs, Tab } from 'react-bootstrap';
 import { 
   FlaskConical, 
   MessageCircle, 
@@ -9,7 +9,6 @@ import {
   CalendarCheck, 
   Search, 
   Heart,
-  ArrowLeft,
   ChevronDown,
   ChevronUp
 } from 'lucide-react';
@@ -179,10 +178,6 @@ const HealthPriorityDetail = ({ focusAreas = [] }) => {
     }
   }, [groupedActions]);
 
-  const handleBack = () => {
-    navigate('/patient-dashboard/health-priorities');
-  };
-
   // Check if there's any evidence to show
   const hasEvidence = useMemo(() => {
     if (!focusArea || !focusArea.evidence) return false;
@@ -208,9 +203,6 @@ const HealthPriorityDetail = ({ focusAreas = [] }) => {
   if (!focusArea) {
     return (
       <Container className="mt-4">
-        <Button variant="outline-primary" className="mb-3" onClick={handleBack}>
-          <ArrowLeft size={16} /> Back to Health Priorities
-        </Button>
         <Alert variant="warning">
           Health priority not found.
         </Alert>
@@ -230,9 +222,6 @@ const HealthPriorityDetail = ({ focusAreas = [] }) => {
 
   return (
     <Container className="health-priority-detail pb-4">
-      <Button variant="outline-primary" className="mb-4" onClick={handleBack}>
-        <ArrowLeft size={16} /> Back to Health Priorities
-      </Button>
       
       <Card className="mb-4 priority-detail-card">
         <Card.Body>
@@ -292,13 +281,13 @@ const HealthPriorityDetail = ({ focusAreas = [] }) => {
         {/* This header will be sticky */}
         <header className="action-items-header">
           <div className="d-flex align-items-center justify-content-between">
-            <h4 className="m-0">Action Items</h4>
+            <h4 className="m-0 action-header-title">Action Items</h4>
             
             {focusArea.actions && focusArea.actions.length > 0 && (
               <Tabs
                 activeKey={activeActionTab}
                 onSelect={(key) => setActiveActionTab(key)}
-                className="action-items-inline-tabs health-priority-tabs"
+                className="action-items-inline-tabs health-priority-tabs mb-0"
               >
                 <Tab 
                   eventKey="suggested" 
@@ -318,7 +307,7 @@ const HealthPriorityDetail = ({ focusAreas = [] }) => {
         </header>
 
         {/* Content area for action items */}
-        <div className="action-items-content">
+        <div className="action-items-content pt-2">
           {focusArea.actions && focusArea.actions.length > 0 ? (
             <>
               {activeActionTab === 'suggested' && (
