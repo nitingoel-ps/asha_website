@@ -527,3 +527,25 @@
   margin: 0 !important;
   padding: 0 !important;
 }
+
+/* Reference link styling */
+.evidence-reference-link {
+  color: #0075c7;
+  text-decoration: none;
+  cursor: pointer;
+  background-color: rgba(0, 117, 199, 0.1);
+  padding: 0 3px;
+  border-radius: 2px;
+  transition: background-color 0.2s, color 0.2s;
+  font-weight: 500;
+}
+
+.evidence-reference-link:hover {
+  background-color: rgba(0, 117, 199, 0.2);
+  color: #005c9e;
+  text-decoration: none;
+}
+
+.evidence-references {
+  margin-left: 1rem;
+}

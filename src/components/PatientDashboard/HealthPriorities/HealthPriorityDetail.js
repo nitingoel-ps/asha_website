@@ -12,7 +12,10 @@ import {
   ChevronDown,
   ChevronUp
 } from 'lucide-react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faChevronDown, faChevronUp } from '@fortawesome/free-solid-svg-icons';
 import './HealthPriorities.css';
+import EvidenceWithReferences from './EvidenceWithReferences';
 
 const ActionIcon = ({ actionType }) => {
   switch (actionType.toLowerCase()) {
@@ -107,22 +110,50 @@ const ActionItem = ({ action }) => {
   );
 };
 
-const EvidenceSection = ({ evidence, title, isArray = false }) => {
-  if (!evidence || (isArray && evidence.length === 0) || (!isArray && !evidence.trim())) {
+// Modified EvidenceSection to display references from separate field
+const EvidenceSection = ({ title, content, references }) => {
+  console.log(`EvidenceSection - title: ${title}, content:`, content, "references:", references);
+  
+  // Skip rendering if no content
+  if (!content || content.trim() === '') {
+    console.log(`EvidenceSection - Empty content for ${title}, returning null`);
     return null;
   }
-
+  
+  // Parse references if they exist
+  let parsedReferences = [];
+  if (references) {
+    try {
+      // References might be stored as a JSON string
+      if (typeof references === 'string') {
+        parsedReferences = JSON.parse(references);
+      } else if (Array.isArray(references)) {
+        parsedReferences = references;
+      }
+    } catch (error) {
+      console.error("Error parsing references:", error);
+    }
+  }
+  
+  console.log("Parsed references:", parsedReferences);
+  
   return (
-    <div className="mb-3">
-      <h6 className="evidence-title">{title}</h6>
-      {isArray ? (
-        <ul className="evidence-list">
-          {evidence.map((item, index) => (
-            <li key={index}>{item}</li>
-          ))}
-        </ul>
-      ) : (
-        <p className="evidence-text">{evidence}</p>
+    <div className="mt-3">
+      <div className="evidence-title">{title}</div>
+      <div className="evidence-text">
+        {content}
+      </div>
+      {parsedReferences && parsedReferences.length > 0 && (
+        <div className="evidence-references mt-2">
+          <small className="text-muted">
+            References: {parsedReferences.map((reference, refIndex) => (
+              <span key={refIndex}>
+                {refIndex > 0 && ", "}
+                <EvidenceWithReferences text={reference} />
+              </span>
+            ))}
+          </small>
+        </div>
       )}
     </div>
   );
@@ -178,9 +209,19 @@ const HealthPriorityDetail = ({ focusAreas = [] }) => {
     }
   }, [groupedActions]);
 
-  // Check if there's any evidence to show
+  // Add debugging for evidence
+  useEffect(() => {
+    if (focusArea && focusArea.evidence) {
+      console.log("Focus Area Evidence:", focusArea.evidence);
+    }
+  }, [focusArea]);
+
+  // Check if there's any evidence to show with debug
   const hasEvidence = useMemo(() => {
-    if (!focusArea || !focusArea.evidence) return false;
+    if (!focusArea || !focusArea.evidence) {
+      console.log("No evidence data available");
+      return false;
+    }
     
     const evidenceFields = [
       'medications_narrative',
@@ -191,14 +232,70 @@ const HealthPriorityDetail = ({ focusAreas = [] }) => {
       'procedures_narrative'
     ];
     
-    return evidenceFields.some(field => 
+    const hasAnyEvidence = evidenceFields.some(field => 
       focusArea.evidence[field] && focusArea.evidence[field].trim() !== ''
     );
+    
+    console.log("Has evidence:", hasAnyEvidence);
+    if (hasAnyEvidence) {
+      evidenceFields.forEach(field => {
+        console.log(`${field}:`, focusArea.evidence[field]);
+      });
+    }
+    
+    return hasAnyEvidence;
   }, [focusArea]);
 
   const toggleEvidence = () => {
     setShowEvidence(prev => !prev);
   };
+
+  // Prepare the evidence sections with both narrative and references
+  const evidenceSections = useMemo(() => {
+    if (!focusArea || !focusArea.evidence) return [];
+    
+    return [
+      { 
+        title: "Medications", 
+        content: focusArea.evidence?.medications_narrative || "", 
+        references: focusArea.evidence?.medications_references
+      },
+      { 
+        title: "Lab Findings", 
+        content: focusArea.evidence?.lab_findings_narrative || "", 
+        references: focusArea.evidence?.lab_findings_references
+      },
+      { 
+        title: "Medical Reports", 
+        content: focusArea.evidence?.medical_reports_narrative || "", 
+        references: focusArea.evidence?.medical_reports_references
+      },
+      { 
+        title: "Vital Signs", 
+        content: focusArea.evidence?.vitals_narrative || "", 
+        references: focusArea.evidence?.vitals_references
+      },
+      { 
+        title: "Visits", 
+        content: focusArea.evidence?.visits_narrative || "", 
+        references: focusArea.evidence?.visits_references
+      },
+      { 
+        title: "Procedures", 
+        content: focusArea.evidence?.procedures_narrative || "", 
+        references: focusArea.evidence?.procedures_references
+      }
+    ];
+  }, [focusArea]);
+  
+  // Extra debug logging for evidence sections
+  useEffect(() => {
+    if (showEvidence && focusArea && focusArea.evidence) {
+      console.log("Evidence sections being rendered:", 
+        evidenceSections.filter(section => section.content && section.content.trim() !== '')
+      );
+    }
+  }, [showEvidence, focusArea, evidenceSections]);
 
   if (!focusArea) {
     return (
@@ -209,16 +306,6 @@ const HealthPriorityDetail = ({ focusAreas = [] }) => {
       </Container>
     );
   }
-
-  // Prepare the evidence sections
-  const evidenceSections = [
-    { title: "Medications", content: focusArea.evidence?.medications_narrative || "", isArray: false },
-    { title: "Lab Findings", content: focusArea.evidence?.lab_findings_narrative || "", isArray: false },
-    { title: "Medical Reports", content: focusArea.evidence?.medical_reports_narrative || "", isArray: false },
-    { title: "Vital Signs", content: focusArea.evidence?.vitals_narrative || "", isArray: false },
-    { title: "Visits", content: focusArea.evidence?.visits_narrative || "", isArray: false },
-    { title: "Procedures", content: focusArea.evidence?.procedures_narrative || "", isArray: false },
-  ];
 
   return (
     <Container className="health-priority-detail pb-4">
@@ -259,15 +346,20 @@ const HealthPriorityDetail = ({ focusAreas = [] }) => {
               {showEvidence && (
                 <div className="mt-3 evidence-container">
                   <h5>From your records:</h5>
-                  {evidenceSections.map((section, index) => 
-                    section.content && (
-                      <EvidenceSection 
-                        key={index}
-                        title={section.title} 
-                        evidence={section.content}
-                        isArray={section.isArray} 
-                      />
-                    )
+                  
+                  {/* Remove debug UI elements, keep only console logs */}
+                  
+                  {evidenceSections.filter(section => section.content && section.content.trim() !== '').map((section, index) => (
+                    <EvidenceSection 
+                      key={index}
+                      title={section.title} 
+                      content={section.content}
+                      references={section.references}
+                    />
+                  ))}
+                  
+                  {evidenceSections.filter(section => section.content && section.content.trim() !== '').length === 0 && (
+                    <p className="text-muted">No specific evidence records available.</p>
                   )}
                 </div>
               )}
