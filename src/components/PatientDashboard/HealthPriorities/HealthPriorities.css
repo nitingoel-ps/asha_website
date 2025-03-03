@@ -123,6 +123,282 @@
   padding: 0.4em 0.6em;
 }
 
+.action-items-header {
+  position: sticky;
+  top: 0;
+  background: #fff;
+  z-index: 100;
+  padding-top: 0rem;
+  padding-bottom: 0rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.action-items-inline-tabs {
+  margin-bottom: 0 !important;
+}
+
+.action-items-inline-tabs .nav-link {
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  border: none;
+  background: #F7FAFC;
+  border-radius: 0 0 8px 8px;
+  min-height: 50px;
+}
+
+.action-items-inline-tabs .nav-item {
+  margin-bottom: 0;
+}
+
+.nav-tabs {
+  border-bottom: none;
+}
+
+.tab-content-scroll {
+  padding-top: 1rem;
+  overflow-y: auto;
+}
+
+.action-items-tabs {
+  position: sticky;
+  top: 60px; /* Adjust based on your header height */
+  background: #fff;
+  z-index: 99;
+}
+
+.tab-content-scroll {
+  padding-top: 0.5rem;
+  overflow-y: auto;
+}
+
+.action-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  font-size: 0.85rem;
+  color: #6c757d;
+  margin-top: 0.5rem;
+}
+
+.action-priority, .action-due-date {
+  display: inline-flex;
+  align-items: center;
+}
+
+/* Refactored Action Items section */
+.action-items-section {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  margin-bottom: 2rem;
+}
+
+.action-items-header {
+  position: sticky;
+  top: 0;
+  background: #fff;
+  z-index: 100;
+  padding: 0.5rem 0;
+  margin-bottom: 0rem;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.action-items-content {
+  padding-top: 0.5rem;
+}
+
+.action-items-list {
+  padding-bottom: 1rem;
+}
+
+.action-items-inline-tabs {
+  margin-bottom: 0 !important;
+}
+
+.action-items-inline-tabs .nav-link {
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  border: none;
+  border-radius: 4px;
+  margin-left: 0.25rem;
+}
+
+.action-items-inline-tabs .nav-item:first-child .nav-link {
+  margin-left: 0;
+}
+
+.action-items-inline-tabs .nav-item {
+  margin-bottom: 0;
+}
+
+/* Override bootstrap tab styles */
+.nav-tabs {
+  border-bottom: none;
+}
+
+/* Override tab-content styling from VisitDetail.css */
+.action-items-section .tab-content,
+.health-priority-detail .tab-content {
+  min-height: auto !important; /* Override the 200px min-height */
+  border: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+.action-items-section .tab-pane,
+.health-priority-detail .tab-pane {
+  min-height: auto !important;
+  padding: 0 !important;
+}
+
+.action-items-section [role="tabpanel"],
+.health-priority-detail [role="tabpanel"] {
+  padding-top: 0.5rem !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* Make the action items header more specific to override other styles */
+.health-priority-detail .action-items-header {
+  position: sticky;
+  top: 0;
+  background: #fff;
+  z-index: 100;
+  padding: 0rem;
+  margin-bottom: 0rem;
+  border-bottom: 1px solid #e9ecef;
+  min-height: auto !important;
+  height: auto !important;
+}
+
+/* Ensure the tabs have consistent styling */
+.action-items-inline-tabs.nav-tabs {
+  border-bottom: none !important;
+  margin-bottom: 0 !important;
+  background: transparent !important;
+}
+
+.action-items-inline-tabs .nav-link {
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  border: none !important;
+  border-radius: 4px !important;
+  margin-left: 0.25rem;
+  min-height: auto !important;
+  height: auto !important;
+  background-color: #f8f9fa !important;
+}
+
+.action-items-inline-tabs .nav-link.active {
+  background-color: #e9ecef !important;
+  color: #212529 !important;
+  border: none !important;
+  font-weight: 500;
+}
+
+/* Override nav-item styles from PatientDashboard.css */
+.health-priorities-container .nav-item,
+.health-priority-detail .nav-item {
+  display: initial !important;
+  align-items: initial !important;
+  gap: initial !important;
+  padding: initial !important;
+  color: initial !important;
+  cursor: pointer !important;
+  transition: initial !important;
+  font-size: initial !important;
+  margin-right: initial !important;
+  background-color: initial !important;
+  border-right: none !important;
+}
+
+.health-priorities-container .nav-item:hover,
+.health-priority-detail .nav-item:hover {
+  background-color: initial !important;
+  color: initial !important;
+}
+
+.health-priorities-container .nav-item.active,
+.health-priority-detail .nav-item.active {
+  background-color: initial !important;
+  color: initial !important;
+  font-weight: initial !important;
+}
+
+/* Ensure tabs are styled correctly */
+.health-priorities-container .nav-tabs,
+.health-priority-detail .nav-tabs {
+  border-bottom: 1px solid #dee2e6 !important;
+  margin-bottom: 1rem !important;
+}
+
+.health-priorities-container .nav-tabs .nav-link,
+.health-priority-detail .nav-tabs .nav-link {
+  margin-bottom: -1px;
+  background: none;
+  border: 1px solid transparent;
+  border-top-left-radius: 0.25rem;
+  border-top-right-radius: 0.25rem;
+  color: #6c757d;
+  font-size: 0.95rem;
+  padding: 0.5rem 1rem;
+}
+
+.health-priorities-container .nav-tabs .nav-link:hover,
+.health-priority-detail .nav-tabs .nav-link:hover {
+  border-color: #e9ecef #e9ecef #dee2e6;
+}
+
+.health-priorities-container .nav-tabs .nav-link.active,
+.health-priority-detail .nav-tabs .nav-link.active {
+  color: #495057;
+  background-color: #fff;
+  border-color: #dee2e6 #dee2e6 #fff;
+}
+
+/* Specific styling for the action items tabs */
+.action-items-inline-tabs.nav-tabs .nav-item {
+  margin-bottom: 0 !important;
+}
+
+.action-items-inline-tabs.nav-tabs .nav-link {
+  border: none !important;
+  border-radius: 4px !important;
+  background-color: #f8f9fa !important;
+  padding: 0.5rem 1rem !important;
+  margin-left: 0.25rem !important;
+  color: #6c757d !important;
+  font-size: 0.9rem !important;
+}
+
+.action-items-inline-tabs.nav-tabs .nav-link.active {
+  background-color: #e9ecef !important;
+  color: #212529 !important;
+  font-weight: 500 !important;
+}
+
+/* Ensure the action items tabs don't inherit PatientDashboard.css styles */
+.action-items-inline-tabs .nav-item svg {
+  display: none !important;
+}
+
+.health-priorities-container .nav-tabs .nav-item svg,
+.health-priority-detail .nav-tabs .nav-item svg {
+  display: none !important;
+}
+
+/* Make sure our tab content has the correct styling */
+.health-priorities-container .tab-content,
+.health-priority-detail .tab-content {
+  background-color: transparent !important;
+  border: none !important;
+  border-top: none !important;
+  border-radius: 0 !important;
+  padding: 1rem 0 !important;
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
   .health-priority-detail .evidence-list {
@@ -134,6 +410,42 @@
   }
   
   .health-priority-detail {
-    padding-bottom: 4rem;
+    padding-bottom: 1rem;
+  }
+  
+  .action-items-header {
+    top: 56px; /* Adjust based on your mobile header/navbar height */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    padding: 0.5rem 0;
+  }
+  
+  .action-items-inline-tabs .nav-link {
+    padding: 0.4rem 0.6rem;
+    font-size: 0.8rem;
+  }
+  
+  .action-meta {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  @media (max-width: 480px) {
+    .action-items-header .d-flex {
+      flex-direction: column;
+      align-items: flex-start !important;
+    }
+    
+    .action-items-header h4 {
+      margin-bottom: 0.5rem !important;
+    }
+    
+    .action-items-inline-tabs {
+      width: 100%;
+    }
+
+    .action-items-inline-tabs .nav-link {
+      padding: 0.4rem;
+      font-size: 0.75rem;
+    }
   }
 }
