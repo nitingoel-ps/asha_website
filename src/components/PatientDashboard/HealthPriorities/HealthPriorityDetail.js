@@ -1,4 +1,4 @@
-import React, { useMemo, useEffect } from 'react';
+import React, { useMemo, useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, Badge, Container, Row, Col, Alert, Button } from 'react-bootstrap';
 import { 
@@ -9,7 +9,9 @@ import {
   CalendarCheck, 
   Search, 
   Heart,
-  ArrowLeft
+  ArrowLeft,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 import './HealthPriorities.css';
 
@@ -130,6 +132,7 @@ const EvidenceSection = ({ evidence, title, isArray = false }) => {
 const HealthPriorityDetail = ({ focusAreas = [] }) => {
   const { priorityId } = useParams();
   const navigate = useNavigate();
+  const [showEvidence, setShowEvidence] = useState(false);
   
   const focusArea = useMemo(() => {
     return focusAreas.find(area => area.id.toString() === priorityId) || null;
@@ -138,10 +141,34 @@ const HealthPriorityDetail = ({ focusAreas = [] }) => {
   // Add effect to scroll to top when the component mounts or priorityId changes
   useEffect(() => {
     window.scrollTo(0, 0);
+    // Reset evidence visibility when navigating to a new priority
+    setShowEvidence(false);
   }, [priorityId]);
 
   const handleBack = () => {
     navigate('/patient-dashboard/health-priorities');
+  };
+
+  // Check if there's any evidence to show
+  const hasEvidence = useMemo(() => {
+    if (!focusArea || !focusArea.evidence) return false;
+    
+    const evidenceFields = [
+      'medications_narrative',
+      'lab_findings_narrative',
+      'medical_reports_narrative',
+      'vitals_narrative',
+      'visits_narrative',
+      'procedures_narrative'
+    ];
+    
+    return evidenceFields.some(field => 
+      focusArea.evidence[field] && focusArea.evidence[field].trim() !== ''
+    );
+  }, [focusArea]);
+
+  const toggleEvidence = () => {
+    setShowEvidence(prev => !prev);
   };
 
   if (!focusArea) {
@@ -193,18 +220,38 @@ const HealthPriorityDetail = ({ focusAreas = [] }) => {
             <strong>Importance Score:</strong> {focusArea.importance_score}/10
           </div>
           
-          {focusArea.evidence && (
-            <div className="mt-4 evidence-container">
-              <h5>Supporting Evidence:</h5>
-              {evidenceSections.map((section, index) => 
-                section.content && (
-                  <EvidenceSection 
-                    key={index}
-                    title={section.title} 
-                    evidence={section.content}
-                    isArray={section.isArray} 
-                  />
-                )
+          {hasEvidence && (
+            <div className="mt-3">
+              <div 
+                className="evidence-toggle" 
+                onClick={toggleEvidence}
+                role="button"
+                aria-expanded={showEvidence}
+              >
+                <span>
+                  {showEvidence ? (
+                    <ChevronUp size={16} className="toggle-icon" />
+                  ) : (
+                    <ChevronDown size={16} className="toggle-icon" />
+                  )}
+                  Why is this suggested?
+                </span>
+              </div>
+              
+              {showEvidence && (
+                <div className="mt-3 evidence-container">
+                  <h5>From your records:</h5>
+                  {evidenceSections.map((section, index) => 
+                    section.content && (
+                      <EvidenceSection 
+                        key={index}
+                        title={section.title} 
+                        evidence={section.content}
+                        isArray={section.isArray} 
+                      />
+                    )
+                  )}
+                </div>
               )}
             </div>
           )}

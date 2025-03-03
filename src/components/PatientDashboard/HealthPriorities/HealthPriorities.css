@@ -46,6 +46,7 @@
   border-top: 1px solid #dee2e6;
   padding-top: 1rem;
   overflow-y: visible;
+  animation: fadeIn 0.3s ease-in-out;
 }
 
 .evidence-title {
@@ -57,6 +58,44 @@
 .evidence-text {
   font-size: 0.95rem;
   margin-left: 1rem;
+}
+
+.evidence-toggle {
+  color: #6c757d;
+  font-style: italic;
+  text-decoration: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  margin-left: -8px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.evidence-toggle:hover {
+  background-color: #f0f0f0;
+  color: #495057;
+}
+
+.evidence-toggle span {
+  display: flex;
+  align-items: center;
+}
+
+.toggle-icon {
+  margin-right: 6px;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .action-item-card {
