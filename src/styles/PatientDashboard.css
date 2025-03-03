@@ -65,11 +65,11 @@
   flex: 1;
   position: relative;
   background-color: #F7FAFC;
-  padding: 15px;
+  padding: 20px;
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 60px);
-  overflow: hidden; /* Changed from auto */
+  height: 100%;
+  overflow-y: auto;
 }
 
 .tab-content-wrapper {
@@ -79,6 +79,8 @@
   padding: 0;
   display: flex;
   flex-direction: column;
+  height: 100%;
+  overflow-y: auto;
 }
 
 .back-button {
@@ -166,6 +168,8 @@
   
   .dashboard-container.tab-active .content-area {
     display: block;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS devices */
   }
 
   .dashboard-container.tab-active .nav-menu {

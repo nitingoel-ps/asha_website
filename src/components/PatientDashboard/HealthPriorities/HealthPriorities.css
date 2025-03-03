@@ -1,0 +1,100 @@
+.health-priorities-container {
+  padding-bottom: 2rem;
+}
+
+.focus-area-card {
+  height: 100%;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  cursor: pointer;
+  border-left: 4px solid transparent;
+}
+
+.focus-area-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.focus-area-card .focus-area-description {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.health-priority-detail {
+  padding-bottom: 2rem;
+  height: auto;
+  overflow-y: auto;
+  max-height: 100%;
+}
+
+.health-priority-detail .priority-detail-card {
+  border-left: 4px solid #5a8dee;
+}
+
+.tab-content-wrapper {
+  height: 100%;
+  overflow-y: auto;
+}
+
+.evidence-list {
+  padding-left: 1.2rem;
+}
+
+.evidence-container {
+  border-top: 1px solid #dee2e6;
+  padding-top: 1rem;
+  overflow-y: visible;
+}
+
+.evidence-title {
+  font-weight: 600;
+  color: #495057;
+  margin-top: 0.75rem;
+}
+
+.evidence-text {
+  font-size: 0.95rem;
+  margin-left: 1rem;
+}
+
+.action-item-card {
+  transition: transform 0.2s ease;
+  border-left: 3px solid #6c757d;
+}
+
+.action-item-card:hover {
+  transform: translateY(-2px);
+}
+
+.action-icon-container {
+  margin-right: 15px;
+  display: flex;
+  align-items: center;
+}
+
+.action-icon {
+  color: #5a8dee;
+}
+
+/* Style badges */
+.badge {
+  font-weight: 500;
+  padding: 0.4em 0.6em;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .health-priority-detail .evidence-list {
+    padding-left: 1rem;
+  }
+  
+  .evidence-text {
+    margin-left: 0.5rem;
+  }
+  
+  .health-priority-detail {
+    padding-bottom: 4rem;
+  }
+}

@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { Button, Card, Container, Spinner } from "react-bootstrap";
-import { Activity, Pill, FileText, Clipboard, Microscope, Syringe, MessageCircle, BarChart2, Heart, Calendar, ArrowLeft, Mic, FlaskConical } from "lucide-react";
+import { Activity, Pill, FileText, Clipboard, Microscope, Syringe, MessageCircle, BarChart2, Heart, Calendar, ArrowLeft, Mic, FlaskConical, Target } from "lucide-react";
 import ConditionsTab from "./PatientDashboard/ConditionsTab";
 import ChartsTab from "./PatientDashboard/ChartsTab";
 import ProceduresTab from "./PatientDashboard/ProceduresTab";
@@ -23,6 +23,8 @@ import VoiceTab from "./PatientDashboard/VoiceTab";
 import StreamingVoiceTab from "./PatientDashboard/StreamingVoiceTab";
 import LabPanelsTab from './PatientDashboard/LabPanels/LabPanelsTab';
 import ObservationDetail from './PatientDashboard/LabPanels/ObservationDetail';
+import HealthPrioritiesTab from './PatientDashboard/HealthPriorities/HealthPrioritiesTab';
+import HealthPriorityDetail from './PatientDashboard/HealthPriorities/HealthPriorityDetail';
 
 function PatientDashboard() {
   const location = useLocation();
@@ -237,6 +239,12 @@ function PatientDashboard() {
       >
         <FlaskConical size={16} /> Lab Panels
       </div>
+      <div 
+        className={`nav-item ${activeTab === "health-priorities" ? "active" : ""}`} 
+        onClick={() => handleTabChange("health-priorities")}
+      >
+        <Target size={16} /> Health Priorities
+      </div>
     </div>
   );
 
@@ -325,6 +333,12 @@ function PatientDashboard() {
               } />
               <Route path="observation/:observationId" element={
                 <ObservationDetail standardPanels={patientData?.all_observations?.standard_panels} />
+              } />
+              <Route path="health-priorities" element={
+                <HealthPrioritiesTab focusAreas={patientData?.focus_areas || []} />
+              } />
+              <Route path="health-priorities/:priorityId" element={
+                <HealthPriorityDetail focusAreas={patientData?.focus_areas || []} />
               } />
             </Routes>
           </div>
