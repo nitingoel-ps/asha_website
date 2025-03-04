@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
   Card, Button, Table, Badge, Spinner, Alert, 
-  Modal, Form, Row, Col 
+  Modal, Form, Row, Col, Container
 } from 'react-bootstrap';
 import { 
   Plus, ArrowLeft, Calendar, Clock, AlertTriangle, 
@@ -51,6 +51,23 @@ const SymptomDetail = () => {
     triggers: '',
     notes: ''
   });
+
+  // Add this state to track screen width
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+
+  // Add this effect to update window width state on resize
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth);
+    };
+    
+    window.addEventListener('resize', handleResize);
+    
+    // Clean up event listener
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
 
   useEffect(() => {
     console.log("SymptomDetail - Initial symptomId:", symptomId);
@@ -207,19 +224,11 @@ const SymptomDetail = () => {
         ticks: {
           stepSize: 1,
           callback: function(value) {
-            const severityLabels = {
-              1: "Very Mild",
-              2: "Mild", 
-              3: "Moderate", 
-              4: "Severe", 
-              5: "Very Severe"
-            };
-            return value + (value in severityLabels ? ` (${severityLabels[value]})` : '');
+            return value;
           }
         },
         title: {
-          display: true,
-          text: 'Severity Level'
+          display: false
         }
       },
       x: {
@@ -247,6 +256,15 @@ const SymptomDetail = () => {
             return `Severity: ${severity} - ${severityLabels[severity] || ''}`;
           }
         }
+      }
+    },
+    // Add layout options to use more space
+    layout: {
+      padding: {
+        left: 10,
+        right: 30,
+        top: 10,
+        bottom: 10
       }
     }
   };
@@ -306,30 +324,34 @@ const SymptomDetail = () => {
     return <Badge bg={variant}>{severityLabels[severity] || "Unknown"}</Badge>;
   };
 
+  // Then where you render logs, check window width
+  const isMobile = windowWidth < 768; // Bootstrap MD breakpoint
+
   return (
-    <div>
-      <div className="d-flex flex-column mb-4 symptom-detail-header">
+    <div className="symptom-detail-container">
+      {/* Header Section - Refactored for better responsiveness */}
+      <div className="symptom-detail-header mb-4">
         <div className="d-flex align-items-center mb-2">
           <Button 
             variant="outline-secondary" 
-            className="me-3 back-button"
+            className="me-2 back-button"
             onClick={() => navigate('/patient-dashboard/symptoms')}
           >
             <ArrowLeft size={16} />
           </Button>
-          <h2 className="mb-0">
+          <h2 className="mb-0 symptom-title">
             {symptom.name ? symptom.name : '[No Name Available]'}
           </h2>
         </div>
         
-        <div className="d-flex flex-wrap align-items-center mt-2">
+        <div className="symptom-metadata mt-2">
           {symptom.body_location && (
-            <span className="me-3 d-flex align-items-center text-muted">
+            <span className="metadata-item d-flex align-items-center text-muted me-3 mb-1">
               <MapPin size={16} className="me-1" /> {symptom.body_location}
             </span>
           )}
           {symptom.common_triggers && (
-            <span className="me-3 text-muted">
+            <span className="metadata-item text-muted mb-1">
               <strong>Common triggers:</strong> {symptom.common_triggers}
             </span>
           )}
@@ -337,24 +359,25 @@ const SymptomDetail = () => {
         
         {symptom.description && (
           <div className="mt-2">
-            <p className="mb-0">{symptom.description}</p>
+            <p className="mb-0 symptom-description">{symptom.description}</p>
           </div>
         )}
       </div>
 
-      {/* Chart Card */}
-      <Card className="mb-4">
+      {/* Chart Card - Enhanced for responsiveness and full-width */}
+      <Card className="mb-4 chart-card">
         <Card.Body>
           <h5 className="mb-3">Severity Over Time</h5>
           {logs.length >= 2 ? (
-            <div style={{ height: '300px' }}>
+            <div className="chart-container w-100">
               <Line 
                 data={prepareChartData(logs)} 
                 options={chartOptions}
+                style={{width: '100%'}}
               />
             </div>
           ) : (
-            <div className="text-center p-4">
+            <div className="text-center p-3">
               <p className="text-muted">
                 {logs.length === 0 
                   ? "No data available to display chart." 
@@ -365,10 +388,10 @@ const SymptomDetail = () => {
         </Card.Body>
       </Card>
 
-      {/* Add a prominent section header for the logs */}
+      {/* Logs Header - Now more responsive */}
       <Card className="mb-4 symptom-logs-header">
-        <Card.Body className="d-flex justify-content-between align-items-center">
-          <div className="d-flex align-items-center">
+        <Card.Body className="d-flex flex-wrap justify-content-between align-items-center">
+          <div className="d-flex align-items-center mb-2 mb-md-0">
             <FileText size={24} className="text-primary me-2" />
             <div>
               <h3 className="mb-0">{symptom.name} History</h3>
@@ -379,13 +402,18 @@ const SymptomDetail = () => {
               </p>
             </div>
           </div>
-          <Button variant="primary" onClick={handleNewLogEntry}>
+          <Button 
+            variant="primary" 
+            onClick={handleNewLogEntry}
+            className="log-button"
+          >
             <Plus size={16} className="me-1" />
-            Log New Episode
+            <span className="button-text">Log New Episode</span>
           </Button>
         </Card.Body>
       </Card>
 
+      {/* Logs Section - Improved Mobile Rendering */}
       {logs.length === 0 ? (
         <Card className="text-center p-4 empty-state-container">
           <Card.Body>
@@ -401,82 +429,154 @@ const SymptomDetail = () => {
           </Card.Body>
         </Card>
       ) : (
-        <Card>
-          <Table responsive hover className="symptom-logs-table">
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Severity</th>
-                <th>Duration</th>
-                <th>Triggers</th>
-                <th>Notes</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
+        <div className="logs-container">
+          {!isMobile ? (
+            <Card>
+              <Table responsive hover className="symptom-logs-table">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Severity</th>
+                    <th>Duration</th>
+                    <th>Triggers</th>
+                    <th>Notes</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {logs.sort((a, b) => new Date(b.onset_time) - new Date(a.onset_time)).map(log => (
+                    <tr key={log.id}>
+                      <td>
+                        <div className="d-flex align-items-center">
+                          <Calendar size={16} className="me-1 text-muted" />
+                          {format(new Date(log.onset_time), 'MMM d, yyyy')}
+                        </div>
+                        <div className="small text-muted">
+                          <Clock size={14} className="me-1" />
+                          {format(new Date(log.onset_time), 'h:mm a')}
+                        </div>
+                      </td>
+                      <td>{getSeverityBadge(log.severity)}</td>
+                      <td>
+                        {log.end_time ? (
+                          formatDistanceToNow(
+                            new Date(log.onset_time),
+                            { end: new Date(log.end_time) }
+                          )
+                        ) : (
+                          <span className="text-muted">Ongoing</span>
+                        )}
+                      </td>
+                      <td>
+                        {log.triggers ? (
+                          log.triggers.length > 30 
+                            ? `${log.triggers.substring(0, 30)}...` 
+                            : log.triggers
+                        ) : (
+                          <span className="text-muted">None</span>
+                        )}
+                      </td>
+                      <td>
+                        {log.notes ? (
+                          log.notes.length > 30 
+                            ? `${log.notes.substring(0, 30)}...` 
+                            : log.notes
+                        ) : (
+                          <span className="text-muted">None</span>
+                        )}
+                      </td>
+                      <td>
+                        <Button 
+                          variant="outline-secondary" 
+                          size="sm" 
+                          className="me-2"
+                          onClick={() => handleEdit(log)}
+                        >
+                          <Edit2 size={14} />
+                        </Button>
+                        <Button 
+                          variant="outline-danger" 
+                          size="sm"
+                          onClick={() => handleDelete(log)}
+                        >
+                          <Trash2 size={14} />
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </Table>
+            </Card>
+          ) : (
+            <div className="mobile-view">
               {logs.sort((a, b) => new Date(b.onset_time) - new Date(a.onset_time)).map(log => (
-                <tr key={log.id}>
-                  <td>
-                    <div className="d-flex align-items-center">
-                      <Calendar size={16} className="me-1 text-muted" />
-                      {format(new Date(log.onset_time), 'MMM d, yyyy')}
+                <Card key={log.id} className="mb-3 mobile-log-card">
+                  <Card.Body>
+                    <div className="d-flex justify-content-between align-items-start mb-2">
+                      <div className="d-flex align-items-center">
+                        <Calendar size={16} className="me-1 text-muted" />
+                        <div>
+                          <div>{format(new Date(log.onset_time), 'MMM d, yyyy')}</div>
+                          <div className="small text-muted">
+                            <Clock size={14} className="me-1 d-inline" />
+                            {format(new Date(log.onset_time), 'h:mm a')}
+                          </div>
+                        </div>
+                      </div>
+                      <div>
+                        {getSeverityBadge(log.severity)}
+                      </div>
                     </div>
-                    <div className="small text-muted">
-                      <Clock size={14} className="me-1" />
-                      {format(new Date(log.onset_time), 'h:mm a')}
+                    
+                    <div className="mb-2">
+                      <small className="text-muted d-block">Duration:</small>
+                      {log.end_time ? (
+                        formatDistanceToNow(
+                          new Date(log.onset_time),
+                          { end: new Date(log.end_time) }
+                        )
+                      ) : (
+                        <span className="text-muted">Ongoing</span>
+                      )}
                     </div>
-                  </td>
-                  <td>{getSeverityBadge(log.severity)}</td>
-                  <td>
-                    {log.end_time ? (
-                      formatDistanceToNow(
-                        new Date(log.onset_time),
-                        { end: new Date(log.end_time) }
-                      )
-                    ) : (
-                      <span className="text-muted">Ongoing</span>
+                    
+                    {log.triggers && (
+                      <div className="mb-2">
+                        <small className="text-muted d-block">Triggers:</small>
+                        {log.triggers}
+                      </div>
                     )}
-                  </td>
-                  <td>
-                    {log.triggers ? (
-                      log.triggers.length > 30 
-                        ? `${log.triggers.substring(0, 30)}...` 
-                        : log.triggers
-                    ) : (
-                      <span className="text-muted">None</span>
+                    
+                    {log.notes && (
+                      <div className="mb-3">
+                        <small className="text-muted d-block">Notes:</small>
+                        {log.notes}
+                      </div>
                     )}
-                  </td>
-                  <td>
-                    {log.notes ? (
-                      log.notes.length > 30 
-                        ? `${log.notes.substring(0, 30)}...` 
-                        : log.notes
-                    ) : (
-                      <span className="text-muted">None</span>
-                    )}
-                  </td>
-                  <td>
-                    <Button 
-                      variant="outline-secondary" 
-                      size="sm" 
-                      className="me-2"
-                      onClick={() => handleEdit(log)}
-                    >
-                      <Edit2 size={14} />
-                    </Button>
-                    <Button 
-                      variant="outline-danger" 
-                      size="sm"
-                      onClick={() => handleDelete(log)}
-                    >
-                      <Trash2 size={14} />
-                    </Button>
-                  </td>
-                </tr>
+                    
+                    <div className="d-flex justify-content-end">
+                      <Button 
+                        variant="outline-secondary" 
+                        size="sm" 
+                        className="me-2"
+                        onClick={() => handleEdit(log)}
+                      >
+                        <Edit2 size={14} className="me-1" /> Edit
+                      </Button>
+                      <Button 
+                        variant="outline-danger" 
+                        size="sm"
+                        onClick={() => handleDelete(log)}
+                      >
+                        <Trash2 size={14} className="me-1" /> Delete
+                      </Button>
+                    </div>
+                  </Card.Body>
+                </Card>
               ))}
-            </tbody>
-          </Table>
-        </Card>
+            </div>
+          )}
+        </div>
       )}
 
       {/* Delete Confirmation Modal */}
