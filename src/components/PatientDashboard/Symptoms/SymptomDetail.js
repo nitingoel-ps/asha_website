@@ -208,8 +208,16 @@ const SymptomDetail = () => {
       
       // Process each log
       sortedLogsArray.forEach(log => {
+        // Fix date handling to ensure consistent dates by setting time to noon in local time
+        // This prevents timezone issues that might shift dates
         const date = new Date(log.onset_time);
-        const dateKey = format(date, 'yyyy-MM-dd'); // Use consistent date format as key
+        
+        // Format the date in YYYY-MM-DD format for consistent key generation
+        // Using date components directly instead of format() to avoid timezone issues
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const dateKey = `${year}-${month}-${day}`;
         
         // Initialize arrays if this is the first entry for this day
         if (!allLogsForDay[dateKey]) {
@@ -217,7 +225,10 @@ const SymptomDetail = () => {
         }
         
         // Add log to the day's collection
-        allLogsForDay[dateKey].push(log);
+        allLogsForDay[dateKey].push({
+          ...log,
+          dateForDisplay: format(date, 'MMM d') // Store formatted date for display
+        });
         
         // Update highest severity if this log's severity is higher
         if (!dailyHighSeverity[dateKey] || log.severity > dailyHighSeverity[dateKey]) {
@@ -230,8 +241,15 @@ const SymptomDetail = () => {
       
       // Create labels and data arrays from the aggregated data
       const labels = sortedDates.map(dateKey => {
-        const date = new Date(dateKey);
-        return format(date, 'MMM d'); // Format for display in chart
+        // Format date from components ensuring consistent display
+        const dateParts = dateKey.split('-');
+        const year = parseInt(dateParts[0]);
+        const month = parseInt(dateParts[1]) - 1; // JS months are 0-indexed
+        const day = parseInt(dateParts[2]);
+        
+        // Create date at noon to avoid timezone issues
+        const date = new Date(year, month, day, 12, 0, 0);
+        return format(date, 'MMM d');
       });
       
       const data = sortedDates.map(dateKey => dailyHighSeverity[dateKey]);
@@ -247,7 +265,8 @@ const SymptomDetail = () => {
             x: dateIndex,
             y: log.severity,
             onset_time: log.onset_time,
-            id: log.id
+            id: log.id,
+            dateKey: dateKey
           });
         });
       });
@@ -313,7 +332,7 @@ const SymptomDetail = () => {
             size: 10
           }
         },
-        // Define the x-axis as a timeseries
+        // Define the x-axis as a category axis
         type: 'category',
         position: 'bottom'
       }
@@ -329,7 +348,9 @@ const SymptomDetail = () => {
             if (datasetIndex === 1) {
               const dataPoint = context[0].raw;
               if (dataPoint && dataPoint.onset_time) {
-                return format(new Date(dataPoint.onset_time), 'MMM d, yyyy h:mm a');
+                // Create date directly from onset_time to ensure consistent display
+                const date = new Date(dataPoint.onset_time);
+                return format(date, 'MMM d, yyyy h:mm a');
               }
             }
             
@@ -357,7 +378,6 @@ const SymptomDetail = () => {
           },
           afterLabel: function(context) {
             if (context.datasetIndex === 0) { // Line dataset
-              const date = context.label;
               return '(Highest severity for this day)';
             }
             return '';
@@ -365,7 +385,7 @@ const SymptomDetail = () => {
         }
       },
       legend: {
-        display: false // Hide the legend as it's not needed
+        display: false
       }
     },
     layout: {
@@ -378,7 +398,7 @@ const SymptomDetail = () => {
     },
     elements: {
       line: {
-        tension: 0.3 // Add a slight curve to the line
+        tension: 0.3
       }
     },
     interaction: {
@@ -386,6 +406,21 @@ const SymptomDetail = () => {
       axis: 'x',
       intersect: false
     }
+  };
+  
+  // Helper function to ensure consistent date formatting throughout the application
+  const formatConsistentDate = (dateString) => {
+    // Create a date object at noon to avoid timezone issues
+    const date = new Date(dateString);
+    // Set to noon
+    date.setHours(12, 0, 0, 0);
+    return format(date, 'MMM d, yyyy');
+  };
+
+  // Helper function to format time consistently
+  const formatTime = (dateString) => {
+    const date = new Date(dateString);
+    return format(date, 'h:mm a');
   };
 
   if (loading) {
@@ -568,11 +603,11 @@ const SymptomDetail = () => {
                       <td>
                         <div className="d-flex align-items-center">
                           <Calendar size={16} className="me-1 text-muted" />
-                          {format(new Date(log.onset_time), 'MMM d, yyyy')}
+                          {formatConsistentDate(log.onset_time)}
                         </div>
                         <div className="small text-muted">
                           <Clock size={14} className="me-1" />
-                          {format(new Date(log.onset_time), 'h:mm a')}
+                          {formatTime(log.onset_time)}
                         </div>
                       </td>
                       <td>{getSeverityBadge(log.severity)}</td>
@@ -635,10 +670,10 @@ const SymptomDetail = () => {
                       <div className="d-flex align-items-center">
                         <Calendar size={16} className="me-1 text-muted" />
                         <div>
-                          <div>{format(new Date(log.onset_time), 'MMM d, yyyy')}</div>
+                          <div>{formatConsistentDate(log.onset_time)}</div>
                           <div className="small text-muted">
                             <Clock size={14} className="me-1 d-inline" />
-                            {format(new Date(log.onset_time), 'h:mm a')}
+                            {formatTime(log.onset_time)}
                           </div>
                         </div>
                       </div>
