@@ -25,6 +25,7 @@ import LabPanelsTab from './PatientDashboard/LabPanels/LabPanelsTab';
 import ObservationDetail from './PatientDashboard/LabPanels/ObservationDetail';
 import HealthPrioritiesTab from './PatientDashboard/HealthPriorities/HealthPrioritiesTab';
 import HealthPriorityDetail from './PatientDashboard/HealthPriorities/HealthPriorityDetail';
+import SymptomsTab from './PatientDashboard/Symptoms/SymptomsTab';
 
 function PatientDashboard() {
   const location = useLocation();
@@ -144,6 +145,11 @@ function PatientDashboard() {
       return 'Back to Health Priorities';
     }
     
+    // Special case for symptoms detail or create
+    if (pathSegments.includes('symptoms') && pathSegments.length > 2) {
+      return 'Back to Symptoms';
+    }
+    
     // If we're in a detail view (has more than 2 segments after patient-dashboard)
     if (pathSegments.length > 2) {
       // Map the parent route to a friendly name
@@ -176,6 +182,12 @@ function PatientDashboard() {
       return;
     }
     
+    // Special case for symptoms routes
+    if (pathSegments.includes('symptoms') && pathSegments.length > 2) {
+      navigate('/patient-dashboard/symptoms');
+      return;
+    }
+    
     if (pathSegments.length > 2) {
       // Go back to the parent route
       navigate(`/patient-dashboard/${pathSegments[1]}`);
@@ -187,6 +199,12 @@ function PatientDashboard() {
 
   const NavigationMenu = () => (
     <div className="nav-menu">
+      <div 
+        className={`nav-item ${activeTab === "symptoms" ? "active" : ""}`} 
+        onClick={() => handleTabChange("symptoms")}
+      >
+        <Activity size={16} /> Symptoms
+      </div>
       <div 
         className={`nav-item ${activeTab === "health-priorities" ? "active" : ""}`} 
         onClick={() => handleTabChange("health-priorities")}
@@ -352,6 +370,7 @@ function PatientDashboard() {
               <Route path="health-priorities/:priorityId" element={
                 <HealthPriorityDetail focusAreas={patientData?.focus_areas || []} />
               } />
+              <Route path="symptoms/*" element={<SymptomsTab />} />
             </Routes>
           </div>
         </div>

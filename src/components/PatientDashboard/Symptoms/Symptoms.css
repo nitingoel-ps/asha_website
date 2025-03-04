@@ -1,0 +1,155 @@
+/* Symptom tracking styles */
+
+/* Symptom card styles */
+.symptom-card {
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  border-radius: 8px;
+  overflow: hidden;
+  position: relative;
+}
+
+.symptom-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+}
+
+/* Priority badge styling */
+.priority-badge {
+  font-size: 0.7rem;
+  vertical-align: middle;
+}
+
+/* Clickable card styles */
+.clickable-card {
+  cursor: pointer;
+}
+
+.clickable-card .card-overlay-hint {
+  position: absolute;
+  bottom: 10px;
+  right: 15px;
+  opacity: 0;
+  background-color: rgba(13, 110, 253, 0.9);
+  color: white;
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  transition: opacity 0.2s ease-in-out;
+}
+
+.clickable-card:hover .card-overlay-hint {
+  opacity: 1;
+}
+
+/* Edit button styles */
+.edit-button {
+  opacity: 0.6;
+  transition: opacity 0.2s ease-in-out, background-color 0.2s ease-in-out;
+  padding: 0.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.edit-button:hover {
+  opacity: 1;
+  background-color: #f0f0f0;
+}
+
+/* Add styles for delete button */
+.delete-button {
+  opacity: 0.6;
+  transition: opacity 0.2s ease-in-out, background-color 0.2s ease-in-out;
+  padding: 0.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.delete-button:hover {
+  opacity: 1;
+  background-color: #fff0f0; /* Light red background on hover */
+}
+
+.delete-button .lucide {
+  transition: transform 0.2s ease;
+}
+
+.delete-button:hover .lucide {
+  transform: scale(1.1);
+}
+
+/* Severity badge colors are handled by Bootstrap, but we can add some custom styling */
+.badge {
+  font-weight: 500;
+  padding: 0.35em 0.65em;
+  border-radius: 30px;
+}
+
+/* Log history table styles */
+.symptom-logs-table th {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.symptom-logs-table td {
+  vertical-align: middle;
+}
+
+/* Empty state styling */
+.empty-state-container {
+  padding: 3rem 1rem;
+  text-align: center;
+  border-radius: 8px;
+  background-color: #f8f9fa;
+}
+
+.empty-state-icon {
+  color: #6c757d;
+  margin-bottom: 1rem;
+}
+
+/* Form styling */
+.severity-selector .form-select {
+  border-width: 2px;
+}
+
+.severity-option-1 { color: #17a2b8; } /* Info - Very Mild */
+.severity-option-2 { color: #28a745; } /* Success - Mild */
+.severity-option-3 { color: #ffc107; } /* Warning - Moderate */
+.severity-option-4 { color: #dc3545; } /* Danger - Severe */
+.severity-option-5 { color: #dc3545; font-weight: bold; } /* Danger bold - Very Severe */
+
+/* Detail page header */
+.symptom-detail-header {
+  padding-bottom: 1rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid #dee2e6;
+}
+
+/* Stats cards */
+.stats-card {
+  background-color: #f8f9fa;
+  border: none;
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+/* Back button */
+.back-button {
+  display: inline-flex;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+/* Mobile specific styles */
+@media (max-width: 768px) {
+  .symptom-card {
+    margin-bottom: 1rem;
+  }
+  
+  .symptom-logs-table {
+    font-size: 0.9rem;
+  }
+}
