@@ -97,6 +97,21 @@
   vertical-align: middle;
 }
 
+/* Add styles for the symptom logs header */
+.symptom-logs-header {
+  border-left: 4px solid #198754;
+  background-color: #f8f9fa;
+}
+
+.symptom-logs-header h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.symptom-logs-header .card-body {
+  padding: 1rem;
+}
+
 /* Empty state styling */
 .empty-state-container {
   padding: 3rem 1rem;

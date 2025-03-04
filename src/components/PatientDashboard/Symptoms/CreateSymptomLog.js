@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Form, Button, Alert, Row, Col, Spinner, Badge } from 'react-bootstrap';
-import { ArrowLeft, Save, MapPin, Flag } from 'lucide-react';
+import { ArrowLeft, Save, MapPin } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import axiosInstance from '../../../utils/axiosInstance';
 import { format } from 'date-fns';
@@ -91,27 +91,6 @@ const CreateSymptomLog = () => {
     }
   };
 
-  // Add a new function to render priority level badge
-  const getPriorityDisplay = (priority) => {
-    if (!priority) return null;
-    
-    let priorityText;
-    let variant;
-    
-    if (priority <= 3) {
-      priorityText = "High Priority";
-      variant = "danger";
-    } else if (priority <= 6) {
-      priorityText = "Medium Priority";
-      variant = "warning";
-    } else {
-      priorityText = "Low Priority";
-      variant = "info";
-    }
-    
-    return <Badge bg={variant} className="priority-badge">{priorityText}</Badge>;
-  };
-
   if (loading) {
     return (
       <div className="text-center my-5">
@@ -154,11 +133,6 @@ const CreateSymptomLog = () => {
               <div>
                 <h3 className="mb-1 d-flex align-items-center">
                   {symptom.name}
-                  {symptom.priority_order && symptom.priority_order <= 3 && (
-                    <Badge bg="danger" pill className="ms-2 priority-badge">
-                      High Priority
-                    </Badge>
-                  )}
                 </h3>
                 {symptom.body_location && (
                   <div className="text-muted d-flex align-items-center mb-2">
@@ -169,14 +143,6 @@ const CreateSymptomLog = () => {
                   <p className="text-muted mb-0">{symptom.description}</p>
                 )}
               </div>
-              {symptom.priority_order && (
-                <div className="ms-3">
-                  <div className="d-flex align-items-center">
-                    <Flag size={16} className="me-1 text-primary" />
-                    <span>Priority: {symptom.priority_order}/10</span>
-                  </div>
-                </div>
-              )}
             </div>
           </Card.Body>
         </Card>

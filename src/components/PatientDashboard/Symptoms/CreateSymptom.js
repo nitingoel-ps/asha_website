@@ -128,7 +128,7 @@ const CreateSymptom = ({ onSuccess }) => {
               </Col>
               <Col md={6}>
                 <Form.Group className="mb-3">
-                  <Form.Label>Priority (1=Highest, 10=Lowest)</Form.Label>
+                  <Form.Label>Priority (for sorting)</Form.Label>
                   <Form.Select
                     name="priority_order"
                     value={formData.priority_order}
@@ -136,12 +136,12 @@ const CreateSymptom = ({ onSuccess }) => {
                   >
                     {priorityValues.map(value => (
                       <option key={value} value={value}>
-                        {value} {value <= 3 ? '- High' : value >= 8 ? '- Low' : ''}
+                        {value} {value === 1 ? '(Highest)' : value === 10 ? '(Lowest)' : ''}
                       </option>
                     ))}
                   </Form.Select>
                   <Form.Text className="text-muted">
-                    Higher priority symptoms will be highlighted for attention
+                    Higher priority symptoms will appear first in lists
                   </Form.Text>
                 </Form.Group>
               </Col>

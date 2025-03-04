@@ -6,11 +6,33 @@ import {
 } from 'react-bootstrap';
 import { 
   Plus, ArrowLeft, Calendar, Clock, AlertTriangle, 
-  Edit2, Trash2, Info, MapPin, Flag 
+  Edit2, Trash2, Info, MapPin, FileText
 } from 'lucide-react';
 import axiosInstance from '../../../utils/axiosInstance';
-import { format, formatDistanceToNow } from 'date-fns';
+import { format, formatDistanceToNow, parseISO } from 'date-fns';
 import './Symptoms.css';
+import { Line } from 'react-chartjs-2';
+import { 
+  Chart as ChartJS, 
+  CategoryScale, 
+  LinearScale, 
+  PointElement, 
+  LineElement, 
+  Title, 
+  Tooltip, 
+  Legend 
+} from 'chart.js';
+
+// Register Chart.js components
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
 const SymptomDetail = () => {
   const { symptomId } = useParams();
@@ -31,22 +53,29 @@ const SymptomDetail = () => {
   });
 
   useEffect(() => {
+    console.log("SymptomDetail - Initial symptomId:", symptomId);
     fetchSymptomDetails();
     fetchSymptomLogs();
   }, [symptomId]);
 
   const fetchSymptomDetails = async () => {
     try {
+      console.log("SymptomDetail - Fetching details for symptomId:", symptomId);
+      // Fix: The URL has a typo, should be /symptoms/ (plural) not /symptom/ (singular)
       const response = await axiosInstance.get(`/symptoms/${symptomId}/`);
       console.log('Symptom Detail API Response:', response.data);
       
-      // Handle direct response or nested response
-      const symptomData = response.data.symptoms?.[0] || response.data;
+      // Fix: The API returns { "symptom": { ... } } not "symptoms"
+      const symptomData = response.data.symptom || response.data;
+      
+      console.log('SymptomDetail - Parsed symptom data:', symptomData);
       
       if (symptomData) {
         setSymptom(symptomData);
+        console.log('SymptomDetail - Set symptom state to:', symptomData);
       } else {
         setError('Symptom not found');
+        console.error('Symptom not found in response');
       }
     } catch (err) {
       console.error('Error fetching symptom details:', err);
@@ -136,28 +165,94 @@ const SymptomDetail = () => {
     navigate(`/patient-dashboard/symptoms/${symptomId}/log`);
   };
 
-  // Add this function to render priority level
-  const getPriorityDisplay = (priority) => {
-    if (!priority) return null;
+  // Add a useEffect to log whenever symptom state changes
+  useEffect(() => {
+    console.log('SymptomDetail - Symptom state updated:', symptom);
+  }, [symptom]);
+
+  const prepareChartData = (logsData) => {
+    // Sort logs by date (oldest to newest)
+    const sortedLogs = [...logsData].sort(
+      (a, b) => new Date(a.onset_time) - new Date(b.onset_time)
+    );
     
-    let priorityText;
-    let variant;
+    // Extract dates and severity values
+    const labels = sortedLogs.map(log => format(new Date(log.onset_time), 'MMM d'));
+    const data = sortedLogs.map(log => log.severity);
     
-    if (priority <= 3) {
-      priorityText = "High Priority";
-      variant = "danger";
-    } else if (priority <= 6) {
-      priorityText = "Medium Priority";
-      variant = "warning";
-    } else {
-      priorityText = "Low Priority";
-      variant = "info";
+    return {
+      labels,
+      datasets: [
+        {
+          label: 'Severity',
+          data,
+          fill: false,
+          backgroundColor: 'rgb(75, 192, 192)',
+          borderColor: 'rgba(75, 192, 192, 0.6)',
+          tension: 0.2,
+          pointRadius: 5,
+          pointHoverRadius: 7,
+        }
+      ]
+    };
+  };
+  
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: {
+      y: {
+        beginAtZero: true,
+        max: 5,
+        ticks: {
+          stepSize: 1,
+          callback: function(value) {
+            const severityLabels = {
+              1: "Very Mild",
+              2: "Mild", 
+              3: "Moderate", 
+              4: "Severe", 
+              5: "Very Severe"
+            };
+            return value + (value in severityLabels ? ` (${severityLabels[value]})` : '');
+          }
+        },
+        title: {
+          display: true,
+          text: 'Severity Level'
+        }
+      },
+      x: {
+        title: {
+          display: true,
+          text: 'Date'
+        }
+      }
+    },
+    plugins: {
+      legend: {
+        display: false
+      },
+      tooltip: {
+        callbacks: {
+          label: function(context) {
+            const severityLabels = {
+              1: "Very Mild",
+              2: "Mild", 
+              3: "Moderate", 
+              4: "Severe", 
+              5: "Very Severe"
+            };
+            const severity = context.raw;
+            return `Severity: ${severity} - ${severityLabels[severity] || ''}`;
+          }
+        }
+      }
     }
-    
-    return <Badge bg={variant} className="priority-badge">{priorityText}</Badge>;
   };
 
   if (loading) {
+    console.log('SymptomDetail - Rendering loading state');
     return (
       <div className="text-center my-5">
         <Spinner animation="border" />
@@ -167,6 +262,7 @@ const SymptomDetail = () => {
   }
 
   if (error) {
+    console.log('SymptomDetail - Rendering error state:', error);
     return (
       <Alert variant="danger" className="my-4">
         {error}
@@ -175,12 +271,19 @@ const SymptomDetail = () => {
   }
 
   if (!symptom) {
+    console.log('SymptomDetail - Symptom is null or undefined');
     return (
       <Alert variant="warning" className="my-4">
         Symptom not found
       </Alert>
     );
   }
+
+  // Log all the properties of the symptom object for debugging
+  console.log('SymptomDetail - Symptom object properties:', Object.keys(symptom));
+  console.log('SymptomDetail - Symptom name:', symptom.name);
+  console.log('SymptomDetail - Symptom body_location:', symptom.body_location);
+  console.log('SymptomDetail - Symptom priority_order:', symptom.priority_order);
 
   const getSeverityBadge = (severity) => {
     let variant;
@@ -205,95 +308,83 @@ const SymptomDetail = () => {
 
   return (
     <div>
-      <div className="d-flex align-items-center mb-4 symptom-detail-header">
-        <Button 
-          variant="outline-secondary" 
-          className="me-3 back-button"
-          onClick={() => navigate('/patient-dashboard/symptoms')}
-        >
-          <ArrowLeft size={16} />
-        </Button>
-        <div>
-          <h2 className="mb-0 d-flex align-items-center">
-            {symptom.name}
-            {symptom.priority_order && symptom.priority_order <= 3 && (
-              <Badge bg="danger" pill className="ms-2 priority-badge">
-                High Priority
-              </Badge>
-            )}
+      <div className="d-flex flex-column mb-4 symptom-detail-header">
+        <div className="d-flex align-items-center mb-2">
+          <Button 
+            variant="outline-secondary" 
+            className="me-3 back-button"
+            onClick={() => navigate('/patient-dashboard/symptoms')}
+          >
+            <ArrowLeft size={16} />
+          </Button>
+          <h2 className="mb-0">
+            {symptom.name ? symptom.name : '[No Name Available]'}
           </h2>
+        </div>
+        
+        <div className="d-flex flex-wrap align-items-center mt-2">
           {symptom.body_location && (
-            <div className="text-muted mt-1 d-flex align-items-center">
-              <MapPin size={14} className="me-1" /> {symptom.body_location}
-            </div>
+            <span className="me-3 d-flex align-items-center text-muted">
+              <MapPin size={16} className="me-1" /> {symptom.body_location}
+            </span>
+          )}
+          {symptom.common_triggers && (
+            <span className="me-3 text-muted">
+              <strong>Common triggers:</strong> {symptom.common_triggers}
+            </span>
           )}
         </div>
+        
+        {symptom.description && (
+          <div className="mt-2">
+            <p className="mb-0">{symptom.description}</p>
+          </div>
+        )}
       </div>
 
+      {/* Chart Card */}
       <Card className="mb-4">
         <Card.Body>
-          <Row>
-            <Col md={6}>
-              {symptom.description && (
-                <div className="mb-3">
-                  <h5>Description</h5>
-                  <p>{symptom.description}</p>
-                </div>
-              )}
-
-              {symptom.body_location && (
-                <div className="mb-3">
-                  <h5>Body Location</h5>
-                  <p className="d-flex align-items-center">
-                    <MapPin size={16} className="me-1 text-primary" /> 
-                    {symptom.body_location}
-                  </p>
-                </div>
-              )}
-              
-              {symptom.priority_order && (
-                <div className="mb-3">
-                  <h5>Priority Level</h5>
-                  <p className="d-flex align-items-center">
-                    <Flag size={16} className="me-1 text-primary" /> 
-                    Level {symptom.priority_order}/10 
-                    {" "}
-                    {getPriorityDisplay(symptom.priority_order)}
-                  </p>
-                </div>
-              )}
-            </Col>
-            <Col md={6}>
-              {symptom.common_triggers && (
-                <div className="mb-3">
-                  <h5>Common Triggers</h5>
-                  <p>{symptom.common_triggers}</p>
-                </div>
-              )}
-
-              <div className="stats-card p-3 rounded">
-                <h5>Statistics</h5>
-                <p>Total logged episodes: {logs.length}</p>
-                {logs.length > 0 && (
-                  <p>
-                    Average severity: {
-                      (logs.reduce((sum, log) => sum + log.severity, 0) / logs.length).toFixed(1)
-                    }
-                  </p>
-                )}
-              </div>
-            </Col>
-          </Row>
+          <h5 className="mb-3">Severity Over Time</h5>
+          {logs.length >= 2 ? (
+            <div style={{ height: '300px' }}>
+              <Line 
+                data={prepareChartData(logs)} 
+                options={chartOptions}
+              />
+            </div>
+          ) : (
+            <div className="text-center p-4">
+              <p className="text-muted">
+                {logs.length === 0 
+                  ? "No data available to display chart." 
+                  : "Need at least two log entries to display a chart."}
+              </p>
+            </div>
+          )}
         </Card.Body>
       </Card>
 
-      <div className="d-flex justify-content-between align-items-center mb-3">
-        <h3>Symptom History</h3>
-        <Button variant="primary" onClick={handleNewLogEntry}>
-          <Plus size={16} className="me-1" />
-          Log New Episode
-        </Button>
-      </div>
+      {/* Add a prominent section header for the logs */}
+      <Card className="mb-4 symptom-logs-header">
+        <Card.Body className="d-flex justify-content-between align-items-center">
+          <div className="d-flex align-items-center">
+            <FileText size={24} className="text-primary me-2" />
+            <div>
+              <h3 className="mb-0">{symptom.name} History</h3>
+              <p className="text-muted mb-0">
+                {logs.length > 0 
+                  ? `${logs.length} episode${logs.length !== 1 ? 's' : ''} recorded` 
+                  : 'No episodes recorded yet'}
+              </p>
+            </div>
+          </div>
+          <Button variant="primary" onClick={handleNewLogEntry}>
+            <Plus size={16} className="me-1" />
+            Log New Episode
+          </Button>
+        </Card.Body>
+      </Card>
 
       {logs.length === 0 ? (
         <Card className="text-center p-4 empty-state-container">

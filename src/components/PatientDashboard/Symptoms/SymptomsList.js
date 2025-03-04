@@ -216,11 +216,6 @@ const SymptomsList = ({ symptoms = [], onRefresh }) => {
                       <div className="d-flex justify-content-between align-items-start">
                         <Card.Title className="mb-2">
                           {symptom.name}
-                          {symptom.priority_order && symptom.priority_order <= 3 && (
-                            <Badge bg="danger" pill className="ms-2 priority-badge">
-                              High Priority
-                            </Badge>
-                          )}
                         </Card.Title>
                         <div className="d-flex align-items-center">
                           {symptom.latest_log && (
@@ -325,7 +320,7 @@ const SymptomsList = ({ symptoms = [], onRefresh }) => {
               </Col>
               <Col md={6}>
                 <Form.Group className="mb-3">
-                  <Form.Label>Priority (1=Highest, 10=Lowest)</Form.Label>
+                  <Form.Label>Priority (for sorting)</Form.Label>
                   <Form.Select
                     name="priority_order"
                     value={formData.priority_order}
@@ -333,12 +328,12 @@ const SymptomsList = ({ symptoms = [], onRefresh }) => {
                   >
                     {priorityValues.map(value => (
                       <option key={value} value={value}>
-                        {value} {value <= 3 ? '- High' : value >= 8 ? '- Low' : ''}
+                        {value} {value === 1 ? '(Highest)' : value === 10 ? '(Lowest)' : ''}
                       </option>
                     ))}
                   </Form.Select>
                   <Form.Text className="text-muted">
-                    Higher priority symptoms will be highlighted for attention
+                    Higher priority symptoms will appear first in lists
                   </Form.Text>
                 </Form.Group>
               </Col>
