@@ -319,6 +319,24 @@ const HealthPriorityDetail = ({ focusAreas = [] }) => {
     }
   };
 
+  // Function to get the display name for action types
+  const getActionTypeDisplayName = (actionType) => {
+    if (!actionType) return 'Other';
+    
+    const actionTypeMap = {
+      'test': 'Lab or other Test',
+      'lifestyle': 'Lifestyle Change',
+      'discussion': 'Discussion Topic with provider',
+      'monitor': 'Ongoing Monitoring',
+      'followup': 'Follow Up',
+      'research': 'Research Topic',
+      'medication': 'Medication',
+      'other': 'Other'
+    };
+    
+    return actionTypeMap[actionType.toLowerCase()] || actionType;
+  };
+
   // New ActionItemCard component that includes status badge and chat button
   const ActionItemCard = ({ action }) => {
     const navigate = useNavigate();
@@ -363,24 +381,16 @@ Action item description: ${action.description}`;
                     onClick={handleChatClick}
                     title="Discuss this with AI assistant"
                   >
-                    {/* We're using the already imported MessageCircle */}
-                    <MessageSquareMore size={18} />
+                    <MessageSquareMore size={24} />
                   </Button>
                   <Badge bg={getBadgeVariant(action.status)}>{action.status}</Badge>
                 </div>
               </div>
               <p>{action.description}</p>
               <div className="action-meta">
-                {getPriorityText(action.priority) && (
-                  <span className="action-priority">
-                    Priority: <strong>{getPriorityText(action.priority)}</strong>
-                  </span>
-                )}
-                {action.due_date && (
-                  <span className="action-due-date">
-                    Due by: <strong>{new Date(action.due_date).toLocaleDateString()}</strong>
-                  </span>
-                )}
+                <span className="action-type">
+                  {getActionTypeDisplayName(action.action_type)}
+                </span>
               </div>
             </div>
           </div>
@@ -402,10 +412,6 @@ Action item description: ${action.description}`;
           <Card.Text>
             {focusArea.description || focusArea.short_description}
           </Card.Text>
-          
-          <div className="mb-3">
-            <strong>Importance Score:</strong> {focusArea.importance_score}/10
-          </div>
           
           {hasEvidence && (
             <div className="mt-3">

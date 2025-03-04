@@ -26,11 +26,6 @@ const FocusAreaCard = ({ focusArea, onClick }) => {
         <Card.Text className="focus-area-description">
           {focusArea.short_description}
         </Card.Text>
-        <div className="mt-2">
-          <small className="text-muted">
-            Importance: {focusArea.importance_score}/10
-          </small>
-        </div>
       </Card.Body>
     </Card>
   );

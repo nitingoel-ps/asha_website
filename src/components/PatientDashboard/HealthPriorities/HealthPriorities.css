@@ -413,7 +413,7 @@
 }
 
 .health-priority-detail .action-items-header h4 {
-  margin: 0 !important;
+  margin-left: 0.5rem !important;
   font-size: 1.1rem !important; /* Slightly smaller font size */
   line-height: 1.2 !important; /* Tighter line height */
 }
