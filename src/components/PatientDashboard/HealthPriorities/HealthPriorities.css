@@ -519,6 +519,22 @@
   .scroll-spacer {
     height: 80px !important; /* Increase to 80px on mobile */
   }
+
+  /* Bigger action buttons on mobile */
+  .action-buttons {
+    gap: 0.5rem; /* Increase spacing between buttons */
+  }
+  
+  .action-button {
+    width: 40px; /* Larger touch target */
+    height: 40px; /* Larger touch target */
+    background-color: rgba(13, 110, 253, 0.05); /* Subtle background to show tappable area */
+  }
+  
+  .action-button svg {
+    width: 22px; /* Larger icons */
+    height: 22px; /* Larger icons */
+  }
 }
 
 @media (max-width: 480px) {
@@ -574,6 +590,30 @@
     min-height: 100% !important;
     height: auto !important;
     overflow: visible !important;
+  }
+  
+  /* Adjust action buttons for small mobile devices */
+  .action-buttons-container {
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+  }
+  
+  .action-buttons-label {
+    font-size: 0.8rem;
+  }
+  
+  .action-buttons {
+    gap: 0.75rem; /* Even more spacing on small screens */
+  }
+  
+  .action-button {
+    width: 44px; /* Even larger touch target */
+    height: 44px; /* Even larger touch target */
+  }
+  
+  .action-button svg {
+    width: 24px; /* Even larger icons */
+    height: 24px; /* Even larger icons */
   }
 }
 
@@ -719,4 +759,54 @@
   display: block;
   width: 100%;
   clear: both;
+}
+
+/* Adjust action button sizes for mobile devices */
+
+/* Increase action button size and spacing for mobile */
+@media (max-width: 768px) {
+  /* ...existing code... */
+  
+  /* Bigger action buttons on mobile */
+  .action-buttons {
+    gap: 0.5rem; /* Increase spacing between buttons */
+  }
+  
+  .action-button {
+    width: 40px; /* Larger touch target */
+    height: 40px; /* Larger touch target */
+    background-color: rgba(13, 110, 253, 0.05); /* Subtle background to show tappable area */
+  }
+  
+  .action-button svg {
+    width: 22px; /* Larger icons */
+    height: 22px; /* Larger icons */
+  }
+}
+
+/* Even bigger for smaller screens */
+@media (max-width: 576px) {
+  /* Adjust action buttons for small mobile devices */
+  .action-buttons-container {
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+  }
+  
+  .action-buttons-label {
+    font-size: 0.8rem;
+  }
+  
+  .action-buttons {
+    gap: 0.75rem; /* Even more spacing on small screens */
+  }
+  
+  .action-button {
+    width: 44px; /* Even larger touch target */
+    height: 44px; /* Even larger touch target */
+  }
+  
+  .action-button svg {
+    width: 24px; /* Even larger icons */
+    height: 24px; /* Even larger icons */
+  }
 }
