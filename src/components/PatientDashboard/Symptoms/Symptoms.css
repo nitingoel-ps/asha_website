@@ -136,6 +136,271 @@
 .severity-option-4 { color: #dc3545; } /* Danger - Severe */
 .severity-option-5 { color: #dc3545; font-weight: bold; } /* Danger bold - Very Severe */
 
+/* Enhanced severity selector */
+.severity-options-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.severity-option {
+  display: flex;
+  padding: 10px 15px;
+  border-radius: 8px;
+  border: 1px solid #dee2e6;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background-color: #fff;
+}
+
+.severity-option:hover {
+  background-color: #f8f9fa;
+  border-color: #ced4da;
+}
+
+.severity-option.selected {
+  background-color: #f0f9ff;
+  border-color: #0d6efd;
+  box-shadow: 0 0 0 1px #0d6efd;
+}
+
+.severity-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  color: white;
+  font-weight: bold;
+  margin-right: 15px;
+  flex-shrink: 0;
+}
+
+.severity-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.severity-label {
+  font-weight: 500;
+  font-size: 1rem;
+}
+
+.severity-description {
+  color: #6c757d;
+  font-size: 0.85rem;
+}
+
+/* Severity color classes */
+.bg-info {
+  background-color: #17a2b8;
+}
+
+.bg-success {
+  background-color: #28a745;
+}
+
+.bg-warning {
+  background-color: #ffc107;
+  color: #212529;
+}
+
+.bg-danger {
+  background-color: #dc3545;
+}
+
+.bg-danger-dark {
+  background-color: #c82333;
+}
+
+/* Severity visual scale */
+.severity-slider-container {
+  margin-bottom: 20px;
+  padding: 0 5px;
+  display: none;  /* Hidden by default, will be shown on larger screens */
+}
+
+.severity-scale {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 10px;
+  background: linear-gradient(to right, #17a2b8, #28a745, #ffc107, #dc3545, #c82333);
+  border-radius: 5px;
+  margin: 0 10px;
+  position: relative;
+}
+
+.severity-item {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+  position: relative;
+  top: -10px;
+  transform: translateX(-15px);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 2px solid white;
+}
+
+.severity-item.info { background-color: #17a2b8; left: 0%; }
+.severity-item.success { background-color: #28a745; left: 25%; }
+.severity-item.warning { background-color: #ffc107; color: #212529; left: 50%; }
+.severity-item.danger { background-color: #dc3545; left: 75%; }
+.severity-item.danger-dark { background-color: #c82333; left: 100%; }
+
+.severity-item.active {
+  transform: translateX(-15px) scale(1.2);
+  box-shadow: 0 0 0 2px #fff, 0 0 0 4px rgba(13, 110, 253, 0.3);
+}
+
+/* Show slider on larger screens only */
+@media (min-width: 768px) {
+  .severity-slider-container {
+    display: block;
+  }
+}
+
+/* New single-row severity slider */
+.severity-range-container {
+  padding: 10px 0 0;
+  position: relative;
+  margin-bottom: 20px;
+}
+
+.severity-slider-bar {
+  position: relative;
+  height: 10px;
+  background: linear-gradient(to right, #17a2b8, #28a745, #ffc107, #dc3545, #c82333);
+  border-radius: 5px;
+  margin: 25px 10px 15px;
+  cursor: pointer;
+}
+
+.severity-marker {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  top: -15px;
+  transform: translateX(-20px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.severity-marker:hover {
+  transform: translateX(-20px) scale(1.1);
+}
+
+.severity-marker.active {
+  transform: translateX(-20px) scale(1.2);
+}
+
+.severity-dot {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid white;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+.severity-value {
+  font-weight: bold;
+  margin-top: 5px;
+  font-size: 14px;
+}
+
+.severity-tooltip {
+  position: absolute;
+  bottom: 100%;
+  padding: 4px 8px;
+  background-color: #343a40;
+  color: white;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: bold;
+  white-space: nowrap;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.2s, transform 0.2s;
+  pointer-events: none;
+}
+
+.severity-marker:hover .severity-tooltip {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.severity-labels-container {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 10px;
+  margin-top: 5px;
+}
+
+.severity-label-mild, .severity-label-severe {
+  font-size: 12px;
+  color: #6c757d;
+}
+
+/* Selected severity box */
+.selected-severity-details {
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  color: white;
+  text-align: center;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  transition: all 0.3s ease;
+}
+
+.selected-severity-label {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.selected-severity-description {
+  margin-top: 5px;
+  opacity: 0.9;
+}
+
+/* Color variations for selected severity */
+.bg-info {
+  background-color: #17a2b8;
+}
+
+.bg-success {
+  background-color: #28a745;
+}
+
+.bg-warning {
+  background-color: #ffc107;
+  color: #212529;
+}
+
+.bg-danger {
+  background-color: #dc3545;
+}
+
+.bg-danger-dark {
+  background-color: #c82333;
+}
+
+/* Make sure white text is visible on warning */
+.bg-warning .selected-severity-label,
+.bg-warning .selected-severity-description {
+  color: #212529;
+}
+
 /* Detail page header */
 .symptom-detail-header {
   padding-bottom: 1rem;

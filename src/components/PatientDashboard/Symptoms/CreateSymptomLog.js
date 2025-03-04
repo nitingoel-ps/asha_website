@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Form, Button, Alert, Row, Col, Spinner, Badge } from 'react-bootstrap';
+import { Card, Form, Button, Alert, Row, Col, Spinner } from 'react-bootstrap';
 import { ArrowLeft, Save, MapPin } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import axiosInstance from '../../../utils/axiosInstance';
@@ -23,6 +23,14 @@ const CreateSymptomLog = () => {
     triggers: '',
     notes: ''
   });
+
+  const severityOptions = [
+    { value: 1, label: "Very Mild", description: "Barely noticeable", color: "info" },
+    { value: 2, label: "Mild", description: "Noticeable but manageable", color: "success" },
+    { value: 3, label: "Moderate", description: "Affects daily activities", color: "warning" },
+    { value: 4, label: "Severe", description: "Significantly limiting", color: "danger" },
+    { value: 5, label: "Very Severe", description: "Debilitating", color: "danger-dark" }
+  ];
 
   useEffect(() => {
     fetchSymptomDetails();
@@ -56,6 +64,29 @@ const CreateSymptomLog = () => {
       ...formData,
       [name]: value
     });
+  };
+
+  const handleSeveritySelect = (severity) => {
+    setFormData({
+      ...formData,
+      severity: severity
+    });
+  };
+  
+  // New function to handle slider clicks
+  const handleSliderClick = (e) => {
+    const sliderBar = e.currentTarget;
+    const rect = sliderBar.getBoundingClientRect();
+    const x = e.clientX - rect.left; // x position within the element
+    const width = rect.width;
+    const clickRatio = x / width;
+    
+    // Calculate severity based on where user clicked (1-5)
+    let newSeverity = Math.ceil(clickRatio * 5);
+    if (newSeverity < 1) newSeverity = 1;
+    if (newSeverity > 5) newSeverity = 5;
+    
+    handleSeveritySelect(newSeverity);
   };
 
   const handleSubmit = async (e) => {
@@ -110,7 +141,7 @@ const CreateSymptomLog = () => {
 
   return (
     <div>
-      <div className="d-flex align-items-center mb-2 symptom-detail-header">
+      <div className="d-flex align-items-center mb-4 symptom-detail-header">
         <Button 
           variant="outline-secondary" 
           className="me-3 back-button"
@@ -119,34 +150,21 @@ const CreateSymptomLog = () => {
           <ArrowLeft size={16} />
         </Button>
         <div>
-          <h2 className="mb-0 d-flex align-items-center">
-            Log New Episode
-          </h2>
+          <h2 className="mb-0">Log New Episode</h2>
+          {symptom && (
+            <p className="text-muted mb-0 mt-1">
+              <span className="d-flex align-items-center">
+                <strong>{symptom.name}</strong>
+                {symptom.body_location && (
+                  <span className="ms-2 d-flex align-items-center">
+                    <MapPin size={14} className="me-1" /> {symptom.body_location}
+                  </span>
+                )}
+              </span>
+            </p>
+          )}
         </div>
       </div>
-
-      {/* Add symptom information card at the top */}
-      {symptom && !error && !loading && (
-        <Card className="mb-4 symptom-info-card">
-          <Card.Body>
-            <div className="d-flex justify-content-between align-items-start">
-              <div>
-                <h3 className="mb-1 d-flex align-items-center">
-                  {symptom.name}
-                </h3>
-                {symptom.body_location && (
-                  <div className="text-muted d-flex align-items-center mb-2">
-                    <MapPin size={14} className="me-1" /> {symptom.body_location}
-                  </div>
-                )}
-                {symptom.description && (
-                  <p className="text-muted mb-0">{symptom.description}</p>
-                )}
-              </div>
-            </div>
-          </Card.Body>
-        </Card>
-      )}
 
       {error && (
         <Alert variant="danger" className="mb-4">
@@ -157,21 +175,58 @@ const CreateSymptomLog = () => {
       <Card>
         <Card.Body>
           <Form noValidate validated={validated} onSubmit={handleSubmit}>
-            <Form.Group className="mb-4 severity-selector">
+            {/* Improved Single-Row Severity Selector */}
+            <Form.Group className="mb-4">
               <Form.Label>How severe is this symptom?*</Form.Label>
-              <Form.Select
-                name="severity"
+              
+              <div className="severity-range-container mb-3">
+                <div 
+                  className="severity-slider-bar"
+                  onClick={handleSliderClick}
+                >
+                  {severityOptions.map((option) => (
+                    <div 
+                      key={option.value}
+                      className={`severity-marker ${parseInt(formData.severity) === option.value ? 'active' : ''}`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleSeveritySelect(option.value);
+                      }}
+                      style={{ left: `${(option.value - 1) * 25}%` }}
+                    >
+                      <div className={`severity-dot bg-${option.color}`}></div>
+                      <div className="severity-value">{option.value}</div>
+                      <div className="severity-tooltip">{option.label}</div>
+                    </div>
+                  ))}
+                </div>
+                
+                <div className="severity-labels-container">
+                  <div className="severity-label-mild">Very Mild</div>
+                  <div className="severity-label-severe">Very Severe</div>
+                </div>
+              </div>
+
+              {/* Active Severity Details */}
+              {formData.severity && (
+                <div className={`selected-severity-details bg-${severityOptions.find(opt => opt.value === parseInt(formData.severity))?.color || 'secondary'}`}>
+                  <div className="selected-severity-label">
+                    {severityOptions.find(opt => opt.value === parseInt(formData.severity))?.label}
+                  </div>
+                  <div className="selected-severity-description">
+                    {severityOptions.find(opt => opt.value === parseInt(formData.severity))?.description}
+                  </div>
+                </div>
+              )}
+              
+              {/* Hidden input for form validation */}
+              <Form.Control 
+                type="hidden" 
+                name="severity" 
                 value={formData.severity}
-                onChange={handleInputChange}
                 required
-              >
-                <option value="">Select severity</option>
-                <option value="1" className="severity-option-1">1 - Very Mild (Barely noticeable)</option>
-                <option value="2" className="severity-option-2">2 - Mild (Noticeable but manageable)</option>
-                <option value="3" className="severity-option-3">3 - Moderate (Affects daily activities)</option>
-                <option value="4" className="severity-option-4">4 - Severe (Significantly limiting)</option>
-                <option value="5" className="severity-option-5">5 - Very Severe (Debilitating)</option>
-              </Form.Select>
+                isInvalid={validated && !formData.severity}
+              />
               <Form.Control.Feedback type="invalid">
                 Please select the severity level.
               </Form.Control.Feedback>
