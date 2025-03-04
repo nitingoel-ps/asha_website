@@ -549,3 +549,28 @@
 .evidence-references {
   margin-left: 1rem;
 }
+
+/* Update styles for chat button - remove border and enhance hover effect */
+.action-chat-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+  border: none; /* Remove the border */
+  color: #0d6efd; /* Set initial color to match primary theme */
+  background: transparent; /* Make background transparent */
+}
+
+.action-chat-button:hover {
+  background-color: rgba(13, 110, 253, 0.1); /* Subtle background on hover */
+  color: #0a58ca; /* Slightly darker blue on hover */
+  transform: scale(1.1); /* Slight grow effect on hover */
+}
+
+.action-chat-button:focus {
+  box-shadow: none; /* Remove focus outline */
+}

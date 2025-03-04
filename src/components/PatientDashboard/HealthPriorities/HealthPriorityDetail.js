@@ -1,9 +1,10 @@
 import React, { useMemo, useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Card, Badge, Container, Row, Col, Alert, Tabs, Tab } from 'react-bootstrap';
+import { Card, Badge, Container, Row, Col, Alert, Tabs, Tab, Button } from 'react-bootstrap';
 import { 
   FlaskConical, 
-  MessageCircle, 
+  MessageSquareMore, 
+  MessageCircle,
   Activity, 
   Pill, 
   CalendarCheck, 
@@ -11,6 +12,7 @@ import {
   Heart,
   ChevronDown,
   ChevronUp
+  // Remove the duplicate MessageCircle import since it's already included above
 } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronDown, faChevronUp } from '@fortawesome/free-solid-svg-icons';
@@ -307,6 +309,82 @@ const HealthPriorityDetail = ({ focusAreas = [] }) => {
     );
   }
 
+  const getBadgeVariant = (status) => {
+    switch (status.toLowerCase()) {
+      case 'active': return 'success';
+      case 'suggested': return 'warning';
+      case 'completed': return 'secondary';
+      case 'dismissed': return 'danger';
+      default: return 'info';
+    }
+  };
+
+  // New ActionItemCard component that includes status badge and chat button
+  const ActionItemCard = ({ action }) => {
+    const navigate = useNavigate();
+
+    const handleChatClick = (e) => {
+      e.stopPropagation(); // Prevent triggering parent card click events
+      
+      // Create an initial message with context from both the focus area and the action
+      const initialMessage = `I want understand and learn more about a recommended action item suggested to me by AI for a specific health focus area.
+      
+Focus area title: "${focusArea.title}"
+Action item title: "${action.title}"
+Action item description: ${action.description}`;
+      
+      // Navigate to AI chat with the message as state
+      navigate('/ai-chat', { 
+        state: { 
+          initialMessage 
+        }
+      });
+    };
+
+    return (
+      <Card className="mb-3 action-item-card">
+        <Card.Body>
+          <div className="d-flex">
+            <div className="action-icon-container">
+              <ActionIcon actionType={action.action_type} />
+            </div>
+            <div className="flex-grow-1">
+              <div className="d-flex justify-content-between align-items-start mb-2">
+                <h5 className="mb-0">{action.title}</h5>
+                <div className="d-flex align-items-center">
+                  <Button 
+                    variant="link"
+                    size="sm"
+                    className="action-chat-button me-2"
+                    onClick={handleChatClick}
+                    title="Discuss this with AI assistant"
+                  >
+                    {/* We're using the already imported MessageCircle */}
+                    <MessageSquareMore size={18} />
+                  </Button>
+                  <Badge bg={getBadgeVariant(action.status)}>{action.status}</Badge>
+                </div>
+              </div>
+              <p>{action.description}</p>
+              <div className="action-meta">
+                {getPriorityText(action.priority) && (
+                  <span className="action-priority">
+                    Priority: <strong>{getPriorityText(action.priority)}</strong>
+                  </span>
+                )}
+                {action.due_date && (
+                  <span className="action-due-date">
+                    Due by: <strong>{new Date(action.due_date).toLocaleDateString()}</strong>
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+        </Card.Body>
+      </Card>
+    );
+  };
+
   return (
     <Container className="health-priority-detail pb-4">
       
@@ -449,50 +527,6 @@ const HealthPriorityDetail = ({ focusAreas = [] }) => {
         </div>
       </section>
     </Container>
-  );
-};
-
-// New ActionItemCard component that includes status badge
-const ActionItemCard = ({ action }) => {
-  const getBadgeVariant = (status) => {
-    switch (status.toLowerCase()) {
-      case 'active': return 'success';
-      case 'suggested': return 'warning';
-      case 'completed': return 'secondary';
-      case 'dismissed': return 'danger';
-      default: return 'info';
-    }
-  };
-
-  return (
-    <Card className="mb-3 action-item-card">
-      <Card.Body>
-        <div className="d-flex">
-          <div className="action-icon-container">
-            <ActionIcon actionType={action.action_type} />
-          </div>
-          <div className="flex-grow-1">
-            <div className="d-flex justify-content-between align-items-start mb-2">
-              <h5 className="mb-0">{action.title}</h5>
-              <Badge bg={getBadgeVariant(action.status)}>{action.status}</Badge>
-            </div>
-            <p>{action.description}</p>
-            <div className="action-meta">
-              {getPriorityText(action.priority) && (
-                <span className="action-priority">
-                  Priority: <strong>{getPriorityText(action.priority)}</strong>
-                </span>
-              )}
-              {action.due_date && (
-                <span className="action-due-date">
-                  Due by: <strong>{new Date(action.due_date).toLocaleDateString()}</strong>
-                </span>
-              )}
-            </div>
-          </div>
-        </div>
-      </Card.Body>
-    </Card>
   );
 };
 

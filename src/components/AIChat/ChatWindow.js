@@ -10,6 +10,7 @@ function ChatWindow({ session, onSessionCreated, sessions = [], onSelectSession,
   const [newMessage, setNewMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isChatListVisible, setIsChatListVisible] = useState(false);
+  const [initialMessageProcessed, setInitialMessageProcessed] = useState(false);
   const messageEndRef = useRef(null);
 
   useEffect(() => {
@@ -18,11 +19,23 @@ function ChatWindow({ session, onSessionCreated, sessions = [], onSelectSession,
 
     // Reset messages when switching sessions
     setMessages([]);
+    setInitialMessageProcessed(false);
     
     if (session?.id) {
       fetchMessages(session.id);
     }
   }, [session, sessions]);
+
+  // Handle initial message if present in the session
+  useEffect(() => {
+    if (session?.initialMessage && !initialMessageProcessed && messages.length === 0) {
+      setNewMessage(session.initialMessage);
+      // We don't auto-send here to let the user edit if needed,
+      // but you could auto-send by uncommenting the next line
+      // handleSend(new Event('submit'));
+      setInitialMessageProcessed(true);
+    }
+  }, [session, messages, initialMessageProcessed]);
 
   const fetchMessages = async (sessionId) => {
     try {
