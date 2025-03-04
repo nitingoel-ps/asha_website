@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Card, Badge, Tabs, Tab, Container, Row, Col, Alert } from 'react-bootstrap';
+import { Card, Badge, Tabs, Tab, Container, Row, Col, Alert, Button } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
+import { ThumbsUp, ThumbsDown } from 'lucide-react';
 import './HealthPriorities.css';
 
 const FocusAreaCard = ({ focusArea, onClick }) => {
@@ -12,6 +13,18 @@ const FocusAreaCard = ({ focusArea, onClick }) => {
       case 'dismissed': return 'danger';
       default: return 'info';
     }
+  };
+
+  const handleAcceptClick = (e) => {
+    e.stopPropagation(); // Prevent card click
+    console.log('Accept button clicked for focus area:', focusArea.id);
+    // Add implementation for accepting a focus area
+  };
+
+  const handleRejectClick = (e) => {
+    e.stopPropagation(); // Prevent card click
+    console.log('Reject button clicked for focus area:', focusArea.id);
+    // Add implementation for rejecting a focus area
   };
 
   return (
@@ -26,6 +39,29 @@ const FocusAreaCard = ({ focusArea, onClick }) => {
         <Card.Text className="focus-area-description">
           {focusArea.short_description}
         </Card.Text>
+        <div className="action-buttons-container">
+          <span className="action-buttons-label">Actions:</span>
+          <div className="action-buttons">
+            <Button 
+              variant="link"
+              size="sm"
+              className="action-button"
+              onClick={handleAcceptClick}
+              title="Accept this health priority"
+            >
+              <ThumbsUp size={20} />
+            </Button>
+            <Button 
+              variant="link"
+              size="sm"
+              className="action-button"
+              onClick={handleRejectClick}
+              title="Reject this health priority"
+            >
+              <ThumbsDown size={20} />
+            </Button>
+          </div>
+        </div>
       </Card.Body>
     </Card>
   );
@@ -67,6 +103,32 @@ const HealthPrioritiesTab = ({ focusAreas = [] }) => {
       setActiveTab('inactive');
     }
   }, [groupedFocusAreas]);
+
+  // Add useEffect to ensure proper scrolling
+  useEffect(() => {
+    // Ensure the container takes up full height
+    const container = document.querySelector('.health-priorities-container');
+    if (container) {
+      // Force a reflow to ensure proper layout
+      container.style.display = 'flex';
+      container.style.flexDirection = 'column';
+      
+      // Make sure content doesn't get cut off at the bottom
+      const handleResize = () => {
+        // Add a little delay to let the DOM update
+        setTimeout(() => {
+          window.scrollTo(0, 0);
+        }, 100);
+      };
+      
+      handleResize();
+      window.addEventListener('resize', handleResize);
+      
+      return () => {
+        window.removeEventListener('resize', handleResize);
+      };
+    }
+  }, [activeTab, groupedFocusAreas]);
 
   return (
     <Container className="health-priorities-container">
@@ -146,6 +208,7 @@ const HealthPrioritiesTab = ({ focusAreas = [] }) => {
           </Tab>
         </Tabs>
       )}
+      <div className="scroll-spacer" style={{ height: '60px', width: '100%' }}></div>
     </Container>
   );
 };

@@ -11,8 +11,10 @@ import {
   Search, 
   Heart,
   ChevronDown,
-  ChevronUp
-  // Remove the duplicate MessageCircle import since it's already included above
+  ChevronUp,
+  ThumbsUp,
+  ThumbsDown
+  // Add ThumbsUp and ThumbsDown to the imports
 } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronDown, faChevronUp } from '@fortawesome/free-solid-svg-icons';
@@ -337,7 +339,7 @@ const HealthPriorityDetail = ({ focusAreas = [] }) => {
     return actionTypeMap[actionType.toLowerCase()] || actionType;
   };
 
-  // New ActionItemCard component that includes status badge and chat button
+  // New ActionItemCard component that includes status badge and action buttons in bottom right
   const ActionItemCard = ({ action }) => {
     const navigate = useNavigate();
 
@@ -363,6 +365,18 @@ Action item description: ${action.description}`;
       console.log('Navigated to AI chat with initialMessage in state');
     };
 
+    const handleAcceptClick = (e) => {
+      e.stopPropagation();
+      console.log('Accept button clicked for action:', action.id);
+      // Add implementation for accepting an action
+    };
+
+    const handleRejectClick = (e) => {
+      e.stopPropagation();
+      console.log('Reject button clicked for action:', action.id);
+      // Add implementation for rejecting an action
+    };
+
     return (
       <Card className="mb-3 action-item-card">
         <Card.Body>
@@ -373,24 +387,45 @@ Action item description: ${action.description}`;
             <div className="flex-grow-1">
               <div className="d-flex justify-content-between align-items-start mb-2">
                 <h5 className="mb-0">{action.title}</h5>
-                <div className="d-flex align-items-center">
-                  <Button 
-                    variant="link"
-                    size="sm"
-                    className="action-chat-button me-2"
-                    onClick={handleChatClick}
-                    title="Discuss this with AI assistant"
-                  >
-                    <MessageSquareMore size={24} />
-                  </Button>
-                  <Badge bg={getBadgeVariant(action.status)}>{action.status}</Badge>
-                </div>
+                <Badge bg={getBadgeVariant(action.status)}>{action.status}</Badge>
               </div>
               <p>{action.description}</p>
               <div className="action-meta">
                 <span className="action-type">
                   {getActionTypeDisplayName(action.action_type)}
                 </span>
+              </div>
+              <div className="action-buttons-container">
+                <span className="action-buttons-label">Actions:</span>
+                <div className="action-buttons">
+                  <Button 
+                    variant="link"
+                    size="sm"
+                    className="action-button"
+                    onClick={handleChatClick}
+                    title="Discuss this with AI assistant"
+                  >
+                    <MessageSquareMore size={20} />
+                  </Button>
+                  <Button 
+                    variant="link"
+                    size="sm"
+                    className="action-button"
+                    onClick={handleAcceptClick}
+                    title="Accept this action item"
+                  >
+                    <ThumbsUp size={20} />
+                  </Button>
+                  <Button 
+                    variant="link"
+                    size="sm"
+                    className="action-button"
+                    onClick={handleRejectClick}
+                    title="Reject this action item"
+                  >
+                    <ThumbsDown size={20} />
+                  </Button>
+                </div>
               </div>
             </div>
           </div>

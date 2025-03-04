@@ -1,5 +1,7 @@
 .health-priorities-container {
-  padding-bottom: 2rem;
+  padding-bottom: 6rem !important; /* Increase from 4rem to 6rem for more space at bottom */
+  min-height: 100%; /* Ensure container takes up full height */
+  position: relative;
 }
 
 .focus-area-card {
@@ -7,6 +9,7 @@
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   cursor: pointer;
   border-left: 4px solid transparent;
+  margin-bottom: 1rem !important; /* Reduce spacing between cards from 1.5rem to 1rem */
 }
 
 .focus-area-card:hover {
@@ -20,6 +23,10 @@
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.focus-area-card .card-body {
+  padding-bottom: 1rem; /* Ensure enough padding within cards */
 }
 
 .health-priority-detail {
@@ -208,7 +215,7 @@
 }
 
 .action-items-list {
-  padding-bottom: 1rem;
+  padding-bottom: 2rem;
 }
 
 .action-items-inline-tabs {
@@ -399,6 +406,11 @@
   padding: 1rem 0 !important;
 }
 
+/* Ensure tab panels have enough space at the bottom */
+.health-priorities-container .tab-pane {
+  padding-bottom: 4rem !important; /* Increase from 3rem to 4rem */
+}
+
 /* Additional specific fixes for action-items-header height on mobile */
 .health-priority-detail .action-items-header {
   /* More specific selector to override any other styles */
@@ -476,44 +488,92 @@
     padding-top: 0.5rem !important;
   }
   
-  @media (max-width: 480px) {
-    .action-items-header .d-flex {
-      flex-direction: column;
-      align-items: flex-start !important;
-    }
-    
-    .action-items-header h4 {
-      margin-bottom: 0.5rem !important;
-    }
-    
-    .action-items-inline-tabs {
-      width: 100%;
-    }
+  /* Additional fixes for mobile scrolling */
+  .health-priorities-container {
+    padding-bottom: 8rem !important; /* Increase from 5rem to 8rem on mobile */
+    height: auto !important; /* Override any fixed heights */
+  }
+  
+  .health-priorities-container .tab-pane {
+    padding-bottom: 5rem !important; /* Increase to 5rem on mobile */
+  }
+  
+  .tab-content, .tab-pane {
+    overflow: visible !important; /* Ensure content isn't cut off by overflow */
+    height: auto !important;
+  }
+  
+  /* Ensure the row containing cards doesn't have constrained height */
+  .health-priorities-container .row {
+    margin-bottom: 2rem !important; /* Increase bottom margin */
+    height: auto !important;
+  }
+  
+  /* Ensure the columns don't have constrained height */
+  .health-priorities-container .col {
+    height: auto !important;
+    margin-bottom: 0rem;
+    margin-top: 0rem;    
+  }
+  
+  .scroll-spacer {
+    height: 80px !important; /* Increase to 80px on mobile */
+  }
+}
 
-    .action-items-inline-tabs .nav-link {
-      padding: 0.4rem;
-      font-size: 0.75rem;
-    }
+@media (max-width: 480px) {
+  .action-items-header .d-flex {
+    flex-direction: column;
+    align-items: flex-start !important;
+  }
+  
+  .action-items-header h4 {
+    margin-bottom: 0.5rem !important;
+  }
+  
+  .action-items-inline-tabs {
+    width: 100%;
+  }
 
-    .health-priority-detail .action-items-header .d-flex {
-      flex-direction: row !important; /* Keep on same line to save vertical space */
-      justify-content: space-between !important;
-      align-items: center !important;
-    }
-    
-    .health-priority-detail .action-items-header h4 {
-      margin-bottom: 0 !important;
-      font-size: 1rem !important; /* Even smaller font on very small screens */
-    }
-    
-    .health-priority-detail .action-items-inline-tabs {
-      width: auto !important;
-    }
-    
-    .health-priority-detail .action-items-inline-tabs .nav-link {
-      padding: 0.2rem 0.4rem !important;
-      font-size: 0.7rem !important;
-    }
+  .action-items-inline-tabs .nav-link {
+    padding: 0.4rem;
+    font-size: 0.75rem;
+  }
+
+  .health-priority-detail .action-items-header .d-flex {
+    flex-direction: row !important; /* Keep on same line to save vertical space */
+    justify-content: space-between !important;
+    align-items: center !important;
+  }
+  
+  .health-priority-detail .action-items-header h4 {
+    margin-bottom: 0 !important;
+    font-size: 1rem !important; /* Even smaller font on very small screens */
+  }
+  
+  .health-priority-detail .action-items-inline-tabs {
+    width: auto !important;
+  }
+  
+  .health-priority-detail .action-items-inline-tabs .nav-link {
+    padding: 0.2rem 0.4rem !important;
+    font-size: 0.7rem !important;
+  }
+  
+  .health-priorities-container {
+    padding-bottom: 6rem; /* Extra padding on very small devices */
+  }
+  
+  /* Force the container to take all available space */
+  #root, 
+  .app-container, 
+  main, 
+  .content-wrapper, 
+  .patient-dashboard-container,
+  .tab-content {
+    min-height: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
   }
 }
 
@@ -573,4 +633,90 @@
 
 .action-chat-button:focus {
   box-shadow: none; /* Remove focus outline */
+}
+
+/* New styles for action buttons */
+.action-buttons-container {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  margin-top: 0.75rem;
+  border-top: 1px solid #f0f0f0;
+  padding-top: 0.75rem;
+  margin-bottom: 0.5rem; /* Add some space below buttons */
+}
+
+.action-buttons-label {
+  font-size: 0.85rem;
+  color: #6c757d;
+  margin-right: 0.5rem;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.action-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+  border: none;
+  color: #0d6efd;
+  background: transparent;
+}
+
+.action-button:hover {
+  background-color: rgba(13, 110, 253, 0.1);
+  color: #0a58ca;
+  transform: scale(1.1);
+}
+
+.action-button:focus {
+  box-shadow: none;
+}
+
+/* Update action chat button to use the common action button style */
+.action-chat-button {
+  display: none; /* Hide the old chat button */
+}
+
+/* Responsive adjustments for action buttons */
+@media (max-width: 576px) {
+  .action-buttons-container {
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+  }
+  
+  .action-buttons-label {
+    font-size: 0.8rem;
+  }
+  
+  .action-button {
+    width: 28px;
+    height: 28px;
+  }
+  
+  .action-button svg {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+/* Add more space at the end of each row of cards */
+.health-priorities-container .row {
+  margin-bottom: 3rem !important; /* Increase bottom margin */
+}
+
+/* Make sure the scroll spacer has significant height */
+.scroll-spacer {
+  height: 60px !important; /* Increase from 30px to 60px */
+  display: block;
+  width: 100%;
+  clear: both;
 }
