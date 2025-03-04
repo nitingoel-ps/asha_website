@@ -39,6 +39,7 @@ const SymptomDetail = () => {
   const navigate = useNavigate();
   const [symptom, setSymptom] = useState(null);
   const [logs, setLogs] = useState([]);
+  const [sortedLogs, setSortedLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -54,6 +55,9 @@ const SymptomDetail = () => {
 
   // Add this state to track screen width
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+
+  // Add a new state for chart data
+  const [chartData, setChartData] = useState(null);
 
   // Add this effect to update window width state on resize
   useEffect(() => {
@@ -187,33 +191,99 @@ const SymptomDetail = () => {
     console.log('SymptomDetail - Symptom state updated:', symptom);
   }, [symptom]);
 
-  const prepareChartData = (logsData) => {
-    // Sort logs by date (oldest to newest)
-    const sortedLogs = [...logsData].sort(
-      (a, b) => new Date(a.onset_time) - new Date(b.onset_time)
-    );
-    
-    // Extract dates and severity values
-    const labels = sortedLogs.map(log => format(new Date(log.onset_time), 'MMM d'));
-    const data = sortedLogs.map(log => log.severity);
-    
-    return {
-      labels,
-      datasets: [
-        {
-          label: 'Severity',
-          data,
-          fill: false,
-          backgroundColor: 'rgb(75, 192, 192)',
-          borderColor: 'rgba(75, 192, 192, 0.6)',
-          tension: 0.2,
-          pointRadius: 5,
-          pointHoverRadius: 7,
+  // Add a useEffect to prepare chart data whenever logs change
+  useEffect(() => {
+    if (logs.length >= 2) {
+      // Sort logs by date (oldest to newest)
+      const sortedLogsArray = [...logs].sort(
+        (a, b) => new Date(a.onset_time) - new Date(b.onset_time)
+      );
+      
+      // Store sorted logs in state for tooltip reference
+      setSortedLogs(sortedLogsArray);
+      
+      // Group logs by day and find highest severity for each day
+      const dailyHighSeverity = {};
+      const allLogsForDay = {};
+      
+      // Process each log
+      sortedLogsArray.forEach(log => {
+        const date = new Date(log.onset_time);
+        const dateKey = format(date, 'yyyy-MM-dd'); // Use consistent date format as key
+        
+        // Initialize arrays if this is the first entry for this day
+        if (!allLogsForDay[dateKey]) {
+          allLogsForDay[dateKey] = [];
         }
-      ]
-    };
-  };
-  
+        
+        // Add log to the day's collection
+        allLogsForDay[dateKey].push(log);
+        
+        // Update highest severity if this log's severity is higher
+        if (!dailyHighSeverity[dateKey] || log.severity > dailyHighSeverity[dateKey]) {
+          dailyHighSeverity[dateKey] = log.severity;
+        }
+      });
+      
+      // Create array of date keys sorted chronologically
+      const sortedDates = Object.keys(dailyHighSeverity).sort();
+      
+      // Create labels and data arrays from the aggregated data
+      const labels = sortedDates.map(dateKey => {
+        const date = new Date(dateKey);
+        return format(date, 'MMM d'); // Format for display in chart
+      });
+      
+      const data = sortedDates.map(dateKey => dailyHighSeverity[dateKey]);
+      
+      // Create array of all severity points for scatter plot
+      const scatterData = [];
+      
+      // Process each day's logs for scatter points
+      sortedDates.forEach((dateKey, dateIndex) => {
+        // Add each log for this day as a separate scatter point
+        allLogsForDay[dateKey].forEach(log => {
+          scatterData.push({
+            x: dateIndex,
+            y: log.severity,
+            onset_time: log.onset_time,
+            id: log.id
+          });
+        });
+      });
+      
+      setChartData({
+        labels,
+        datasets: [
+          // Line dataset (highest severity per day)
+          {
+            type: 'line',
+            label: 'Highest Severity',
+            data: data,
+            fill: false,
+            backgroundColor: 'rgb(75, 192, 192)',
+            borderColor: 'rgba(75, 192, 192, 0.6)',
+            tension: 0.2,
+            pointRadius: 0, // Hide points for the line dataset
+            pointHoverRadius: 0, // Hide hover for line points
+            spanGaps: true
+          },
+          // Scatter dataset (individual log entries)
+          {
+            type: 'scatter',
+            label: 'All Entries',
+            data: scatterData,
+            backgroundColor: 'rgba(75, 192, 192, 0.8)',
+            pointRadius: 6,
+            pointHoverRadius: 8,
+            pointBorderColor: 'white',
+            pointBorderWidth: 2,
+          }
+        ]
+      });
+    }
+  }, [logs]);
+
   const chartOptions = {
     responsive: true,
     maintainAspectRatio: false,
@@ -235,15 +305,37 @@ const SymptomDetail = () => {
         title: {
           display: true,
           text: 'Date'
-        }
+        },
+        ticks: {
+          maxRotation: 45,
+          minRotation: 45,
+          font: {
+            size: 10
+          }
+        },
+        // Define the x-axis as a timeseries
+        type: 'category',
+        position: 'bottom'
       }
     },
     plugins: {
-      legend: {
-        display: false
-      },
       tooltip: {
         callbacks: {
+          title: function(context) {
+            const datasetIndex = context[0].datasetIndex;
+            const dataIndex = context[0].dataIndex;
+            
+            // For scatter dataset, get specific log time
+            if (datasetIndex === 1) {
+              const dataPoint = context[0].raw;
+              if (dataPoint && dataPoint.onset_time) {
+                return format(new Date(dataPoint.onset_time), 'MMM d, yyyy h:mm a');
+              }
+            }
+            
+            // For line dataset, show the date
+            return context[0].label;
+          },
           label: function(context) {
             const severityLabels = {
               1: "Very Mild",
@@ -252,20 +344,47 @@ const SymptomDetail = () => {
               4: "Severe", 
               5: "Very Severe"
             };
-            const severity = context.raw;
+            
+            let severity;
+            
+            if (context.datasetIndex === 1) { // Scatter plot point
+              severity = context.raw.y;
+            } else { // Line chart point
+              severity = context.parsed.y;
+            }
+            
             return `Severity: ${severity} - ${severityLabels[severity] || ''}`;
+          },
+          afterLabel: function(context) {
+            if (context.datasetIndex === 0) { // Line dataset
+              const date = context.label;
+              return '(Highest severity for this day)';
+            }
+            return '';
           }
         }
+      },
+      legend: {
+        display: false // Hide the legend as it's not needed
       }
     },
-    // Add layout options to use more space
     layout: {
       padding: {
-        left: 10,
+        left: 10, 
         right: 30,
-        top: 10,
-        bottom: 10
+        top: 15,
+        bottom: 15
       }
+    },
+    elements: {
+      line: {
+        tension: 0.3 // Add a slight curve to the line
+      }
+    },
+    interaction: {
+      mode: 'nearest',
+      axis: 'x',
+      intersect: false
     }
   };
 
@@ -371,7 +490,7 @@ const SymptomDetail = () => {
           {logs.length >= 2 ? (
             <div className="chart-container w-100">
               <Line 
-                data={prepareChartData(logs)} 
+                data={chartData || { labels: [], datasets: [] }}  // Use the prepared chart data instead
                 options={chartOptions}
                 style={{width: '100%'}}
               />

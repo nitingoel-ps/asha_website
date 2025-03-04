@@ -514,6 +514,18 @@
   padding: 1.5rem;
 }
 
+/* Chart x-axis label adjustments */
+.chart-container canvas {
+  padding-bottom: 10px;
+}
+
+/* Add space at the bottom of the chart for rotated labels */
+@media (min-width: 768px) {
+  .chart-card .card-body {
+    padding-bottom: 2rem;
+  }
+}
+
 /* Make chart taller on larger screens */
 @media (min-width: 992px) {
   .chart-container {
