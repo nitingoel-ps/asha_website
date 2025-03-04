@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { ListGroup, Button, Spinner, Form } from 'react-bootstrap';
-import { FaTrash, FaPen, FaCheck, FaTimes } from 'react-icons/fa';
+import { FaTrash, FaPen, FaCheck, FaTimes, FaPlus } from 'react-icons/fa';
 
-function ChatList({ sessions = [], selectedSession, onSelectSession, onDeleteSession, onRenameSession, loading }) {
+function ChatList({ sessions = [], selectedSession, onSelectSession, onDeleteSession, onRenameSession, loading, onNewChat }) {
   const [editingId, setEditingId] = useState(null);
   const [editName, setEditName] = useState('');
 
@@ -32,77 +32,95 @@ function ChatList({ sessions = [], selectedSession, onSelectSession, onDeleteSes
   }
 
   return (
-    <ListGroup>
-      {sessions.map((session) => (
-        <ListGroup.Item
-          key={session.id}
-          active={selectedSession?.id === session.id}
-          className="d-flex justify-content-between align-items-center ai-chat-session-item"
-          onClick={() => onSelectSession(session)}
-        >
-          {editingId === session.id ? (
-            <Form.Control
-              type="text"
-              value={editName}
-              onChange={(e) => setEditName(e.target.value)}
-              onClick={(e) => e.stopPropagation()}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') handleSaveEdit(e, session.id);
-                if (e.key === 'Escape') handleCancelEdit(e);
-              }}
-              size="sm"
-              className="me-2"
-              autoFocus
-            />
-          ) : (
-            <span className="text-truncate">{session.session_name || 'New Chat'}</span>
-          )}
-          <div className="d-flex align-items-center">
+    <>
+      {/* Add a subtle header with small new chat option */}
+      <div className="d-flex justify-content-between align-items-center mb-2 p-2">
+        <h6 className="mb-0">Chat History</h6>
+        {onNewChat && (
+          <Button 
+            variant="outline-secondary" 
+            size="sm" 
+            onClick={onNewChat}
+            className="new-chat-small"
+            title="Start a new chat"
+          >
+            <FaPlus />
+          </Button>
+        )}
+      </div>
+      
+      <ListGroup>
+        {sessions.map((session) => (
+          <ListGroup.Item
+            key={session.id}
+            active={selectedSession?.id === session.id}
+            className="d-flex justify-content-between align-items-center ai-chat-session-item"
+            onClick={() => onSelectSession(session)}
+          >
             {editingId === session.id ? (
-              <>
-                <Button
-                  variant="link"
-                  className="edit-button p-1"
-                  onClick={(e) => handleSaveEdit(e, session.id)}
-                >
-                  <FaCheck />
-                </Button>
-                <Button
-                  variant="link"
-                  className="edit-button p-1"
-                  onClick={handleCancelEdit}
-                >
-                  <FaTimes />
-                </Button>
-              </>
+              <Form.Control
+                type="text"
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+                onClick={(e) => e.stopPropagation()}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleSaveEdit(e, session.id);
+                  if (e.key === 'Escape') handleCancelEdit(e);
+                }}
+                size="sm"
+                className="me-2"
+                autoFocus
+              />
             ) : (
+              <span className="text-truncate">{session.session_name || 'New Chat'}</span>
+            )}
+            <div className="d-flex align-items-center">
+              {editingId === session.id ? (
+                <>
+                  <Button
+                    variant="link"
+                    className="edit-button p-1"
+                    onClick={(e) => handleSaveEdit(e, session.id)}
+                  >
+                    <FaCheck />
+                  </Button>
+                  <Button
+                    variant="link"
+                    className="edit-button p-1"
+                    onClick={handleCancelEdit}
+                  >
+                    <FaTimes />
+                  </Button>
+                </>
+              ) : (
+                <Button
+                  variant="link"
+                  className="edit-button p-1"
+                  onClick={(e) => handleEditClick(e, session)}
+                >
+                  <FaPen />
+                </Button>
+              )}
               <Button
                 variant="link"
-                className="edit-button p-1"
-                onClick={(e) => handleEditClick(e, session)}
+                className="delete-button p-1"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDeleteSession(session.id);
+                }}
               >
-                <FaPen />
+                <FaTrash />
               </Button>
-            )}
-            <Button
-              variant="link"
-              className="delete-button p-1"
-              onClick={(e) => {
-                e.stopPropagation();
-                onDeleteSession(session.id);
-              }}
-            >
-              <FaTrash />
-            </Button>
-          </div>
-        </ListGroup.Item>
-      ))}
-      {sessions.length === 0 && (
-        <ListGroup.Item className="text-center text-muted">
-          No chat sessions yet
-        </ListGroup.Item>
-      )}
-    </ListGroup>
+            </div>
+          </ListGroup.Item>
+        ))}
+        {sessions.length === 0 && (
+          <ListGroup.Item className="text-center text-muted">
+            No chat sessions yet
+          </ListGroup.Item>
+        )}
+      </ListGroup>
+    </>
   );
 }
 

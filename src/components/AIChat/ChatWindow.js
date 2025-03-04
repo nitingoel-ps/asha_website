@@ -1,11 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Form, Button, Spinner } from 'react-bootstrap';
 import { FaPaperPlane, FaBars, FaPen } from 'react-icons/fa';
 import axiosInstance from '../../utils/axiosInstance';
 import MessageList from './MessageList';
 import ChatList from './ChatList';
 
-function ChatWindow({ session, onSessionCreated, sessions = [], onSelectSession, onDeleteSession, onRenameSession, loading }) {
+function ChatWindow({ session, onSessionCreated, sessions = [], onSelectSession, onDeleteSession, onRenameSession, loading, onChatComplete }) {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -238,6 +238,12 @@ function ChatWindow({ session, onSessionCreated, sessions = [], onSelectSession,
         }
         return prev;
       });
+
+      // Notify parent that chat is complete - add this
+      if (onChatComplete && currentSessionId) {
+        console.log('Chat complete, notifying parent to refresh sessions');
+        onChatComplete(currentSessionId);
+      }
 
     } catch (error) {
       console.error('Error sending message:', error);

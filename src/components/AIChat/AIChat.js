@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Container, Row, Col, Button } from 'react-bootstrap';
 import { useLocation, useNavigate } from 'react-router-dom';
 import ChatList from './ChatList';
@@ -167,15 +167,80 @@ function AIChat() {
     }
   };
 
+  // Add a debounce utility for the session refresh
+  const debounce = (func, delay) => {
+    let timeoutId;
+    return (...args) => {
+      if (timeoutId) clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        func(...args);
+      }, delay);
+    };
+  };
+
+  // Create a function to refresh just one session by ID
+  const refreshSessionById = async (sessionId) => {
+    try {
+      console.log(`Refreshing session ${sessionId} after chat completion`);
+      const response = await axiosInstance.get(`/chat-sessions/${sessionId}`);
+      const updatedSession = response.data.session;
+      
+      // Update the sessions list with the updated session
+      setSessions(prevSessions => 
+        prevSessions.map(session => 
+          session.id === sessionId ? updatedSession : session
+        )
+      );
+      
+      // Also update the selected session if it's the one that was refreshed
+      if (selectedSession?.id === sessionId) {
+        setSelectedSession(updatedSession);
+      }
+      
+      console.log('Session refreshed successfully:', updatedSession);
+    } catch (error) {
+      console.error(`Error refreshing session ${sessionId}:`, error);
+    }
+  };
+  
+  // Create a debounced version to avoid multiple refreshes
+  const debouncedRefreshSession = useCallback(
+    debounce((sessionId) => refreshSessionById(sessionId), 1000),
+    []
+  );
+
+  // Create a function to refresh all sessions
+  const refreshAllSessions = useCallback(async () => {
+    try {
+      const response = await axiosInstance.get('/chat-sessions/');
+      setSessions(response.data?.sessions || []);
+      console.log('All sessions refreshed');
+    } catch (error) {
+      console.error('Error refreshing all sessions:', error);
+    }
+  }, []);
+  
+  // Debounced version for all sessions refresh
+  const debouncedRefreshAllSessions = useCallback(
+    debounce(() => refreshAllSessions(), 1000),
+    [refreshAllSessions]
+  );
+  
+  // Handler for chat completion notification
+  const handleChatComplete = useCallback((sessionId) => {
+    // First refresh just the completed session
+    debouncedRefreshSession(sessionId);
+    
+    // Then refresh all sessions after a longer delay
+    setTimeout(() => {
+      debouncedRefreshAllSessions();
+    }, 2000);
+  }, [debouncedRefreshSession, debouncedRefreshAllSessions]);
+
   return (
     <Container fluid className="ai-chat-container">
       <Row className="h-100">
         <Col md={3} className="ai-chat-sidebar">
-          <div className="d-grid gap-2 mb-3">
-            <Button variant="primary" onClick={handleNewChat}>
-              New Chat
-            </Button>
-          </div>
           <ChatList
             sessions={sessions}
             selectedSession={selectedSession}
@@ -183,6 +248,7 @@ function AIChat() {
             onDeleteSession={handleDeleteSession}
             onRenameSession={handleRenameSession}
             loading={loading}
+            onNewChat={handleNewChat}
           />
         </Col>
         <Col md={9} className="ai-chat-main">
@@ -197,6 +263,7 @@ function AIChat() {
             onDeleteSession={handleDeleteSession}
             onRenameSession={handleRenameSession}
             loading={loading}
+            onChatComplete={handleChatComplete} // Add this prop
           />
         </Col>
       </Row>

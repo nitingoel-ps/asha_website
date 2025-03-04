@@ -209,6 +209,14 @@
   border-radius: 5px !important; /* Add border radius for better appearance */
 }
 
+/* Style for the small new chat button */
+.new-chat-small {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  border-radius: 4px;
+  color: #6c757d;
+}
+
 /* Mobile-specific fixes */
 @media (max-width: 768px) {
   .ai-chat-container {
@@ -231,6 +239,7 @@
     background: white;
     z-index: 999;
     overflow-y: auto;
+    padding-top: 10px;
   }
 
   .ai-chat-main {
