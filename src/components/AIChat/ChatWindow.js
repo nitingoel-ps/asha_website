@@ -12,10 +12,18 @@ function ChatWindow({ session, onSessionCreated, sessions = [], onSelectSession,
   const [isChatListVisible, setIsChatListVisible] = useState(false);
   const [initialMessageProcessed, setInitialMessageProcessed] = useState(false);
   const messageEndRef = useRef(null);
+  const messagesRef = useRef([]);
+  
+  // Create a ref for the form to trigger submit programmatically
+  const formRef = useRef(null);
 
+  // Debug logs for session changes
   useEffect(() => {
     console.log('ChatWindow loaded with sessions:', sessions);
     console.log('Selected session:', session);
+    console.log('Initial message in session:', session?.initialMessage);
+    console.log('initialMessageProcessed:', initialMessageProcessed);
+    console.log('isLoading:', isLoading);
 
     // Reset messages when switching sessions
     setMessages([]);
@@ -26,68 +34,96 @@ function ChatWindow({ session, onSessionCreated, sessions = [], onSelectSession,
     }
   }, [session, sessions]);
 
-  // Handle initial message if present in the session
+  // Sync the ref with state whenever messages change
   useEffect(() => {
-    if (session?.initialMessage && !initialMessageProcessed && messages.length === 0) {
-      setNewMessage(session.initialMessage);
-      // We don't auto-send here to let the user edit if needed,
-      // but you could auto-send by uncommenting the next line
-      // handleSend(new Event('submit'));
-      setInitialMessageProcessed(true);
-    }
-  }, [session, messages, initialMessageProcessed]);
+    messagesRef.current = messages;
+    console.log('Messages ref updated:', messagesRef.current);
+  }, [messages]);
 
-  const fetchMessages = async (sessionId) => {
-    try {
-      const response = await axiosInstance.get(`/chat-sessions/${sessionId}`);
-      // Access messages through the session object
-      const formattedMessages = response.data.session?.messages?.map(msg => ({
-        role: msg.role || (msg.is_user ? 'user' : 'assistant'),
-        content: msg.content || msg.text || '',
-        isStreaming: false
-      })) || [];
+  // Modified approach for auto-submitting the initial message
+  useEffect(() => {
+    console.log('Auto-send effect triggered with: ', {
+      hasInitialMessage: Boolean(session?.initialMessage),
+      initialMessageProcessed,
+      isLoading
+    });
+    
+    if (session?.initialMessage && !initialMessageProcessed && !isLoading) {
+      console.log('Processing initial message:', session.initialMessage);
       
-      setMessages(formattedMessages);
-    } catch (error) {
-      console.error('Error fetching messages for session:', error);
-      setMessages([]);
+      // Add user message to display first - keep this message stable
+      const updatedMessages = [
+        ...messagesRef.current,
+        {
+          role: 'user',
+          content: session.initialMessage,
+          isInitialMessage: true
+        }
+      ];
+      
+      // Update both state and ref
+      setMessages(updatedMessages);
+      messagesRef.current = updatedMessages;
+      
+      console.log('Added initial user message:', updatedMessages);
+      
+      // Then send the message
+      handleSendImmediately(session.initialMessage);
+      setInitialMessageProcessed(true);
+      console.log('Set initialMessageProcessed to true');
     }
-  };
+  }, [session]);
 
-  const handleSend = async (e) => {
-    e.preventDefault();
-    if (!newMessage.trim()) return;
+  // Add a separate function to directly send a message without relying on form state
+  const handleSendImmediately = (messageText) => {
+    console.log('handleSendImmediately called with:', messageText);
+    if (!messageText.trim()) {
+      console.log('Message is empty, not sending');
+      return;
+    }
 
-    const messageToSend = newMessage;
-    setNewMessage('');
     setIsLoading(true);
 
-    // Add user message immediately
-    setMessages(prev => [...prev, {
-      role: 'user',
-      content: messageToSend
-    }]);
+    // Don't add user message here again - it's already added in the effect
+    // We'll send the message to API directly
+    sendMessageToAPI(messageText);
+  };
 
+  // Separate API communication logic for reusability
+  const sendMessageToAPI = async (messageText) => {
     try {
       let currentSessionId = session?.id;
+      console.log('Current session ID:', currentSessionId);
       
-      // If no session exists, create one
       if (!currentSessionId) {
+        console.log('No session ID, creating new session');
         const sessionResponse = await axiosInstance.post('/chat-sessions/', {
           session_name: 'New Chat'
         });
         currentSessionId = sessionResponse.data.id;
+        console.log('Created session with ID:', currentSessionId);
         onSessionCreated(sessionResponse.data);
       }
 
-      // Create messages array for API request
+      // Create messages array for API request - ensure we use the ref which has the latest state
+      const currentMessages = [...messagesRef.current];
+      console.log('Current messages from ref for API request:', currentMessages);
+      
+      // Check if the user message is already included
+      const userMessageAlreadyIncluded = currentMessages.some(
+        msg => msg.role === 'user' && msg.content === messageText
+      );
+      
       const messageHistory = [
-        ...messages.map(msg => ({
+        ...currentMessages.map(msg => ({
           role: msg.role,
           content: msg.content
         })),
-        { role: 'user', content: messageToSend }
+        // Only add the user message if it's not already included
+        ...(userMessageAlreadyIncluded ? [] : [{ role: 'user', content: messageText }])
       ];
+
+      console.log('Sending message history:', messageHistory);
 
       // Initialize streaming response
       const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/new-chat/`, {
@@ -105,23 +141,51 @@ function ChatWindow({ session, onSessionCreated, sessions = [], onSelectSession,
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
+      
+      console.log('Got response from API, starting streaming');
 
       // Initialize streaming response handling
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
       let buffer = '';
-      let inThinkBlock = false;
-      let currentMessage = { role: 'assistant', content: '', isStreaming: true };
-
-      // Add initial AI message
-      setMessages(prev => [...prev, currentMessage]);
+      
+      // CRITICAL FIX: Use the ref instead of state for the latest messages
+      const existingMessages = [...messagesRef.current];
+      console.log('Existing messages before streaming (from ref):', existingMessages);
+      
+      // Create assistant message to append
+      const assistantMessage = { role: 'assistant', content: '', isStreaming: true };
+      
+      // Ensure we have the user message in the array
+      let messagesToUpdate = [...existingMessages];
+      
+      // If no user message is found, add it first
+      if (!messagesToUpdate.some(msg => msg.role === 'user' && msg.content === messageText)) {
+        console.log('User message not found, adding it first');
+        messagesToUpdate.push({ role: 'user', content: messageText });
+      }
+      
+      // Then add the assistant message
+      messagesToUpdate.push(assistantMessage);
+      
+      // Update state and ref
+      setMessages(messagesToUpdate);
+      messagesRef.current = messagesToUpdate;
+      
+      console.log('Added assistant message to existing messages');
+      console.log('Messages array should now have:', messagesToUpdate.length, 'messages');
 
       while (true) {
         const { value, done } = await reader.read();
-        if (done) break;
+        if (done) {
+          console.log('Stream complete');
+          break;
+        }
         
         // Decode the chunk and add it to buffer
-        buffer += decoder.decode(value, { stream: true });
+        const chunk = decoder.decode(value, { stream: true });
+        buffer += chunk;
+        console.log('Received chunk:', chunk);
 
         // Process complete lines from buffer
         while (buffer.includes('\n')) {
@@ -130,16 +194,19 @@ function ChatWindow({ session, onSessionCreated, sessions = [], onSelectSession,
           buffer = buffer.slice(newlineIndex + 1);
 
           if (line) {
-            // Update the current message content
+            console.log('Processing line:', line);
+            // Update the current message content WITHOUT replacing previous messages
             setMessages(prev => {
               const newMessages = [...prev];
+              // Find the streaming message (it should be the last one)
               const lastMessage = newMessages[newMessages.length - 1];
               
               if (lastMessage && lastMessage.isStreaming) {
+                console.log('Updating streaming message with new content');
                 lastMessage.content = (lastMessage.content || '') + line + '\n';
-                return [...newMessages];
+                return newMessages; // Return the updated array, preserving all messages
               }
-              return newMessages;
+              return prev; // Return unchanged if no streaming message found
             });
           }
         }
@@ -147,28 +214,105 @@ function ChatWindow({ session, onSessionCreated, sessions = [], onSelectSession,
 
       // Handle any remaining content in buffer
       if (buffer.trim()) {
+        console.log('Processing remaining buffer:', buffer.trim());
         setMessages(prev => {
           const newMessages = [...prev];
           const lastMessage = newMessages[newMessages.length - 1];
           if (lastMessage && lastMessage.isStreaming) {
             lastMessage.content = (lastMessage.content || '') + buffer.trim();
             lastMessage.isStreaming = false;
-            return [...newMessages];
+            console.log('Final message content:', lastMessage.content);
+            return newMessages;
           }
-          return newMessages;
+          return prev;
         });
       }
 
+      // Ensure the streaming flag is turned off
+      setMessages(prev => {
+        const newMessages = [...prev];
+        const lastMessage = newMessages[newMessages.length - 1];
+        if (lastMessage && lastMessage.isStreaming) {
+          lastMessage.isStreaming = false;
+          return newMessages;
+        }
+        return prev;
+      });
+
     } catch (error) {
       console.error('Error sending message:', error);
+      // Add the error message without replacing existing ones
       setMessages(prev => [...prev, {
         role: 'assistant',
         content: 'Sorry, there was an error sending your message.'
       }]);
     } finally {
       setIsLoading(false);
+      console.log('Message sending process complete');
     }
   };
+
+  // Regular form submit handler
+  const handleSend = async (e) => {
+    console.log('handleSend called with event:', e);
+    console.log('Current newMessage:', newMessage);
+    
+    e.preventDefault();
+    if (!newMessage.trim()) {
+      console.log('Message is empty, not sending');
+      return;
+    }
+
+    const messageToSend = newMessage;
+    setNewMessage('');
+    setIsLoading(true);
+
+    // Add user message immediately and update ref
+    const updatedMessages = [...messagesRef.current, {
+      role: 'user',
+      content: messageToSend
+    }];
+    
+    setMessages(updatedMessages);
+    messagesRef.current = updatedMessages;
+    
+    console.log('Added user message:', updatedMessages);
+
+    // Use the common API function
+    await sendMessageToAPI(messageToSend);
+  };
+
+  const fetchMessages = async (sessionId) => {
+    try {
+      const response = await axiosInstance.get(`/chat-sessions/${sessionId}`);
+      // Access messages through the session object
+      const formattedMessages = response.data.session?.messages?.map(msg => ({
+        role: msg.role || (msg.is_user ? 'user' : 'assistant'),
+        content: msg.content || msg.text || '',
+        isStreaming: false
+      })) || [];
+      
+      setMessages(formattedMessages);
+      messagesRef.current = formattedMessages;
+    } catch (error) {
+      console.error('Error fetching messages for session:', error);
+      setMessages([]);
+      messagesRef.current = [];
+    }
+  };
+
+  // Debug effect to monitor newMessage changes
+  useEffect(() => {
+    console.log('newMessage changed to:', newMessage);
+  }, [newMessage]);
+
+  // Scroll to bottom when messages change
+  useEffect(() => {
+    console.log('Messages changed:', messages);
+    if (messageEndRef.current) {
+      messageEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages]);
 
   const handleNewChat = async () => {
     try {
@@ -216,16 +360,22 @@ function ChatWindow({ session, onSessionCreated, sessions = [], onSelectSession,
         <MessageList messages={messages} />
         <div ref={messageEndRef} />
       </div>
-      <Form onSubmit={handleSend} className="ai-chat-message-input-form">
+      <Form ref={formRef} onSubmit={handleSend} className="ai-chat-message-input-form">
         <Form.Group className="d-flex align-items-center">
           <Form.Control
             type="text"
+            name="message" // Add a name for the form field
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             placeholder="Type your message..."
             disabled={isLoading}
           />
-          <Button type="submit" disabled={isLoading || !newMessage.trim()} className="ms-2">
+          <Button 
+            type="submit" 
+            disabled={isLoading || !newMessage.trim()} 
+            className="ms-2"
+            onClick={() => console.log('Send button clicked')}
+          >
             {isLoading ? <Spinner size="sm" animation="border" /> : <FaPaperPlane size={20} />}
           </Button>
         </Form.Group>

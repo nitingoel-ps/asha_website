@@ -279,3 +279,34 @@
     gap: 10px;
   }
 }
+
+/* Ensure compatibility between message class names */
+.messages-list, .ai-chat-message-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.message, .ai-chat-message {
+  margin-bottom: 15px;
+  max-width: 80%;
+}
+
+.user-message, .ai-chat-user-message {
+  margin-left: auto;
+  background-color: #007bff;
+  color: white;
+  padding: 10px 15px;
+  border-radius: 15px 15px 0 15px;
+}
+
+.ai-message, .ai-chat-ai-message {
+  margin-right: auto;
+  background-color: #f8f9fa;
+  padding: 10px 15px;
+  border-radius: 15px 15px 15px 0;
+}
+
+.message-content, .ai-chat-message-content {
+  word-break: break-word;
+}

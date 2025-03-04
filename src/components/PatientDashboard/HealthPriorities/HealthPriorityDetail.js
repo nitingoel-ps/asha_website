@@ -333,12 +333,16 @@ Focus area title: "${focusArea.title}"
 Action item title: "${action.title}"
 Action item description: ${action.description}`;
       
+      console.log('Chat button clicked with message:', initialMessage);
+      
       // Navigate to AI chat with the message as state
       navigate('/ai-chat', { 
         state: { 
           initialMessage 
         }
       });
+      
+      console.log('Navigated to AI chat with initialMessage in state');
     };
 
     return (
