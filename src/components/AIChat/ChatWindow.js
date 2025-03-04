@@ -314,6 +314,24 @@ function ChatWindow({ session, onSessionCreated, sessions = [], onSelectSession,
     }
   }, [messages]);
 
+  // Add this effect to handle viewport height issues on mobile
+  useEffect(() => {
+    function updateMobileViewportHeight() {
+      // Set a custom property with the viewport height
+      document.documentElement.style.setProperty(
+        '--vh', 
+        `${window.innerHeight * 0.01}px`
+      );
+    }
+    
+    // Update on mount
+    updateMobileViewportHeight();
+    
+    // Add resize listener
+    window.addEventListener('resize', updateMobileViewportHeight);
+    return () => window.removeEventListener('resize', updateMobileViewportHeight);
+  }, []);
+
   const handleNewChat = async () => {
     try {
       setIsLoading(true);
