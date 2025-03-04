@@ -143,6 +143,21 @@
   margin-bottom: 1rem;
 }
 
+/* Add styles for the symptom info card */
+.symptom-info-card {
+  border-left: 4px solid #0d6efd;
+  background-color: #f8f9fa;
+}
+
+.symptom-info-card .card-body {
+  padding: 1rem;
+}
+
+.symptom-info-card h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
 /* Mobile specific styles */
 @media (max-width: 768px) {
   .symptom-card {
@@ -151,5 +166,26 @@
   
   .symptom-logs-table {
     font-size: 0.9rem;
+  }
+}
+
+/* Add modal positioning fixes */
+.modal {
+  padding-top: 60px !important; /* Add padding to move modals down from the top */
+}
+
+.modal-dialog {
+  margin-top: 2rem; /* Add additional margin to the modal dialog */
+}
+
+.modal-backdrop {
+  opacity: 0.5 !important; /* Make backdrop slightly more opaque for better visibility */
+}
+
+/* Ensure modal content doesn't overflow on smaller screens */
+@media (max-width: 576px) {
+  .modal-dialog {
+    margin: 3.5rem 0.5rem 0.5rem 0.5rem;
+    max-width: calc(100% - 1rem);
   }
 }

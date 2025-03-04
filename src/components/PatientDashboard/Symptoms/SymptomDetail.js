@@ -60,8 +60,12 @@ const SymptomDetail = () => {
       const response = await axiosInstance.get(`/symptom-logs/?symptom_id=${symptomId}`);
       console.log('Symptom Logs API Response:', response.data);
       
-      // Handle array response or nested response
-      const logsData = Array.isArray(response.data) ? response.data : (response.data.logs || []);
+      // Updated to handle the new API response format where logs are inside symptom_logs key
+      const logsData = response.data.symptom_logs || 
+                       (Array.isArray(response.data) ? response.data : []);
+      
+      console.log('Extracted logs data:', logsData);
+      
       setLogs(logsData);
     } catch (err) {
       console.error('Error fetching symptom logs:', err);

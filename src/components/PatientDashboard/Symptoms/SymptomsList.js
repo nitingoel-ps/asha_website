@@ -68,7 +68,10 @@ const SymptomsList = ({ symptoms = [], onRefresh }) => {
     // Check if there are any logs for this symptom
     try {
       const response = await axiosInstance.get(`/symptom-logs/?symptom_id=${symptom.id}`);
-      const logs = Array.isArray(response.data) ? response.data : (response.data.logs || []);
+      console.log('Delete check response:', response.data);
+      
+      // Updated to handle the new API response format
+      const logs = response.data.symptom_logs || [];
       
       setDeleteInfo({
         logs: logs.length,
