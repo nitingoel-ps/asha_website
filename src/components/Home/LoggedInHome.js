@@ -1,11 +1,11 @@
-// src/components/Home/LoggedInHome.js
 import React from "react";
 import { Link } from "react-router-dom";
 import { Container, Row, Col, Card, Button } from "react-bootstrap";
-import { useAuth } from "../../context/AuthContext"; // Ensure AuthContext is implemented
+import { FaTachometerAlt, FaPlusCircle, FaHospital, FaFileUpload, FaRobot, FaCog } from "react-icons/fa";
+import { useAuth } from "../../context/AuthContext";
 
 function LoggedInHome() {
-  const { user } = useAuth(); // Fetch user details from AuthContext
+  const { user } = useAuth();
 
   return (
     <Container className="logged-in-container mt-5">
@@ -19,50 +19,70 @@ function LoggedInHome() {
         </Col>
       </Row>
 
-      {/* Actionable Cards Section */}
+      {/* Main Options */}
       <Row className="text-center">
-        <Col md={4} sm={6} className="mb-4">
-          <Card className="action-card shadow">
-            <Card.Body>
-              <i className="bi bi-person-bounding-box display-4 text-primary mb-3"></i>
+        {/* Health Dashboard */}
+        <Col md={6} lg={3} className="mb-4">
+          <Card className="action-card shadow h-100">
+            <Card.Body className="d-flex flex-column">
+              <div className="text-primary mb-3">
+                <FaTachometerAlt size={48} />
+              </div>
               <h5>Health Dashboard</h5>
-              <p>View and manage all your health and insurance data in one place.</p>
+              <p className="flex-grow-1">View and manage all your health information in one place.</p>
               <Button as={Link} to="/patient-dashboard" variant="primary">
                 Go to Dashboard
               </Button>
             </Card.Body>
           </Card>
         </Col>
-        <Col md={4} sm={6} className="mb-4">
-          <Card className="action-card shadow">
-            <Card.Body>
-              <i className="bi bi-link display-4 text-info mb-3"></i>
-              <h5>Connect to Providers</h5>
-              <p>Easily connect with your healthcare providers to pull your health data.</p>
-              <Button as={Link} to="/add-providers" variant="info">
-                Connect Providers
+
+        {/* Add Health Data - Main Card */}
+        <Col md={6} lg={3} className="mb-4">
+          <Card className="action-card shadow h-100">
+            <Card.Body className="d-flex flex-column">
+              <div className="text-info mb-3">
+                <FaPlusCircle size={48} />
+              </div>
+              <h5>Add Health Data</h5>
+              <p className="flex-grow-1">Add your health information through various methods.</p>
+              <div className="mt-auto">
+                <Button as={Link} to="/add-providers" variant="outline-info" className="mb-2 w-100">
+                  <FaHospital className="me-1" /> Connect to Providers
+                </Button>
+                <Button as={Link} to="/upload-files" variant="outline-info" className="w-100">
+                  <FaFileUpload className="me-1" /> Upload Files Manually
+                </Button>
+              </div>
+            </Card.Body>
+          </Card>
+        </Col>
+
+        {/* Talk to AI */}
+        <Col md={6} lg={3} className="mb-4">
+          <Card className="action-card shadow h-100">
+            <Card.Body className="d-flex flex-column">
+              <div className="text-success mb-3">
+                <FaRobot size={48} />
+              </div>
+              <h5>Talk to AI</h5>
+              <p className="flex-grow-1">Chat with our AI assistant to get insights about your health data.</p>
+              <Button as={Link} to="/ai-chat" variant="success">
+                Start Conversation
               </Button>
             </Card.Body>
           </Card>
         </Col>
-        <Col md={4} sm={6} className="mb-4">
-          <Card className="action-card shadow">
-            <Card.Body>
-              <i className="bi bi-cloud-upload display-4 text-success mb-3"></i>
-              <h5>Manage Documents</h5>
-              <p>Review manually uploaded health data or files from your computer or email.</p>
-              <Button as={Link} to="/my-documents" variant="success">
-                Manage Documents
-              </Button>
-            </Card.Body>
-          </Card>
-        </Col>
-        <Col md={4} sm={6} className="mb-4">
-          <Card className="action-card shadow">
-            <Card.Body>
-              <i className="bi bi-gear display-4 text-secondary mb-3"></i>
-              <h5>Configuration Management</h5>
-              <p>Manage application settings and configurations.</p>
+
+        {/* Configuration */}
+        <Col md={6} lg={3} className="mb-4">
+          <Card className="action-card shadow h-100">
+            <Card.Body className="d-flex flex-column">
+              <div className="text-secondary mb-3">
+                <FaCog size={48} />
+              </div>
+              <h5>Configuration</h5>
+              <p className="flex-grow-1">Manage application settings and configurations.</p>
               <Button as={Link} to="/configuration" variant="secondary">
                 Manage Settings
               </Button>

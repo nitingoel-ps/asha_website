@@ -1,0 +1,120 @@
+/* Mobile-friendly Navbar Styles */
+
+.mobile-friendly-navbar {
+  padding: 0.5rem 0;
+}
+
+/* Make all icons consistent size and color */
+.nav-icon {
+  margin-right: 0.5rem;
+  font-size: 1.1rem; /* Standardize icon size */
+  color: rgba(255, 255, 255, 0.9); /* Brighter icon color for better contrast */
+}
+
+/* Special styling for navbar brand icon */
+.navbar-brand .nav-icon {
+  font-size: 1.25rem; /* Slightly larger for brand */
+}
+
+/* Mobile-specific styles */
+@media (max-width: 991.98px) {
+  .mobile-nav {
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+  }
+
+  .mobile-nav .nav-item {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    transition: background-color 0.3s;
+  }
+  
+  .mobile-nav .nav-item:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+
+  /* Improved parent menu item with submenu */
+  .mobile-nav-parent {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    color: rgba(255, 255, 255, 0.85);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 0.2s ease;
+  }
+  
+  /* Create a consistent flex layout for parent item */
+  .mobile-nav-parent-content {
+    display: flex;
+    align-items: center;
+    flex-grow: 1;
+  }
+
+  /* Ensure icon in parent content is properly aligned */
+  .mobile-nav-parent-content .nav-icon {
+    margin-right: 0.5rem;
+    position: relative; /* Ensures proper alignment */
+    top: 0;
+  }
+  
+  .mobile-nav-parent:hover,
+  .mobile-nav-parent.active {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #fff;
+  }
+
+  /* Submenu arrow icon with animation */
+  .submenu-arrow {
+    margin-left: auto;
+    transition: transform 0.3s ease;
+    color: rgba(255, 255, 255, 0.7); /* Make arrow slightly more subtle */
+    font-size: 0.9rem; /* Make arrow smaller */
+  }
+  
+  .submenu-arrow.rotated {
+    transform: rotate(90deg);
+  }
+
+  /* Container for submenu items */
+  .mobile-submenu {
+    background-color: rgba(0, 0, 0, 0.2);
+  }
+  
+  /* Submenu items */
+  .mobile-nav-subitem {
+    padding-left: 2.5rem !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    transition: background-color 0.3s;
+  }
+  
+  .mobile-nav-subitem:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+
+  /* Add extra space at the bottom of the mobile menu */
+  .navbar-collapse {
+    max-height: 85vh;
+    overflow-y: auto;
+    padding-bottom: 1rem;
+  }
+}
+
+/* Desktop dropdown enhancement */
+@media (min-width: 992px) {
+  .navbar-nav .dropdown-menu {
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    border: none;
+    border-radius: 0.25rem;
+  }
+
+  .navbar-nav .dropdown-item {
+    padding: 0.5rem 1.5rem;
+  }
+  
+  /* Make dropdown icons consistent with nav icons */
+  .dropdown-item .nav-icon {
+    color: #212529; /* Darker for dropdown items against light background */
+  }
+}
