@@ -211,12 +211,6 @@ function PatientDashboard() {
       >
         <Target size={16} /> Health Priorities
       </div>
-      <div 
-        className={`nav-item ${activeTab === "dashboard-summary" ? "active" : ""}`} 
-        onClick={() => handleTabChange("dashboard-summary")}
-      >
-        <BarChart2 size={16} /> Summary
-      </div>
       <div className={`nav-item ${activeTab === "summary" ? "active" : ""}`} 
            onClick={() => handleTabChange("summary")}>
         <MessageCircle size={16} /> Chat
@@ -297,7 +291,7 @@ function PatientDashboard() {
             <Routes>
               {console.log("PatientDashboard: Rendering routes")}
               <Route index element={
-                isMobile ? null : <Navigate to="dashboard-summary" replace />
+                isMobile ? null : <Navigate to="health-priorities" replace />
               } />
               <Route path="dashboard-summary" element={
                 <SummaryTab 

@@ -10,12 +10,13 @@ import {
   Legend,
   Filler,
   SubTitle,
+  ScatterController
 } from "chart.js";
 import { Line } from "react-chartjs-2";
 import "chartjs-adapter-date-fns";
 
 // Register the required Chart.js components
-ChartJS.register(LineElement, PointElement, LinearScale, TimeScale, Title, Tooltip, Legend, Filler, SubTitle);
+ChartJS.register(LineElement, PointElement, LinearScale, TimeScale, Title, Tooltip, Legend, Filler, SubTitle, ScatterController);
 
 function ObservationGraph({ data }) {
   const { observationName, points, uom, referenceRange, explanation } = data;
