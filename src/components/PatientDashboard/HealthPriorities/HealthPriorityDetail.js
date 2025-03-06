@@ -14,12 +14,13 @@ import {
   ChevronUp,
   ThumbsUp,
   ThumbsDown
-  // Add ThumbsUp and ThumbsDown to the imports
 } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronDown, faChevronUp } from '@fortawesome/free-solid-svg-icons';
 import './HealthPriorities.css';
 import EvidenceWithReferences from './EvidenceWithReferences';
+// Import the utility function
+import { formatDisplayText } from '../../../utils/textUtils';
 
 const ActionIcon = ({ actionType }) => {
   switch (actionType.toLowerCase()) {
@@ -377,6 +378,9 @@ Action item description: ${action.description}`;
       // Add implementation for rejecting an action
     };
 
+    // Format the instructions text to remove square brackets
+    const formattedInstructions = formatDisplayText(action.instructions);
+
     return (
       <Card className="mb-3 action-item-card">
         <Card.Body>
@@ -391,11 +395,11 @@ Action item description: ${action.description}`;
               </div>
               <p>{action.description}</p>
               
-              {/* Display instructions if available - with updated styling classes */}
-              {action.instructions && action.instructions.trim() !== '' && (
+              {/* Display instructions if available - now using formatted text */}
+              {formattedInstructions && formattedInstructions.trim() !== '' && (
                 <div className="action-instructions">
                   <h6 className="instructions-title">Instructions:</h6>
-                  <p className="instructions-content">{action.instructions}</p>
+                  <p className="instructions-content">{formattedInstructions}</p>
                 </div>
               )}
               
