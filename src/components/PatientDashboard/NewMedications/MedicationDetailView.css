@@ -66,7 +66,7 @@
   color: #2e7d32;
 }
 
-.status-stopped, .status-completed {
+.status-stopped, .status-completed, .status-unknown {
   background-color: #f5f5f5;
   color: #757575;
 }
@@ -77,14 +77,109 @@
   max-width: 100%;
 }
 
+/* History section styling */
+.history-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.history-card {
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  display: flex;
+  flex-direction: column;
+}
+
+.history-card-date {
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  color: #495057;
+}
+
+.history-card-details {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.history-card-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.history-card-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.history-instruction-row {
+  margin-top: 0.25rem;
+}
+
+.history-label {
+  font-weight: 500;
+  color: #6c757d;
+  min-width: 90px;
+  flex-shrink: 0;
+}
+
+.history-instruction {
+  flex: 1;
+  font-size: 0.95rem;
+  line-height: 1.4;
+  opacity: 0.9;
+  background-color: rgba(255, 255, 255, 0.5);
+  padding: 0.5rem;
+  border-radius: 4px;
+  margin-top: 0.25rem;
+}
+
 @media (min-width: 768px) {
   .medication-details {
     grid-template-columns: repeat(2, 1fr);
     column-gap: 2rem;
   }
+  
+  .history-card {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+  
+  .history-card-date {
+    min-width: 120px;
+    margin-bottom: 0;
+    margin-right: 1.5rem;
+  }
+  
+  .history-card-details {
+    flex: 1;
+  }
+  
+  .history-card-content {
+    width: 100%;
+  }
+  
+  .history-instruction-row {
+    margin-top: 0.5rem;
+    width: 100%;
+  }
+  
+  .history-instruction {
+    margin-top: 0;
+  }
+  
+  .history-card-row {
+    margin-right: 1rem;
+  }
 }
 
-/* For very small screens, stack label and value */
 @media (max-width: 475px) {
   .medication-detail-item {
     flex-direction: column;
@@ -103,5 +198,13 @@
 @media (min-width: 992px) {
   .medication-detail-label {
     min-width: 150px;
+  }
+  
+  .history-card-date {
+    min-width: 150px;
+  }
+  
+  .history-label {
+    min-width: 100px;
   }
 }

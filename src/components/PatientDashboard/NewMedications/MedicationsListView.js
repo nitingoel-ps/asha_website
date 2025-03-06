@@ -9,9 +9,30 @@ export function MedicationsListView({ medications }) {
   
   console.log("MedicationsListView: Rendered with medications:", medications?.list?.length);
 
+  // Function to get any field from past_medications if it's not available
+  const getLatestFromPastMedications = (medication, fieldName) => {
+    if (medication[fieldName]) {
+      return medication[fieldName];
+    }
+    
+    if (!medication.past_medications || medication.past_medications.length === 0) {
+      return null;
+    }
+    
+    // Sort past_medications by authoredOn date in descending order
+    const sortedPastMeds = [...medication.past_medications].sort((a, b) => {
+      const dateA = new Date(a.authoredOn || 0);
+      const dateB = new Date(b.authoredOn || 0);
+      return dateB - dateA;
+    });
+    
+    // Return the field from the most recent record
+    return sortedPastMeds[0][fieldName];
+  };
+
   const sortedMedications = medications?.list?.sort((a, b) => {
-    const dateA = new Date(a.authoredOn);
-    const dateB = new Date(b.authoredOn);
+    const dateA = new Date(a.authoredOn || getLatestFromPastMedications(a, 'authoredOn') || 0);
+    const dateB = new Date(b.authoredOn || getLatestFromPastMedications(b, 'authoredOn') || 0);
     return dateB - dateA;
   }) || [];
 
@@ -33,32 +54,41 @@ export function MedicationsListView({ medications }) {
     navigate(`${medId}`);
   };
 
-  const MedicationCard = ({ medication }) => (
-    <Card 
-      className="medication-card mb-3" 
-      onClick={() => handleMedicationClick(medication.id)}
-    >
-      <Card.Body>
-        <div>
-          <div className="d-flex justify-content-between align-items-center mb-2">
-            <h5 className="mb-0">{medication.medication}</h5>
-            <span className={`status-badge status-${medication.status}`}>
-              {medication.status}
-            </span>
+  const MedicationCard = ({ medication }) => {
+    const patientInstruction = getLatestFromPastMedications(medication, 'patient_instruction');
+    const prescriber = getLatestFromPastMedications(medication, 'prescriber');
+    const authoredOn = medication.authoredOn || getLatestFromPastMedications(medication, 'authoredOn');
+    
+    return (
+      <Card 
+        className="medication-card mb-3" 
+        onClick={() => handleMedicationClick(medication.id)}
+      >
+        <Card.Body>
+          <div>
+            <div className="d-flex justify-content-between align-items-center mb-2">
+              <h5 className="mb-0">{medication.medication}</h5>
+              <span className={`status-badge status-${medication.status}`}>
+                {medication.status}
+              </span>
+            </div>
+            <p className="text-muted mb-1">
+              {patientInstruction || 'No specific instructions'}
+            </p>
+            <small className="text-muted">
+              Prescribed: {formatDate(authoredOn)}
+              {prescriber && (
+                <><br />By: {prescriber}</>
+              )}
+              {medication.reason && (
+                <><br />Reason: {medication.reason}</>
+              )}
+            </small>
           </div>
-          <p className="text-muted mb-1">
-            {medication.patient_instruction || 'No specific instructions'}
-          </p>
-          <small className="text-muted">
-            Prescribed: {formatDate(medication.authoredOn)}
-            {medication.reason && (
-              <><br />Reason: {medication.reason}</>
-            )}
-          </small>
-        </div>
-      </Card.Body>
-    </Card>
-  );
+        </Card.Body>
+      </Card>
+    );
+  };
 
   return (
     <div className="medications-list-container">
