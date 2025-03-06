@@ -391,7 +391,7 @@ Action item description: ${action.description}`;
               </div>
               <p>{action.description}</p>
               
-              {/* Display instructions if available */}
+              {/* Display instructions if available - with updated styling classes */}
               {action.instructions && action.instructions.trim() !== '' && (
                 <div className="action-instructions">
                   <h6 className="instructions-title">Instructions:</h6>

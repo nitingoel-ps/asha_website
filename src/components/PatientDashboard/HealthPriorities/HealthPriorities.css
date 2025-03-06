@@ -848,3 +848,28 @@
     justify-content: flex-start;
   }
 }
+
+/* Styling for the instructions section */
+.action-instructions {
+  background-color: #f9f9f9;
+  padding: 0.75rem;
+  border-radius: 0.25rem;
+  margin-top: 0.5rem;
+  margin-bottom: 0.75rem;
+  border-left: 3px solid #dee2e6;
+}
+
+.instructions-title {
+  color: #6c757d;
+  font-size: 0.95rem;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+.instructions-content {
+  color: #6c757d;
+  font-style: italic;
+  margin-bottom: 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
