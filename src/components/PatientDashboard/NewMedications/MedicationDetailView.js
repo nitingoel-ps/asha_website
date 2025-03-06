@@ -43,7 +43,6 @@ export function MedicationDetailView({ medications }) {
   };
 
   const patientInstruction = getLatestFromPastMedications('patient_instruction');
-  const dosageInstruction = getLatestFromPastMedications('dosageInstruction');
   const prescriber = getLatestFromPastMedications('prescriber');
   const authoredOn = medication.authoredOn || getLatestFromPastMedications('authoredOn');
 
@@ -94,26 +93,11 @@ export function MedicationDetailView({ medications }) {
             </div>
           </div>
           
-          {dosageInstruction && (
+          {medication.medication_explanation && (
             <div className="mt-4">
-              <h5>Dosage Instructions</h5>
-              <div className="table-responsive mt-3">
-                <Table bordered>
-                  <tbody>
-                    {typeof dosageInstruction === 'string' ? (
-                      <tr>
-                        <td>{dosageInstruction}</td>
-                      </tr>
-                    ) : (
-                      Object.entries(dosageInstruction).map(([key, value]) => (
-                        <tr key={key}>
-                          <td className="fw-bold">{key}</td>
-                          <td>{typeof value === 'object' ? JSON.stringify(value) : value}</td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </Table>
+              <h5>About this Medication</h5>
+              <div className="medication-explanation-card">
+                <p className="medication-explanation-text">{medication.medication_explanation}</p>
               </div>
             </div>
           )}

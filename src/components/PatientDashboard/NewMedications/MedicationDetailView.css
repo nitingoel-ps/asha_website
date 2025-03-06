@@ -141,6 +141,22 @@
   margin-top: 0.25rem;
 }
 
+/* Add styles for medication explanation */
+.medication-explanation-card {
+  background-color: #f8f9fa;
+  border-left: 4px solid #4e73df;
+  padding: 1rem;
+  border-radius: 4px;
+  margin-top: 0.5rem;
+}
+
+.medication-explanation-text {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: #495057;
+  margin-bottom: 0;
+}
+
 @media (min-width: 768px) {
   .medication-details {
     grid-template-columns: repeat(2, 1fr);
