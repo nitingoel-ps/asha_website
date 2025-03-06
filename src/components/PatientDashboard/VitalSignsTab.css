@@ -95,17 +95,65 @@
 .graph-container {
   width: 100%;  /* Changed from 80% to 100% for better responsiveness */
   margin: 20px 0;  /* Changed from auto to 0 to prevent horizontal scrolling */
-  padding: 20px;
+  padding: 15px;
   background: #fff;
   border-radius: 8px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   flex-shrink: 0; /* Prevent graph from shrinking */
+  overflow-x: auto; /* Allow horizontal scrolling if needed */
+}
+
+/* Selected vital details container */
+.selected-vital-details {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin-top: 20px;
+  scroll-margin-top: 20px;
+  scroll-behavior: smooth;
+  outline: none;
+  padding-top: 10px;
+  position: relative;
+}
+
+/* Add a visual indicator for new content */
+.selected-vital-details::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: #3498db;
+  border-radius: 3px;
+  animation: pulseHighlight 2s ease-in-out;
+}
+
+@keyframes pulseHighlight {
+  0% { opacity: 1; }
+  70% { opacity: 1; }
+  100% { opacity: 0; }
 }
 
 /* Table styles */
 .vital-signs-tab table {
   margin-top: 20px;
   flex-shrink: 0; /* Prevent table from shrinking */
+}
+
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-bottom: 20px;
+  flex-shrink: 0;
+}
+
+.vital-table {
+  width: 100%;
+  min-width: 600px; /* Ensures table doesn't get too squished */
+  margin-bottom: 0;
 }
 
 .vital-signs-card:hover .vital-icon {
@@ -115,4 +163,176 @@
 .vital-signs-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Mobile cards for vital details */
+.mobile-vital-cards {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.mobile-section-header {
+  font-size: 1.2rem;
+  margin-bottom: 12px;
+  color: #374151;
+  font-weight: 500;
+}
+
+.mobile-vital-detail-card {
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  border: none;
+}
+
+.mobile-vital-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.reading-value {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1e40af;
+}
+
+.reading-value .units {
+  font-size: 0.9rem;
+  color: #6b7280;
+  font-weight: normal;
+  margin-left: 4px;
+}
+
+.mobile-vital-details {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.detail-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #4b5563;
+}
+
+.detail-icon {
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+/* Loading indicator styling */
+.spinner-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.loading-text {
+  display: block;
+  color: #4b5563;
+  font-size: 0.9rem;
+  margin-top: 8px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .vital-signs-tab {
+    padding: 15px;
+    padding-bottom: 100px;
+  }
+  
+  .vital-signs-tab .row {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 10px;
+  }
+  
+  .vital-signs-card .card-title {
+    font-size: 0.9rem;
+  }
+  
+  .vital-signs-card .card-text {
+    font-size: 1.75rem;
+  }
+  
+  .vital-icon {
+    font-size: 1.25rem;
+  }
+  
+  .graph-container {
+    padding: 10px;
+    margin: 10px 0;
+  }
+
+  .selected-vital-details {
+    gap: 15px;
+    scroll-margin-top: 15px;
+    margin-top: 15px;
+  }
+  
+  .mobile-vital-detail-card .card-body {
+    padding: 12px;
+  }
+  
+  .detail-item {
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .vital-signs-tab {
+    padding: 10px;
+  }
+  
+  .vital-signs-tab .row {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  
+  .vital-signs-card {
+    min-height: 120px;
+  }
+  
+  .vital-signs-card .card-body {
+    padding: 12px;
+  }
+  
+  .vital-signs-card .card-text {
+    font-size: 1.5rem;
+  }
+  
+  h3 {
+    font-size: 1.5rem;
+  }
+
+  .selected-vital-details {
+    gap: 10px;
+  }
+  
+  .reading-value {
+    font-size: 1.25rem;
+  }
+  
+  .mobile-section-header {
+    font-size: 1.1rem;
+    margin-bottom: 8px;
+  }
+}
+
+/* Animation for smooth transitions */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.mobile-vital-cards {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.selected-vital-details {
+  animation: fadeIn 0.3s ease-in-out;
 }
