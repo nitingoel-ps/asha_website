@@ -390,41 +390,57 @@ Action item description: ${action.description}`;
                 <Badge bg={getBadgeVariant(action.status)}>{action.status}</Badge>
               </div>
               <p>{action.description}</p>
-              <div className="action-meta">
-                <span className="action-type">
-                  {getActionTypeDisplayName(action.action_type)}
-                </span>
-              </div>
-              <div className="action-buttons-container">
-                <span className="action-buttons-label">Actions:</span>
-                <div className="action-buttons">
-                  <Button 
-                    variant="link"
-                    size="sm"
-                    className="action-button"
-                    onClick={handleChatClick}
-                    title="Discuss this with AI assistant"
-                  >
-                    <MessageSquareMore size={20} />
-                  </Button>
-                  <Button 
-                    variant="link"
-                    size="sm"
-                    className="action-button"
-                    onClick={handleAcceptClick}
-                    title="Accept this action item"
-                  >
-                    <ThumbsUp size={20} />
-                  </Button>
-                  <Button 
-                    variant="link"
-                    size="sm"
-                    className="action-button"
-                    onClick={handleRejectClick}
-                    title="Reject this action item"
-                  >
-                    <ThumbsDown size={20} />
-                  </Button>
+              
+              {/* Display instructions if available */}
+              {action.instructions && action.instructions.trim() !== '' && (
+                <div className="action-instructions">
+                  <h6 className="instructions-title">Instructions:</h6>
+                  <p className="instructions-content">{action.instructions}</p>
+                </div>
+              )}
+              
+              {/* Completely restructured action buttons container */}
+              <div className="action-footer">
+                {/* Type information - aligned left */}
+                <div className="action-type-container">
+                  <span className="action-buttons-label">Type:</span>
+                  <span className="action-type-value">
+                    {getActionTypeDisplayName(action.action_type)}
+                  </span>
+                </div>
+                
+                {/* Actions - aligned right */}
+                <div className="action-buttons-container">
+                  <span className="action-buttons-label">Actions:</span>
+                  <div className="action-buttons">
+                    <Button 
+                      variant="link"
+                      size="sm"
+                      className="action-button"
+                      onClick={handleChatClick}
+                      title="Discuss this with AI assistant"
+                    >
+                      <MessageSquareMore size={20} />
+                    </Button>
+                    <Button 
+                      variant="link"
+                      size="sm"
+                      className="action-button"
+                      onClick={handleAcceptClick}
+                      title="Accept this action item"
+                    >
+                      <ThumbsUp size={20} />
+                    </Button>
+                    <Button 
+                      variant="link"
+                      size="sm"
+                      className="action-button"
+                      onClick={handleRejectClick}
+                      title="Reject this action item"
+                    >
+                      <ThumbsDown size={20} />
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>

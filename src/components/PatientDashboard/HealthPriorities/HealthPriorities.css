@@ -681,7 +681,6 @@
   justify-content: flex-end;
   align-items: center;
   margin-top: 0.75rem;
-  border-top: 1px solid #f0f0f0;
   padding-top: 0.75rem;
   margin-bottom: 0.5rem; /* Add some space below buttons */
 }
@@ -724,6 +723,30 @@
 /* Update action chat button to use the common action button style */
 .action-chat-button {
   display: none; /* Hide the old chat button */
+}
+
+/* New styles for the restructured action footer */
+.action-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #f0f0f0;
+}
+
+.action-type-container {
+  display: flex;
+  align-items: center;
+}
+
+.action-type-value {
+  font-size: 0.9rem;
+}
+
+.action-buttons-container {
+  display: flex;
+  align-items: center;
 }
 
 /* Responsive adjustments for action buttons */
@@ -808,5 +831,20 @@
   .action-button svg {
     width: 24px; /* Even larger icons */
     height: 24px; /* Even larger icons */
+  }
+
+  .action-footer {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .action-type-container {
+    width: 100%;
+  }
+
+  .action-buttons-container {
+    width: 100%;
+    justify-content: flex-start;
   }
 }
