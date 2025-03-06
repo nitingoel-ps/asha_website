@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, Table } from 'react-bootstrap';
 import { Calendar, Activity, MapPin, Hash } from 'lucide-react';
@@ -8,8 +8,15 @@ export function ImmunizationDetailView({ groupedImmunizations }) {
   const { id } = useParams();
   const navigate = useNavigate();
   
-  const vaccineDetails = Object.values(groupedImmunizations)
-    .find(vaccine => vaccine.id.toString() === id);
+  // Check if there are no immunizations at all
+  useEffect(() => {
+    if (!groupedImmunizations || Object.keys(groupedImmunizations).length === 0) {
+      navigate('..');
+    }
+  }, [groupedImmunizations, navigate]);
+  
+  const vaccineDetails = Object.values(groupedImmunizations || {})
+    .find(vaccine => vaccine?.id?.toString() === id);
   
   if (!vaccineDetails) {
     navigate('..');

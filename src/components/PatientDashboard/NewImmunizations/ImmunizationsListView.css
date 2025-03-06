@@ -51,6 +51,36 @@
   font-weight: 600;
 }
 
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1rem;
+  text-align: center;
+  background-color: #f9fafb;
+  border-radius: 8px;
+  width: 100%;
+  grid-column: 1 / -1;
+}
+
+.empty-state svg {
+  color: #A0AEC0;
+  margin-bottom: 1rem;
+}
+
+.empty-state h4 {
+  color: #2D3748;
+  margin-bottom: 0.5rem;
+}
+
+.empty-state p {
+  color: #718096;
+  max-width: 300px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
 @media (min-width: 768px) {
   .immunizations-header,
   .immunizations-list {

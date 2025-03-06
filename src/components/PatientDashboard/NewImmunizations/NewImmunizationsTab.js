@@ -5,9 +5,13 @@ import { ImmunizationDetailView } from './ImmunizationDetailView';
 
 export function NewImmunizationsTab({ immunizations }) {
   const groupedImmunizations = React.useMemo(() => {
+    if (!immunizations || immunizations.length === 0) {
+      return {};
+    }
+    
     const groups = {};
     
-    immunizations?.forEach(imm => {
+    immunizations.forEach(imm => {
       if (!groups[imm.vaccine_name]) {
         groups[imm.vaccine_name] = {
           id: imm.id, // Use the first occurrence's ID as the group ID
