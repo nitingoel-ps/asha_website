@@ -1,15 +1,17 @@
 import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Card, Table, Dropdown, Button, Modal, Spinner, Alert } from 'react-bootstrap';
-import { Trash2, MoreVertical, AlertOctagon } from 'lucide-react';
+import { Trash2, MoreVertical, AlertOctagon, Edit } from 'lucide-react';
 import axiosInstance from '../../../utils/axiosInstance';
 import './MedicationDetailView.css';
+import { EditMedicationModal } from './EditMedicationModal';
 
 export function MedicationDetailView({ medications, refreshMedications }) {
   const { id } = useParams();
   const navigate = useNavigate();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showStatusModal, setShowStatusModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [newStatus, setNewStatus] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -65,6 +67,10 @@ export function MedicationDetailView({ medications, refreshMedications }) {
     setShowStatusModal(true);
   };
   
+  const handleEditMedication = () => {
+    setShowEditModal(true);
+  };
+  
   const handleDeleteMedication = () => {
     setShowDeleteModal(true);
   };
@@ -79,8 +85,9 @@ export function MedicationDetailView({ medications, refreshMedications }) {
         status: newStatus
       });
       setShowStatusModal(false);
-      refreshMedications();
-      // If the status is changed, stay on the same page to show the updated data
+      
+      // Explicitly refresh data from API
+      await refreshMedications();
     } catch (err) {
       console.error('Error updating medication status:', err);
       setError(err.response?.data?.message || 'Failed to update medication status. Please try again.');
@@ -96,6 +103,9 @@ export function MedicationDetailView({ medications, refreshMedications }) {
     try {
       await axiosInstance.delete(`/medications/${medication.id}/`);
       setShowDeleteModal(false);
+      
+      // Explicitly refresh data from API before navigating away
+      await refreshMedications();
       navigate('/patient-dashboard/med');
     } catch (err) {
       console.error('Error deleting medication:', err);
@@ -105,6 +115,9 @@ export function MedicationDetailView({ medications, refreshMedications }) {
     }
   };
 
+  // Determine if the medication is editable (user reported)
+  const isEditable = medication.is_user_reported || medication.is_user_created;
+
   return (
     <div className="medication-detail-container">      
       <Card className="detail-card">
@@ -112,8 +125,10 @@ export function MedicationDetailView({ medications, refreshMedications }) {
           <div className="d-flex justify-content-between align-items-center">
             <div>
               <h3 className="mb-0">{medication.medication}</h3>
-              {medication.is_user_created && (
-                <span className="user-created-badge">Added by you</span>
+              {isEditable && (
+                <span className="user-created-badge">
+                  {medication.is_user_created ? 'Added by you' : 'Reported by you'}
+                </span>
               )}
             </div>
             <div className="d-flex align-items-center">
@@ -131,6 +146,14 @@ export function MedicationDetailView({ medications, refreshMedications }) {
                   <MoreVertical size={16} />
                 </Dropdown.Toggle>
                 <Dropdown.Menu align="end">
+                  {isEditable && (
+                    <>
+                      <Dropdown.Item onClick={handleEditMedication}>
+                        <Edit size={16} className="me-2" /> Edit Medication
+                      </Dropdown.Item>
+                      <Dropdown.Divider />
+                    </>
+                  )}
                   <Dropdown.Header>Change Status</Dropdown.Header>
                   <Dropdown.Item 
                     onClick={() => handleStatusChange('active')}
@@ -150,14 +173,16 @@ export function MedicationDetailView({ medications, refreshMedications }) {
                   >
                     Completed
                   </Dropdown.Item>
-                  <Dropdown.Divider />
-                  {medication.is_user_created && (
-                    <Dropdown.Item 
-                      onClick={handleDeleteMedication} 
-                      className="text-danger"
-                    >
-                      <Trash2 size={16} className="me-2" /> Delete Medication
-                    </Dropdown.Item>
+                  {isEditable && (
+                    <>
+                      <Dropdown.Divider />
+                      <Dropdown.Item 
+                        onClick={handleDeleteMedication} 
+                        className="text-danger"
+                      >
+                        <Trash2 size={16} className="me-2" /> Delete Medication
+                      </Dropdown.Item>
+                    </>
                   )}
                 </Dropdown.Menu>
               </Dropdown>
@@ -280,6 +305,18 @@ export function MedicationDetailView({ medications, refreshMedications }) {
           </Button>
         </Modal.Footer>
       </Modal>
+      
+      {/* Edit Medication Modal */}
+      <EditMedicationModal 
+        show={showEditModal}
+        onHide={() => setShowEditModal(false)}
+        medication={medication}
+        onSave={async () => {
+          setShowEditModal(false);
+          // Ensure we get fresh data after edit
+          await refreshMedications();
+        }}
+      />
     </div>
   );
 }

@@ -29,10 +29,13 @@ export function NewMedicationsTab() {
       }
       
       setError(null);
+      console.log('Medications refreshed successfully');
+      return response.data;
     } catch (err) {
       console.error('Error fetching medications:', err);
       setError('Failed to load medications. Please try again later.');
       setMedications({ list: [], summary: '' });
+      throw err; // Re-throw to allow calling functions to handle error
     } finally {
       setLoading(false);
     }

@@ -184,6 +184,96 @@
   color: #212529;
 }
 
+/* Edit modal styles */
+.medication-edit-modal .modal-content {
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+}
+
+.medication-edit-modal .modal-header {
+  border-bottom: 1px solid #e9ecef;
+  padding: 1rem 1.5rem;
+}
+
+.medication-edit-modal .modal-body {
+  padding: 1.5rem;
+}
+
+.medication-edit-modal .modal-footer {
+  border-top: 1px solid #e9ecef;
+  padding: 1rem 1.5rem;
+}
+
+/* Enhanced user reported/created badge */
+.user-created-badge {
+  display: inline-block;
+  background-color: #e3f2fd;
+  color: #1976d2;
+  font-size: 0.75rem;
+  padding: 0.1rem 0.5rem;
+  border-radius: 0.5rem;
+  margin-top: 0.25rem;
+  font-weight: 500;
+}
+
+/* Enhanced dropdown menu for actions */
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+}
+
+.dropdown-item:active {
+  background-color: #f8f9fa;
+  color: #212529;
+}
+
+.dropdown-item.active {
+  background-color: #f8f9fa;
+  color: #212529;
+}
+
+/* Tooltip for action buttons */
+.action-tooltip {
+  position: relative;
+}
+
+.action-tooltip:hover::before {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0.25rem 0.5rem;
+  background-color: #212529;
+  color: white;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.action-tooltip:hover::before {
+  opacity: 1;
+}
+
+/* Responsive improvements */
+@media (max-width: 576px) {
+  .medication-edit-modal .modal-dialog {
+    margin: 0.5rem;
+  }
+  
+  .medication-edit-modal .modal-body {
+    padding: 1rem;
+  }
+  
+  .dropdown-menu {
+    min-width: 180px;
+  }
+}
+
 @media (min-width: 768px) {
   .medication-details {
     grid-template-columns: repeat(2, 1fr);

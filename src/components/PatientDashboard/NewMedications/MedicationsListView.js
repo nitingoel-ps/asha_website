@@ -158,31 +158,35 @@ export function MedicationsListView({ medications, loading, error, refreshMedica
 
   return (
     <div className="medications-list-container">
-      <div className="medications-header d-flex justify-content-between align-items-center">
-        <h2>Medications</h2>
-        <div className="d-flex align-items-center">
-          <ButtonGroup className="me-2">
-            <Button 
-              variant={viewType === 'active' ? 'primary' : 'outline-primary'}
-              onClick={() => setViewType('active')}
-            >
-              Active ({activeMeds.length})
-            </Button>
-            <Button 
-              variant={viewType === 'inactive' ? 'primary' : 'outline-primary'}
-              onClick={() => setViewType('inactive')}
-            >
-              Past ({inactiveMeds.length})
-            </Button>
-          </ButtonGroup>
+      <div className="medications-header">
+        <div className="d-flex justify-content-between align-items-center mb-3">
+          <h2>Medications</h2>
           <Button 
             variant="success"
             size="sm"
             onClick={handleAddMedication}
+            className="add-medication-btn"
           >
             Add Medication
           </Button>
         </div>
+        
+        <ButtonGroup className="w-100 mb-3">
+          <Button 
+            variant={viewType === 'active' ? 'primary' : 'outline-primary'}
+            onClick={() => setViewType('active')}
+            className="flex-grow-1"
+          >
+            Active ({activeMeds.length})
+          </Button>
+          <Button 
+            variant={viewType === 'inactive' ? 'primary' : 'outline-primary'}
+            onClick={() => setViewType('inactive')}
+            className="flex-grow-1"
+          >
+            Past ({inactiveMeds.length})
+          </Button>
+        </ButtonGroup>
       </div>
 
       <div className="medications-list">
