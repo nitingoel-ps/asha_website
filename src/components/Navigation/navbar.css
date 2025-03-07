@@ -375,18 +375,19 @@
   /* Mobile slide-in menu */
   .mobile-slide-menu {
     position: fixed;
-    top: 0;
+    top: 20px; /* Add some space from the top of the screen */
     right: -100%;
     width: 80%;
     max-width: 320px;
-    height: 100vh;
+    /* Change from fixed height to auto height with max constraints */
+    height: auto;
+    max-height: calc(100vh - 40px); /* Subtract some space for top and bottom margin */
     background-color: #ffffff;
     z-index: 1050;
     transition: right 0.3s ease;
     box-shadow: -2px 0 5px rgba(0, 0, 0, 0.2);
     overflow-y: auto;
-    /* Hide by default on desktop */
-    display: none;
+    border-radius: 10px; /* Add rounded corners */
   }
   
   .mobile-menu-backdrop {
@@ -438,6 +439,7 @@
     padding: 1rem;
     border-bottom: 1px solid #e5e5e5;
     position: relative;
+    min-height: 60px; /* Ensure consistent header height */
   }
 
   .mobile-menu-close {
@@ -461,6 +463,7 @@
     padding: 1.5rem 1rem;
     background-color: #f8f9fa;
     border-bottom: 1px solid #e5e5e5;
+    min-height: 80px; /* Ensure consistent profile section height */
   }
 
   .mobile-user-profile .user-avatar,
@@ -525,7 +528,11 @@
     color: #6c757d;
     font-size: 0.875rem;
     border-top: 1px solid #e5e5e5;
-    margin-top: 1rem;
+    margin-top: 0.5rem;
+    min-height: 50px; /* Ensure consistent footer height */
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   /* Fix mobile menu button behavior */
@@ -633,16 +640,19 @@
 /* Mobile slide-in menu - Base styling */
 .mobile-slide-menu {
   position: fixed;
-  top: 0;
+  top: 20px; /* Add some space from the top of the screen */
   right: -100%;
   width: 80%;
   max-width: 320px;
-  height: 100vh;
+  /* Change from fixed height to auto height with max constraints */
+  height: auto;
+  max-height: calc(100vh - 40px); /* Subtract some space for top and bottom margin */
   background-color: #ffffff;
   z-index: 1050;
   transition: right 0.3s ease;
   box-shadow: -2px 0 5px rgba(0, 0, 0, 0.2);
   overflow-y: auto;
+  border-radius: 10px; /* Add rounded corners */
 }
 
 .mobile-slide-menu.show {
