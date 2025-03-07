@@ -16,6 +16,7 @@ import {
   FaExchangeAlt
 } from "react-icons/fa";
 import axiosInstance from "../../utils/axiosInstance";
+import BloodPressureInput from './BloodPressureInput';
 
 // Unit conversion functions
 const convertHeight = (value, fromUnit, toUnit) => {
@@ -91,31 +92,80 @@ const convertWeight = (value, fromUnit, toUnit) => {
 
 // Normalize unit names for consistent display
 const normalizeUnitName = (unit, vitalType) => {
-  const unitLower = unit.toLowerCase();
+  if (!unit) return '';
+  
+  // Extract the primary unit if it's followed by additional information in parentheses
+  // Example: "kg (194 lb 9.6 oz)" should return "kg"
+  const unitMatch = unit.match(/^(\w+)(\s*\(.*\))?/);
+  const primaryUnit = unitMatch ? unitMatch[1].trim().toLowerCase() : unit.toLowerCase();
   
   if (vitalType === "Height") {
-    if (unitLower.includes('in') || unitLower.includes('inch')) {
+    if (primaryUnit.includes('in') || primaryUnit === 'inch' || primaryUnit === 'inches') {
       return 'in';
-    } else if (unitLower.includes('cm') || unitLower.includes('centimeter')) {
+    } else if (primaryUnit === 'cm' || primaryUnit === 'centimeter' || primaryUnit === 'centimeters') {
       return 'cm';
-    } else if (unitLower.includes('m') || unitLower.includes('meter')) {
+    } else if (primaryUnit === 'm' || primaryUnit === 'meter' || primaryUnit === 'meters') {
       return 'm';
     }
-    return unit;
+    // Try to extract unit from beginning of string if not already matched
+    if (unit.toLowerCase().startsWith('in')) return 'in';
+    if (unit.toLowerCase().startsWith('cm')) return 'cm';
+    if (unit.toLowerCase().startsWith('m ')) return 'm'; // Space after 'm' to avoid matching 'mm'
+    return primaryUnit;
   } 
   
   if (vitalType === "Weight") {
-    if (unitLower.includes('lb') || unitLower.includes('pound')) {
+    if (primaryUnit === 'lb' || primaryUnit === 'lbs' || primaryUnit === 'pound' || primaryUnit === 'pounds') {
       return 'lb';
-    } else if (unitLower.includes('kg') || unitLower.includes('kilogram')) {
+    } else if (primaryUnit === 'kg' || primaryUnit === 'kilogram' || primaryUnit === 'kilograms') {
       return 'kg';
-    } else if (unitLower.includes('g') || unitLower.includes('gram')) {
+    } else if (primaryUnit === 'g' || primaryUnit === 'gram' || primaryUnit === 'grams') {
       return 'g';
     }
-    return unit;
+    // Try to extract unit from beginning of string if not already matched
+    if (unit.toLowerCase().startsWith('lb')) return 'lb';
+    if (unit.toLowerCase().startsWith('kg')) return 'kg';
+    if (unit.toLowerCase().startsWith('g ')) return 'g'; // Space after 'g' to avoid matching 'kg'
+    return primaryUnit;
   }
   
-  return unit;
+  return primaryUnit;
+};
+
+// Helper function to extract the primary unit from a potentially complex unit string
+const extractPrimaryUnit = (unitString) => {
+  if (!unitString) return '';
+  
+  // Common unit patterns to look for at the beginning of the string
+  const unitPatterns = [
+    // Weight units
+    /^kg\b/i, /^kilogram\b/i, /^kilograms\b/i,
+    /^lb\b/i, /^lbs\b/i, /^pound\b/i, /^pounds\b/i,
+    /^g\b/i, /^gram\b/i, /^grams\b/i,
+    // Height units
+    /^cm\b/i, /^centimeter\b/i, /^centimeters\b/i,
+    /^m\b/i, /^meter\b/i, /^meters\b/i,
+    /^in\b/i, /^inch\b/i, /^inches\b/i,
+    // BP units
+    /^mmHg\b/i,
+    // Other common units
+    /^%\b/i, /^bpm\b/i
+  ];
+  
+  for (const pattern of unitPatterns) {
+    const match = unitString.match(pattern);
+    if (match) {
+      return match[0].toLowerCase();
+    }
+  }
+  
+  // If no direct match, try to extract the first word before any parenthesis
+  const firstWordMatch = unitString.match(/^([^\s(]+)/);
+  if (firstWordMatch) {
+    return firstWordMatch[0].toLowerCase();
+  }
+  
+  return unitString.toLowerCase();
 };
 
 function VitalSignsTab() {
@@ -127,6 +177,8 @@ function VitalSignsTab() {
   const [newVital, setNewVital] = useState({
     vital_sign: "Blood Pressure",
     reading: "",
+    systolic: "",      // Add systolic field for blood pressure
+    diastolic: "",     // Add diastolic field for blood pressure
     units_of_measure: "mmHg",
     date_taken: new Date().toISOString().split('T')[0],
     source: "Self-reported"
@@ -153,22 +205,37 @@ function VitalSignsTab() {
     if (selectedVital && selectedVital.length > 0) {
       const vitalType = selectedVital[0].vital_sign;
       
-      if (vitalType === "Height" || vitalType === "Weight") {
+      if (vitalType === "Blood Pressure") {
+        // Blood Pressure - maintain the string format but don't try to convert units
+        setConvertedVitals(
+          selectedVital.map(vital => ({
+            ...vital,
+            converted_reading: vital.reading, // Keep the original string format (e.g. "120/80")
+            display_unit: extractPrimaryUnit(vital.units_of_measure) || 'mmHg'
+          }))
+        );
+      } else if (vitalType === "Height" || vitalType === "Weight") {
         const converted = selectedVital.map(vital => {
           const normalizedUnit = normalizeUnitName(vital.units_of_measure, vitalType);
           const targetUnit = displayUnit[vitalType];
           
           let convertedReading;
-          if (vitalType === "Height") {
-            convertedReading = convertHeight(parseFloat(vital.reading), normalizedUnit, targetUnit);
-          } else {
-            convertedReading = convertWeight(parseFloat(vital.reading), normalizedUnit, targetUnit);
+          try {
+            if (vitalType === "Height") {
+              convertedReading = convertHeight(parseFloat(vital.reading), normalizedUnit, targetUnit);
+            } else {
+              convertedReading = convertWeight(parseFloat(vital.reading), normalizedUnit, targetUnit);
+            }
+          } catch (e) {
+            console.error("Conversion error:", e);
+            convertedReading = parseFloat(vital.reading) || 0;
           }
           
           return {
             ...vital,
             converted_reading: convertedReading,
-            display_unit: targetUnit
+            display_unit: targetUnit,
+            original_unit: normalizedUnit
           };
         });
         
@@ -178,8 +245,8 @@ function VitalSignsTab() {
         setConvertedVitals(
           selectedVital.map(vital => ({
             ...vital,
-            converted_reading: parseFloat(vital.reading),
-            display_unit: vital.units_of_measure
+            converted_reading: parseFloat(vital.reading) || vital.reading,
+            display_unit: extractPrimaryUnit(vital.units_of_measure)
           }))
         );
       }
@@ -322,19 +389,40 @@ function VitalSignsTab() {
   };
 
   const handleAddVital = async () => {
-    if (!newVital.reading) {
+    // Validation for blood pressure or regular readings
+    if (newVital.vital_sign === "Blood Pressure") {
+      if (!newVital.systolic || !newVital.diastolic) {
+        setError("Please enter both systolic and diastolic values");
+        return;
+      }
+    } else if (!newVital.reading) {
       setError("Please enter a reading value");
       return;
     }
 
     try {
       setIsLoading(true);
-      const response = await axiosInstance.post("/vital-signs/", newVital);
+      
+      // Create a copy to avoid modifying the state directly
+      const vitalToSave = { ...newVital };
+      
+      // Special handling for blood pressure
+      if (newVital.vital_sign === "Blood Pressure") {
+        // Combine systolic and diastolic into a reading
+        vitalToSave.reading = `${newVital.systolic}/${newVital.diastolic}`;
+        // Remove the extra fields before sending to API
+        delete vitalToSave.systolic;
+        delete vitalToSave.diastolic;
+      }
+      
+      const response = await axiosInstance.post("/vital-signs/", vitalToSave);
       
       // Reset form
       setNewVital({
         vital_sign: "Blood Pressure",
         reading: "",
+        systolic: "",
+        diastolic: "",
         units_of_measure: "mmHg",
         date_taken: new Date().toISOString().split('T')[0],
         source: "Self-reported"
@@ -399,10 +487,12 @@ function VitalSignsTab() {
   
   // Handle unit change for height and weight
   const handleUnitChange = (vitalType, unit) => {
-    setDisplayUnit(prev => ({
-      ...prev,
-      [vitalType]: unit
-    }));
+    console.log(`Changing ${vitalType} unit to ${unit}`); // Debug log
+    setDisplayUnit(prev => {
+      const newUnits = { ...prev, [vitalType]: unit };
+      console.log("New display units:", newUnits); // Debug log
+      return newUnits;
+    });
   };
   
   // Get latest value for a vital sign, with appropriate unit conversion
@@ -411,16 +501,20 @@ function VitalSignsTab() {
     
     const latestVital = data[0];
     const value = latestVital.reading;
-    const originalUnit = latestVital.units_of_measure;
     
-    if (vitalSign === "Height") {
-      const normalizedUnit = normalizeUnitName(originalUnit, vitalSign);
-      return convertHeight(parseFloat(value), normalizedUnit, displayUnit.Height);
-    }
-    
-    if (vitalSign === "Weight") {
-      const normalizedUnit = normalizeUnitName(originalUnit, vitalSign);
-      return convertWeight(parseFloat(value), normalizedUnit, displayUnit.Weight);
+    try {
+      if (vitalSign === "Height") {
+        const normalizedUnit = normalizeUnitName(latestVital.units_of_measure, vitalSign);
+        return convertHeight(parseFloat(value), normalizedUnit, displayUnit.Height);
+      }
+      
+      if (vitalSign === "Weight") {
+        const normalizedUnit = normalizeUnitName(latestVital.units_of_measure, vitalSign);
+        return convertWeight(parseFloat(value), normalizedUnit, displayUnit.Weight);
+      }
+    } catch (e) {
+      console.error(`Error converting ${vitalSign} value:`, e);
+      return value; // Return original value if conversion fails
     }
     
     return value;
@@ -431,9 +525,9 @@ function VitalSignsTab() {
     if (vitalSign === "Height") return displayUnit.Height;
     if (vitalSign === "Weight") return displayUnit.Weight;
     
-    // For other vitals, use the original unit
+    // For other vitals, extract the primary unit
     const data = keyVitals[vitalSign].data;
-    return data.length > 0 ? data[0].units_of_measure : "";
+    return data.length > 0 ? extractPrimaryUnit(data[0].units_of_measure) : "";
   };
 
   return (
@@ -527,22 +621,26 @@ function VitalSignsTab() {
                 {selectedVital[0].vital_sign === "Height" && (
                   <>
                     <ToggleButton
+                      id="height-unit-in"
                       type="radio"
                       variant={displayUnit.Height === "in" ? "primary" : "outline-primary"}
                       name="height-unit"
                       value="in"
                       checked={displayUnit.Height === "in"}
                       onChange={() => handleUnitChange("Height", "in")}
+                      onClick={() => handleUnitChange("Height", "in")} // Add onClick as backup
                     >
                       Inches (in)
                     </ToggleButton>
                     <ToggleButton
+                      id="height-unit-cm"
                       type="radio"
                       variant={displayUnit.Height === "cm" ? "primary" : "outline-primary"}
                       name="height-unit"
                       value="cm"
                       checked={displayUnit.Height === "cm"}
                       onChange={() => handleUnitChange("Height", "cm")}
+                      onClick={() => handleUnitChange("Height", "cm")} // Add onClick as backup
                     >
                       Centimeters (cm)
                     </ToggleButton>
@@ -551,22 +649,26 @@ function VitalSignsTab() {
                 {selectedVital[0].vital_sign === "Weight" && (
                   <>
                     <ToggleButton
+                      id="weight-unit-lb"
                       type="radio"
                       variant={displayUnit.Weight === "lb" ? "primary" : "outline-primary"}
                       name="weight-unit"
                       value="lb"
                       checked={displayUnit.Weight === "lb"}
                       onChange={() => handleUnitChange("Weight", "lb")}
+                      onClick={() => handleUnitChange("Weight", "lb")} // Add onClick as backup
                     >
                       Pounds (lb)
                     </ToggleButton>
                     <ToggleButton
+                      id="weight-unit-kg"
                       type="radio"
                       variant={displayUnit.Weight === "kg" ? "primary" : "outline-primary"}
                       name="weight-unit"
                       value="kg"
                       checked={displayUnit.Weight === "kg"}
                       onChange={() => handleUnitChange("Weight", "kg")}
+                      onClick={() => handleUnitChange("Weight", "kg")} // Add onClick as backup
                     >
                       Kilograms (kg)
                     </ToggleButton>
@@ -584,7 +686,9 @@ function VitalSignsTab() {
                   observationName: selectedVital[0]?.vital_sign || '',
                   points: convertedVitals.map(v => ({
                     date: v.date_taken,
-                    value: v.converted_reading
+                    value: selectedVital[0]?.vital_sign === "Blood Pressure" ? 
+                      v.converted_reading : // For BP, this will be the original string like "120/80"
+                      v.converted_reading   // For other vitals, this will be a number
                   })),
                   uom: convertedVitals[0]?.display_unit || '',
                   referenceRange: selectedVital[0]?.reference_range || null,
@@ -611,7 +715,7 @@ function VitalSignsTab() {
                     )}
                     <th>Date Taken</th>
                     <th>Source</th>
-                    <th>Actions</th>
+                    {/* Removed the Actions column */}
                   </tr>
                 </thead>
                 <tbody>
@@ -620,7 +724,9 @@ function VitalSignsTab() {
                     return (
                       <tr key={vital.id}>
                         <td>{vital.vital_sign}</td>
-                        <td>{vital.reading}</td>
+                        <td className="reading-cell">
+                          {vital.reading}
+                        </td>
                         <td>{vital.units_of_measure}</td>
                         {(vital.vital_sign === "Height" || vital.vital_sign === "Weight") && (
                           <>
@@ -629,17 +735,20 @@ function VitalSignsTab() {
                           </>
                         )}
                         <td>{formatDate(vital.date_taken)}</td>
-                        <td>{vital.source}</td>
-                        <td>
+                        <td className="source-cell">
+                          {vital.source}
+                          {/* Add delete button with proper alignment for self-reported vitals */}
                           {vital.is_user_reported && (
                             <Button 
                               variant="danger" 
                               size="sm"
+                              className="delete-vital-btn"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 handleDeleteVital(vital.id);
                               }}
                               disabled={deleteLoading === vital.id}
+                              title="Delete this vital sign"
                             >
                               {deleteLoading === vital.id ? (
                                 <Spinner animation="border" size="sm" />
@@ -741,13 +850,21 @@ function VitalSignsTab() {
             
             <Form.Group className="mb-3">
               <Form.Label>Reading</Form.Label>
-              <Form.Control
-                type="text"
-                name="reading"
-                placeholder="Enter reading value"
-                value={newVital.reading}
-                onChange={handleInputChange}
-              />
+              {newVital.vital_sign === "Blood Pressure" ? (
+                <BloodPressureInput
+                  formData={newVital}
+                  handleInputChange={handleInputChange}
+                  validated={false} // You can add form validation state if needed
+                />
+              ) : (
+                <Form.Control
+                  type="text"
+                  name="reading"
+                  placeholder="Enter reading value"
+                  value={newVital.reading}
+                  onChange={handleInputChange}
+                />
+              )}
             </Form.Group>
             
             <Form.Group className="mb-3">

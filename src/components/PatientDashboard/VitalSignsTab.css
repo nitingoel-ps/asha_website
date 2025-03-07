@@ -63,6 +63,61 @@
   gap: 8px;
 }
 
+/* Blood pressure specific styles */
+.bp-reading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 4px;
+}
+
+.bp-reading {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 4px;
+}
+
+.bp-slash {
+  font-size: 1.5rem;
+  color: #64748b;
+  font-weight: 300;
+  margin: 0 2px;
+}
+
+.systolic-value {
+  color: #1e40af;
+}
+
+.diastolic-value {
+  color: #1e40af;
+}
+
+/* Blood pressure inputs in form */
+.bp-input-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.bp-input-container {
+  flex: 1;
+}
+
+.bp-input-label {
+  font-size: 0.85rem;
+  margin-bottom: 4px;
+  color: #64748b;
+}
+
+/* Mobile blood pressure details */
+.bp-detail-values {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
 .vital-card-header {
   display: flex;
   justify-content: space-between;
@@ -354,6 +409,24 @@
     font-size: 1.1rem;
     margin-bottom: 8px;
   }
+
+  .bp-reading {
+    font-size: 0.9rem;
+  }
+  
+  .bp-slash {
+    font-size: 1.2rem;
+  }
+  
+  .bp-input-group {
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+  }
+  
+  .bp-input-container {
+    width: 100%;
+  }
 }
 
 /* Animation for smooth transitions */
@@ -419,4 +492,26 @@
   .unit-toggle-group .btn {
     flex: 1;
   }
+}
+
+/* Style for reading cell with delete button */
+.reading-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.delete-vital-btn {
+  padding: 0.25rem 0.5rem;
+}
+
+/* Style for source cell with delete button */
+.source-cell {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.delete-vital-btn {
+  padding: 0.25rem 0.5rem;
 }
