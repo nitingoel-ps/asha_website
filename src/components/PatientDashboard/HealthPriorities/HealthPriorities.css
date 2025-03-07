@@ -10,6 +10,8 @@
   cursor: pointer;
   border-left: 4px solid transparent;
   margin-bottom: 1rem !important; /* Reduce spacing between cards from 1.5rem to 1rem */
+  display: flex;
+  flex-direction: column;
 }
 
 .focus-area-card:hover {
@@ -23,10 +25,15 @@
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
+  flex-grow: 1; /* Allow description to take available space */
+  margin-bottom: 0.75rem; /* Add some space before the action buttons */
 }
 
 .focus-area-card .card-body {
   padding-bottom: 1rem; /* Ensure enough padding within cards */
+  display: flex;
+  flex-direction: column;
+  height: 100%; /* Make the card body take full height */
 }
 
 .health-priority-detail {
@@ -614,6 +621,44 @@
   .action-button svg {
     width: 24px; /* Even larger icons */
     height: 24px; /* Even larger icons */
+  }
+}
+
+/* Ensure cols have consistent height */
+.health-priorities-container .col {
+  display: flex;
+  margin-bottom: 1rem;
+}
+
+/* Ensure action buttons are at the bottom of card */
+.focus-area-card .action-buttons-container {
+  margin-top: auto; /* Push to bottom of card */
+  padding-top: 0.75rem;
+  border-top: 1px solid #f0f0f0;
+  width: 100%;
+}
+
+/* Add a new class for the card title to control its height */
+.focus-area-card .card-title {
+  min-height: 1.5rem; /* Minimum height for title */
+  margin-bottom: 0.5rem;
+  line-height: 1.4;
+}
+
+/* Ensure consistent card height across different screen sizes */
+@media (min-width: 768px) {
+  .focus-area-card {
+    min-height: 220px; /* Minimum height on tablets and up */
+  }
+  
+  .focus-area-card .card-title {
+    min-height: 1.75rem; /* Slightly taller on desktop */
+  }
+}
+
+@media (max-width: 767px) {
+  .focus-area-card {
+    min-height: 180px; /* Slightly shorter on mobile */
   }
 }
 

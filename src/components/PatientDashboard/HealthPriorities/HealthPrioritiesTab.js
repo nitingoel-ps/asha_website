@@ -27,8 +27,16 @@ const FocusAreaCard = ({ focusArea, onClick }) => {
     // Add implementation for rejecting a focus area
   };
 
+  // Truncate longer descriptions to maintain consistent card height
+  const truncateDescription = (text, maxLength = 120) => {
+    if (!text || text.length <= maxLength) return text;
+    return text.substring(0, maxLength) + '...';
+  };
+  
+  const truncatedDescription = truncateDescription(focusArea.short_description);
+
   return (
-    <Card className="focus-area-card mb-3" onClick={onClick}>
+    <Card className="focus-area-card" onClick={onClick}>
       <Card.Body>
         <div className="d-flex justify-content-between align-items-start mb-2">
           <Card.Title>{focusArea.title}</Card.Title>
@@ -37,7 +45,7 @@ const FocusAreaCard = ({ focusArea, onClick }) => {
           </Badge>
         </div>
         <Card.Text className="focus-area-description">
-          {focusArea.short_description}
+          {truncatedDescription}
         </Card.Text>
         <div className="action-buttons-container">
           <span className="action-buttons-label">Actions:</span>
