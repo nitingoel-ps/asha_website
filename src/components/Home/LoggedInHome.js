@@ -20,7 +20,7 @@ function LoggedInHome() {
       </Row>
 
       {/* Main Options */}
-      <Row className="text-center">
+      <Row className="text-center justify-content-center">
         {/* Health Dashboard */}
         <Col md={6} lg={3} className="mb-4">
           <Card className="action-card shadow h-100">
