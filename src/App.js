@@ -19,11 +19,20 @@ import ManageStandardPanels from './components/Configuration/StandardLabs/Manage
 import PanelDetail from './components/Configuration/StandardLabs/PanelDetail';
 import AIChat from './components/AIChat/AIChat';
 import AddHealthData from './components/Health/AddHealthData';
+import LoadingSpinner from './components/LoadingSpinner';
 
 import './theme.css';
 
 function AppContent() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, loading } = useAuth();
+  
+  console.log("AppContent rendering with auth state:", { isAuthenticated, loading });
+
+  // Show loading spinner while authentication state is initializing
+  if (loading) {
+    console.log("App is still loading authentication state");
+    return <LoadingSpinner />;
+  }
 
   return (
     <>
@@ -87,6 +96,8 @@ function AppContent() {
 }
 
 function App() {
+  console.log("App component rendering");
+  
   return (
     <AuthProvider>
       <Router>

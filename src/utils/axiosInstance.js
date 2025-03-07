@@ -39,6 +39,7 @@ const updateUserContext = async () => {
   }
 };
 
+// Add debug logging to the axios instance creation
 const axiosInstance = axios.create({
   baseURL: apiBaseURL,
   withCredentials: true, // Enable sending cookies
@@ -54,12 +55,16 @@ const axiosInstance = axios.create({
   },
 });
 
+console.log("Axios instance created with token:", 
+  localStorage.getItem('access_token') ? 'Bearer token exists' : 'No bearer token');
+
 axiosInstance.interceptors.response.use(
   (response) => {
     return response;
   },
   async function (error) {
     const originalRequest = error.config;
+    console.log("Axios interceptor caught error:", error.response?.status);
 
     // Handle network errors or server not reachable
     if (!error.response) {
@@ -69,6 +74,7 @@ axiosInstance.interceptors.response.use(
 
     // Handle refresh token flow
     if (error.response.status === 401 || error.response.status === 403) { // Hack fix. True problem is that without refresh API calls do not have access tokens being sent.
+      console.log("Authorization error, attempting token refresh");
       // If refresh token request fails, redirect to login
       if (originalRequest.url === apiBaseURL + '/token/refresh/') {
         localStorage.removeItem('access_token');
@@ -127,6 +133,23 @@ axiosInstance.interceptors.response.use(
         console.error('API Error:', error);
         throw error;
     }
+  }
+);
+
+// Add a request interceptor to ensure token is included in all requests
+axiosInstance.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('access_token');
+    if (token) {
+      config.headers['Authorization'] = `Bearer ${token}`;
+      console.log("Adding auth header to request:", config.url);
+    } else {
+      console.log("No token available for request:", config.url);
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
   }
 );
 

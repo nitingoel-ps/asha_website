@@ -46,18 +46,6 @@ function AddProviders() {
   ];
 
   useEffect(() => {
-    axiosInstance
-      .get("/welcome/")
-      .then((response) => {
-        setMessage(response.data.message);
-      })
-      .catch((error) => {
-        console.error(error);
-        navigate("/login");
-      });
-  }, [navigate]);
-
-  useEffect(() => {
     // Fetch available providers
     axiosInstance
       .get("/providers")
