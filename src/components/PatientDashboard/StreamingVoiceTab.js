@@ -11,7 +11,9 @@ const StreamingVoiceTab = () => {
   const [error, setError] = useState(null);
   const [canPlay, setCanPlay] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
-  const [responseUrl, setResponseUrl] = useState(null); // Add missing state
+  const [responseUrl, setResponseUrl] = useState(null);
+  const [mobileBlob, setMobileBlob] = useState(null); // Add state for storing the mobile audio blob
+  const [mobilePlaybackError, setMobilePlaybackError] = useState(null); // Track mobile-specific errors
 
   // Add new ref for synchronous stream state tracking
   const isStreamCompleteRef = useRef(false);
@@ -44,6 +46,10 @@ const StreamingVoiceTab = () => {
   // Add a new ref to track the last time we received audio data
   const lastAudioUpdateRef = useRef(Date.now());
   const playbackTimeoutRef = useRef(null);
+
+  // Add new state to track audio initialization
+  const [audioInitialized, setAudioInitialized] = useState(false);
+  const mobileAudioUrlRef = useRef(null);
 
   useEffect(() => {
     // Initialize AudioContext
@@ -331,20 +337,94 @@ const StreamingVoiceTab = () => {
     setIsStreamComplete(false);
     lastAudioUpdateRef.current = Date.now();
     
+    // Clear playback timeout
     if (playbackTimeoutRef.current) {
       clearInterval(playbackTimeoutRef.current);
       playbackTimeoutRef.current = null;
     }
 
-    if (audioElementRef.current) {
-      console.log('Stopping and cleaning audio element');
-      audioElementRef.current.pause();
-      audioElementRef.current.src = '';
-      if (audioElementRef.current.srcObject) {
-        audioElementRef.current.srcObject = null;
+    // Handle audio element cleanup safely
+    try {
+      if (audioElementRef.current) {
+        console.log('Stopping and cleaning audio element');
+        
+        // Save reference to current audio element to clean it up properly
+        const audioElement = audioElementRef.current;
+        
+        // Remove all event listeners to prevent memory leaks
+        const cloneAudio = audioElement.cloneNode(false);
+        
+        // Pause and reset the audio
+        audioElement.onended = null;
+        audioElement.onerror = null;
+        audioElement.onplay = null;
+        audioElement.onpause = null;
+        audioElement.oncanplaythrough = null;
+        audioElement.ontimeupdate = null;
+        audioElement.pause();
+        audioElement.src = '';
+        audioElement.load(); // Force reload to clear buffers
+        
+        if (audioElement.parentNode) {
+          audioElement.parentNode.replaceChild(cloneAudio, audioElement);
+        }
+        
+        // Nullify the reference
+        audioElementRef.current = null;
       }
+    } catch (error) {
+      console.warn('Error cleaning up audio element:', error);
     }
+    
+    // Clean up mobile blob URL safely
+    try {
+      if (mobileAudioUrlRef.current) {
+        URL.revokeObjectURL(mobileAudioUrlRef.current);
+        mobileAudioUrlRef.current = null;
+      }
+      
+      // Clean up general response URL
+      if (responseUrl) {
+        URL.revokeObjectURL(responseUrl);
+        setResponseUrl(null);
+      }
+    } catch (error) {
+      console.warn('Error revoking blob URL:', error);
+    }
+    
+    // Clean up media source safely
+    try {
+      if (mediaSourceRef.current) {
+        if (mediaSourceRef.current.readyState === 'open') {
+          try {
+            mediaSourceRef.current.endOfStream();
+          } catch (e) {
+            console.warn('Could not end media stream:', e);
+          }
+        }
+        mediaSourceRef.current = null;
+      }
+      
+      // Clear source buffer
+      if (sourceBufferRef.current) {
+        sourceBufferRef.current = null;
+      }
+    } catch (error) {
+      console.warn('Error cleaning up media source:', error);
+    }
+    
+    // Clean up mobile blob
+    setMobileBlob(null);
+    setMobilePlaybackError(null);
+    
+    // Clear audio buffers
     audioBuffersRef.current = [];
+    pendingChunksRef.current = [];
+    isSourceOpenRef.current = false;
+    
+    // Reset audio initialization state
+    setAudioInitialized(false);
+    
     console.log('Audio buffers cleared');
   };
 
@@ -355,72 +435,33 @@ const StreamingVoiceTab = () => {
     setIsStreamComplete(true);
   };
 
-  // Update handleAudioChunk for mobile playback
-  const handleAudioChunk = async (arrayBuffer, isFirstChunk = false) => {
-    lastAudioUpdateRef.current = Date.now(); // Update timestamp when we receive new data
-    
-    console.log(`Handling audio chunk, isFirstChunk: ${isFirstChunk}, size: ${arrayBuffer.byteLength}`);
-    if (isMobile) {
-      audioBuffersRef.current.push(arrayBuffer);
-      console.log(`Mobile: Added chunk to buffer, total chunks: ${audioBuffersRef.current.length}`);
+  // Improved createSafeBlobUrl to store reference to mobile URLs
+  const createSafeBlobUrl = (blob, isMobileUrl = false) => {
+    try {
+      // Clean up existing URLs based on type
+      if (isMobileUrl && mobileAudioUrlRef.current) {
+        URL.revokeObjectURL(mobileAudioUrlRef.current);
+        mobileAudioUrlRef.current = null;
+      } else if (responseUrl) {
+        URL.revokeObjectURL(responseUrl);
+      }
       
-      if (isFirstChunk) {
-        console.log('Mobile: First chunk received');
-        cleanupAudio(); // Clean up any existing audio
-        
-        // Create blob from all chunks received so far
-        const blob = new Blob(audioBuffersRef.current, { type: 'audio/mpeg' });
-        const url = URL.createObjectURL(blob);
-        console.log('Created blob URL:', url);
-        
-        // Save URL for play button
-        setResponseUrl(url);
-        setCanPlay(true);
-        
-        const audio = new Audio();
-        audio.oncanplay = () => console.log('Mobile Audio can play, duration:', audio.duration);
-        audio.onplay = () => {
-          console.log('Mobile Audio started playing');
-          setIsPlaying(true);
-        };
-        
-        // Add timeupdate listener for mobile
-        audio.addEventListener('timeupdate', () => {
-          console.log('Mobile Audio timeupdate:', {
-            currentTime: audio.currentTime,
-            duration: audio.duration,
-            ended: audio.ended
-          });
-        });
-        
-        audio.onended = () => {
-          console.log('Mobile Audio playback COMPLETED via ended event');
-          cleanupStates(true);
-        };
-
-        audio.onerror = (e) => console.error('Received audio.onerror. Audio error:', e);
-        
-        audio.src = url;
-        audioElementRef.current = audio;
+      // Create and return new URL
+      const url = URL.createObjectURL(blob);
+      
+      // Store mobile URL reference if needed
+      if (isMobileUrl) {
+        mobileAudioUrlRef.current = url;
       }
-    } else {
-      await appendChunkToSourceBuffer(arrayBuffer);
-      // Set isPlaying to true when we start receiving chunks
-      if (isFirstChunk) {
-        setIsPlaying(true);
-        setIsProcessing(false);  // Stop showing processing indicator
-        
-        // Start checking for completion
-        if (playbackTimeoutRef.current) {
-          clearInterval(playbackTimeoutRef.current);
-        }
-        playbackTimeoutRef.current = setInterval(checkPlaybackCompletion, 1000);
-      }
+      
+      return url;
+    } catch (error) {
+      console.error('Error creating blob URL:', error);
+      return null;
     }
   };
 
   // Add function to check for playback completion
-  // Update checkPlaybackCompletion to use ref
   const checkPlaybackCompletion = () => {
     const audio = audioElementRef.current;
     if (!audio) return;
@@ -438,11 +479,8 @@ const StreamingVoiceTab = () => {
     });
 
     // Consider playback complete if:
-    // 1. We haven't received new data for 2 seconds AND
-    // 2. The stream is complete AND
-    // 3. Audio is still marked as playing
-    // Use ref instead of state for immediate value
-    if (timeSinceLastUpdate > 2000) { //&& isStreamCompleteRef.current && isPlaying) {
+    // 1. We haven't received new data for 2 seconds
+    if (timeSinceLastUpdate > 2000) {
       console.log('Detected playback completion via timeout');
       cleanupStates(true);
       
@@ -454,8 +492,39 @@ const StreamingVoiceTab = () => {
     }
   };
 
-  // Update handleAudioStream to handle stream completion separately
-  // Update handleAudioStream
+  // Update handleAudioChunk for mobile playback
+  const handleAudioChunk = async (arrayBuffer, isFirstChunk = false) => {
+    lastAudioUpdateRef.current = Date.now(); // Update timestamp when we receive new data
+    
+    console.log(`Handling audio chunk, isFirstChunk: ${isFirstChunk}, size: ${arrayBuffer.byteLength}`);
+    if (isMobile) {
+      // For mobile, we'll collect all chunks and play at the end
+      audioBuffersRef.current.push(arrayBuffer);
+      console.log(`Mobile: Added chunk to buffer, total chunks: ${audioBuffersRef.current.length}`);
+      
+      // Don't try to play incrementally on mobile
+      if (isFirstChunk) {
+        console.log('Mobile: First chunk received');
+        setCanPlay(false); // Don't enable play button until we have the complete response
+      }
+    } else {
+      // Desktop handling remains the same
+      await appendChunkToSourceBuffer(arrayBuffer);
+      // Set isPlaying to true when we start receiving chunks
+      if (isFirstChunk) {
+        setIsPlaying(true);
+        setIsProcessing(false);  // Stop showing processing indicator
+        
+        // Start checking for completion
+        if (playbackTimeoutRef.current) {
+          clearInterval(playbackTimeoutRef.current);
+        }
+        playbackTimeoutRef.current = setInterval(checkPlaybackCompletion, 1000);
+      }
+    }
+  };
+
+  // Update handleAudioStream to handle mobile differently
   const handleAudioStream = async (response) => {
     console.log('Starting to handle audio stream');
     cleanupAudio(); // Clean up before starting new stream
@@ -465,8 +534,10 @@ const StreamingVoiceTab = () => {
     // Reset audio state
     audioBuffersRef.current = [];
     
-    // Setup new audio playback
-    await setupAudioPlayback();
+    // Setup new audio playback (only for desktop)
+    if (!isMobile) {
+      await setupAudioPlayback();
+    }
     
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
@@ -485,13 +556,36 @@ const StreamingVoiceTab = () => {
           console.log('Stream complete - all chunks received');
           markStreamComplete(); // Use new function
           lastAudioUpdateRef.current = Date.now(); // Reset the update time
-          if (mediaSourceRef.current?.readyState === 'open') {
+          
+          // For mobile, create the complete audio blob when done
+          if (isMobile && audioBuffersRef.current.length > 0) {
+            try {
+              const completeBlob = new Blob(audioBuffersRef.current, { type: 'audio/mpeg' });
+              setMobileBlob(completeBlob);
+              
+              // Create URL safely with isMobileUrl=true flag
+              const url = createSafeBlobUrl(completeBlob, true);
+              if (url) {
+                setResponseUrl(url);
+                setCanPlay(true);
+                console.log('Mobile: Complete audio ready for playback', url);
+              } else {
+                throw new Error('Failed to create blob URL');
+              }
+            } catch (error) {
+              console.error('Error creating mobile audio blob:', error);
+              setError('Error preparing audio for playback');
+            }
+          } else if (!isMobile && mediaSourceRef.current?.readyState === 'open') {
             try {
               mediaSourceRef.current.endOfStream();
             } catch (error) {
               console.warn('Error calling endOfStream:', error);
             }
           }
+          
+          // Always mark processing as complete
+          setIsProcessing(false);
           break;
         }
 
@@ -519,6 +613,7 @@ const StreamingVoiceTab = () => {
               console.error('Error processing chunk:', error);
               console.log('Problematic chunk:', chunk.slice(0, 100) + '...');
               setIsStreamComplete(true);
+              setIsProcessing(false);
             }
           }
         }
@@ -536,6 +631,7 @@ const StreamingVoiceTab = () => {
         } catch (error) {
           console.error('Error processing final chunk:', error);
           setIsStreamComplete(true);
+          setIsProcessing(false);
         }
       }
 
@@ -555,19 +651,50 @@ const StreamingVoiceTab = () => {
         setError('Error processing audio stream');
         markStreamComplete();
       }
+      setIsProcessing(false);
     } finally {
       setIsProcessing(false);
     }
   };
 
+  // Update startRecording to handle audio context resume and reset before recording
   const startRecording = async () => {
     console.log('Starting recording');
-    cleanupAudio(); // Clean up any existing audio before starting new recording
+    setError(null); // Clear any existing errors first
+    setMobilePlaybackError(null); // Clear mobile-specific errors
+    
+    // Ensure we clean up any existing audio resources
+    try {
+      // First stop playback if it's happening
+      if (audioElementRef.current) {
+        audioElementRef.current.pause();
+      }
+      
+      // Then clean everything up
+      cleanupAudio();
+    } catch (err) {
+      console.warn('Non-critical error cleaning up before recording:', err);
+    }
+    
+    // Reset UI states
+    setIsPlaying(false);
+    setIsPaused(false);
+    setCanPlay(false);
     
     try {
-      setError(null);
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
         throw new Error('Your browser does not support audio recording');
+      }
+
+      // Ensure AudioContext is resumed for iOS Safari
+      if (audioContextRef.current.state === 'suspended') {
+        try {
+          await audioContextRef.current.resume();
+          console.log('AudioContext resumed successfully');
+        } catch (err) {
+          console.warn('Could not resume AudioContext:', err);
+          // Continue anyway, might still work
+        }
       }
 
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -583,14 +710,23 @@ const StreamingVoiceTab = () => {
 
       mediaRecorderRef.current.onstop = async () => {
         try {
+          // Check if we have any audio data
+          if (!audioChunksRef.current.length) {
+            console.warn('No audio chunks recorded');
+            setError('No audio was recorded. Please try again.');
+            setIsProcessing(false);
+            return;
+          }
+          
           const audioBlob = new Blob(audioChunksRef.current, { 
             type: mediaRecorderRef.current.mimeType || 'audio/webm' 
           });
 
           // Convert blob to base64
-          const base64Audio = await new Promise((resolve) => {
+          const base64Audio = await new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.onloadend = () => resolve(reader.result);
+            reader.onerror = reject;
             reader.readAsDataURL(audioBlob);
           });
 
@@ -606,20 +742,36 @@ const StreamingVoiceTab = () => {
             })
           });
 
-          if (!response.ok) throw new Error('Network response was not ok');
+          if (!response.ok) throw new Error(`Network response was not ok (${response.status})`);
           
           // Handle streaming response
           handleAudioStream(response);
 
         } catch (error) {
           console.error('Error processing recording:', error);
-          setError('Error processing recording: ' + error.message);
+          setError('Error processing recording: ' + (error.message || 'Unknown error'));
           setIsProcessing(false);
         }
       };
 
-      mediaRecorderRef.current.start();
-      setIsRecording(true);
+      mediaRecorderRef.current.onerror = (event) => {
+        console.error('MediaRecorder error:', event);
+        setError('Recording error: ' + (event.error?.message || 'Unknown error'));
+        setIsRecording(false);
+        setIsProcessing(false);
+      };
+
+      // Start recording with a short timeout to ensure everything is ready
+      setTimeout(() => {
+        try {
+          mediaRecorderRef.current.start();
+          setIsRecording(true);
+        } catch (err) {
+          console.error('Error starting recording:', err);
+          setError('Error starting recording: ' + err.message);
+        }
+      }, 100);
+      
     } catch (err) {
       console.error('Error accessing microphone:', err);
       setError('Error accessing microphone: ' + err.message);
@@ -666,40 +818,164 @@ const StreamingVoiceTab = () => {
     }
   };
 
+  // Updated handleCancel with better cleanup
   const handleCancel = () => {
     console.log('Canceling recording');
-    cleanupAudio();
     
+    // Stop all tracks from the media recorder
     if (mediaRecorderRef.current && isRecording) {
       console.log('Stopping media recorder tracks');
-      mediaRecorderRef.current.stream.getTracks().forEach(track => {
-        track.stop();
-        console.log('Track stopped:', track.kind);
-      });
+      try {
+        const tracks = mediaRecorderRef.current.stream.getTracks();
+        tracks.forEach(track => {
+          track.stop();
+          console.log('Track stopped:', track.kind);
+        });
+      } catch (error) {
+        console.warn('Error stopping media recorder tracks:', error);
+      }
       mediaRecorderRef.current = null;
-      audioChunksRef.current = [];
     }
+    
+    audioChunksRef.current = [];
+    
+    // Complete cleanup
+    cleanupAudio();
 
     // Reset all states
     setIsRecording(false);
     setIsPlaying(false);
     setIsProcessing(false);
+    setIsPaused(false);
     console.log('Recording canceled and states reset');
   };
 
+  // Update playResponse for better error handling and mobile compatibility
   const playResponse = async () => {
     console.log('Attempting to play response');
-    if (!audioElementRef.current || !responseUrl) {
-      console.log('No audio available to play');
+    setMobilePlaybackError(null);
+    
+    // For mobile, only use the mobileBlob
+    if (isMobile && !mobileBlob) {
+      console.log('No audio blob available to play on mobile');
+      setError('No audio ready for playback');
       return;
     }
+    
+    // On mobile, ensure we clean up any previous audio element first
+    if (isMobile) {
+      try {
+        // Clean up existing audio element
+        if (audioElementRef.current) {
+          try {
+            const audio = audioElementRef.current;
+            audio.pause();
+            audio.onended = null;
+            audio.onerror = null;
+            audio.onplay = null;
+            audio.onpause = null;
+            audio.oncanplaythrough = null;
+            audio.src = '';
+            audio.load(); // Force reload to clean buffers
+            audioElementRef.current = null;
+          } catch (e) {
+            console.warn('Error cleaning up previous audio element:', e);
+          }
+        }
+        
+        // Create a fresh audio element with minimal event handlers
+        const audio = new Audio();
+        
+        // Pre-initialize audio context to avoid autoplay restrictions
+        if (!audioInitialized) {
+          try {
+            // Create a silent audio context interaction
+            const silentContext = new (window.AudioContext || window.webkitAudioContext)();
+            const silentBuffer = silentContext.createBuffer(1, 1, 22050);
+            const source = silentContext.createBufferSource();
+            source.buffer = silentBuffer;
+            source.connect(silentContext.destination);
+            source.start(0);
+            
+            // Mark audio as initialized
+            setAudioInitialized(true);
+            console.log('Audio context pre-initialized');
+          } catch (err) {
+            console.warn('Could not pre-initialize audio context:', err);
+          }
+        }
+        
+        // Simple event handlers to update UI state
+        audio.onplay = () => {
+          console.log('Mobile audio started playing');
+          setIsPlaying(true);
+          setIsPaused(false);
+        };
+        
+        audio.onpause = () => {
+          console.log('Mobile audio paused');
+          setIsPlaying(false);
+          setIsPaused(true);
+        };
+        
+        audio.onended = () => {
+          console.log('Mobile audio ended');
+          setIsPlaying(false);
+          setIsPaused(false);
+        };
+        
+        audio.onerror = (e) => {
+          const errorMessage = audio.error ? 
+            `Error: ${audio.error.code} - ${audio.error.message || 'Unknown error'}` : 
+            'Unknown audio error';
+          console.error('Mobile audio error:', errorMessage, e);
+          setMobilePlaybackError(errorMessage);
+          setIsPlaying(false);
+        };
+        
+        // Use the stored mobile URL if available to prevent URL leaks
+        if (mobileAudioUrlRef.current) {
+          audio.src = mobileAudioUrlRef.current;
+        } else {
+          // Create a new URL if needed
+          const url = createSafeBlobUrl(mobileBlob, true);
+          if (!url) {
+            throw new Error('Could not create audio URL');
+          }
+          audio.src = url;
+        }
+        
+        audioElementRef.current = audio;
+        
+        // Play with a slight delay to ensure UI is updated
+        setTimeout(async () => {
+          try {
+            await audio.play();
+            console.log('Mobile audio playing successfully');
+          } catch (error) {
+            console.error('Error starting mobile audio playback:', error);
+            setMobilePlaybackError(`Playback error: ${error.message || 'Unknown error'}`);
+          }
+        }, 100);
+      } catch (error) {
+        console.error('Error setting up mobile audio:', error);
+        setMobilePlaybackError(`Setup error: ${error.message || 'Unknown error'}`);
+        setError(`Could not play audio: ${error.message || 'Unknown error'}`);
+      }
+    } else {
+      // Desktop playback remains the same
+      if (!audioElementRef.current) {
+        console.log('No audio available to play');
+        return;
+      }
 
-    try {
-      await audioElementRef.current.play();
-      setIsPlaying(true);
-    } catch (error) {
-      console.error('Error playing audio:', error);
-      setError('Could not play audio: ' + error.message);
+      try {
+        await audioElementRef.current.play();
+        setIsPlaying(true);
+      } catch (error) {
+        console.error('Error playing audio:', error);
+        setError('Could not play audio: ' + error.message);
+      }
     }
   };
 
@@ -731,24 +1007,59 @@ const StreamingVoiceTab = () => {
     }
   };
 
+  // Enhanced cleanup in component unmount
   useEffect(() => {
     return () => {
       console.log('Component unmounting, cleaning up resources');
-      cleanupAudio();
-      if (!isMobile && mediaSourceRef.current?.readyState === 'open') {
-        endMediaStream();
-      }
-      if (audioElementRef.current) {
-        audioElementRef.current.pause();
-        if (audioElementRef.current.src) {
-          URL.revokeObjectURL(audioElementRef.current.src);
+      
+      // Stop any ongoing recordings
+      if (mediaRecorderRef.current) {
+        try {
+          const tracks = mediaRecorderRef.current.stream.getTracks();
+          tracks.forEach(track => track.stop());
+        } catch (error) {
+          console.warn('Error stopping media tracks on unmount:', error);
         }
       }
+      
+      cleanupAudio();
+      
+      // Additional cleanup for any remaining audio element
+      try {
+        if (audioElementRef.current) {
+          audioElementRef.current.pause();
+          audioElementRef.current.src = '';
+          audioElementRef.current = null;
+        }
+      } catch (error) {
+        console.warn('Error cleaning audio element on unmount:', error);
+      }
+      
       if (playbackTimeoutRef.current) {
         clearInterval(playbackTimeoutRef.current);
       }
     };
   }, [isMobile]);
+
+  // Add an additional cleanup effect specifically for mobile
+  useEffect(() => {
+    if (isMobile) {
+      // Setup a function to fully reset audio on errors
+      const resetAudioOnError = () => {
+        if (mobilePlaybackError) {
+          console.log('Resetting audio due to error');
+          cleanupAudio();
+        }
+      };
+      
+      // Set a timeout to run cleanup a few seconds after error
+      const timeoutId = setTimeout(resetAudioOnError, 5000);
+      
+      return () => {
+        clearTimeout(timeoutId);
+      };
+    }
+  }, [mobilePlaybackError, isMobile]);
 
   // Update useEffect for monitoring audio playback
   useEffect(() => {
@@ -792,6 +1103,20 @@ const StreamingVoiceTab = () => {
                 variant="outline-danger" 
                 size="sm"
                 onClick={() => setError(null)}
+              >
+                <X size={16} />
+              </Button>
+            </div>
+          )}
+
+          {/* Display mobile-specific errors separately */}
+          {mobilePlaybackError && !error && (
+            <div className="error-message alert alert-warning">
+              {mobilePlaybackError}
+              <Button 
+                variant="outline-warning" 
+                size="sm"
+                onClick={() => setMobilePlaybackError(null)}
               >
                 <X size={16} />
               </Button>
@@ -872,13 +1197,26 @@ const StreamingVoiceTab = () => {
           )}
 
           {/* Add play button for mobile */}
-          {isMobile && canPlay && !isRecording && !isProcessing && (
+          {isMobile && canPlay && !isRecording && !isProcessing && !isPlaying && !isPaused && (
             <Button 
               variant="primary"
               onClick={playResponse}
               className="play-button"
+              disabled={!mobileBlob}
             >
-              {isPlaying ? 'Playing...' : 'Play Response'}
+              Play Response
+            </Button>
+          )}
+          
+          {/* Mobile retry button when there was an error */}
+          {isMobile && mobilePlaybackError && !isPlaying && !isPaused && (
+            <Button 
+              variant="warning"
+              onClick={playResponse}
+              className="retry-button mt-2"
+              disabled={!mobileBlob}
+            >
+              Retry Playback
             </Button>
           )}
         </div>
