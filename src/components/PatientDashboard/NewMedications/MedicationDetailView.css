@@ -157,6 +157,33 @@
   margin-bottom: 0;
 }
 
+.user-created-badge {
+  display: inline-block;
+  background-color: #e3f2fd;
+  color: #1976d2;
+  font-size: 0.75rem;
+  padding: 0.1rem 0.5rem;
+  border-radius: 0.5rem;
+  margin-top: 0.25rem;
+  font-weight: 500;
+}
+
+.no-arrow-dropdown::after {
+  display: none;
+}
+
+.no-arrow-dropdown {
+  border: 1px solid #e0e0e0;
+  background-color: transparent;
+  color: #212529;
+}
+
+.no-arrow-dropdown:hover, .no-arrow-dropdown:focus {
+  background-color: #f8f9fa;
+  border-color: #e0e0e0;
+  color: #212529;
+}
+
 @media (min-width: 768px) {
   .medication-details {
     grid-template-columns: repeat(2, 1fr);

@@ -54,3 +54,14 @@
   background-color: #f5f5f5;
   color: #757575;
 }
+
+.user-created-badge {
+  display: inline-block;
+  background-color: #e3f2fd;
+  color: #1976d2;
+  font-size: 0.75rem;
+  padding: 0.1rem 0.5rem;
+  border-radius: 0.5rem;
+  margin-top: 0.25rem;
+  font-weight: 500;
+}

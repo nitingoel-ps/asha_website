@@ -341,7 +341,7 @@ function PatientDashboard() {
                 element={
                   <React.Suspense fallback={<div>Loading...</div>}>
                     {console.log("PatientDashboard: Rendering medications new route")}
-                    <NewMedicationsTab medications={patientData?.medication_requsts} />
+                    <NewMedicationsTab />
                   </React.Suspense>
                 } 
               />

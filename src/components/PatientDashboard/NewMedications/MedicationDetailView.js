@@ -1,11 +1,18 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Card, Table } from 'react-bootstrap';
+import { Card, Table, Dropdown, Button, Modal, Spinner, Alert } from 'react-bootstrap';
+import { Trash2, MoreVertical, AlertOctagon } from 'lucide-react';
+import axiosInstance from '../../../utils/axiosInstance';
 import './MedicationDetailView.css';
 
-export function MedicationDetailView({ medications }) {
+export function MedicationDetailView({ medications, refreshMedications }) {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showStatusModal, setShowStatusModal] = useState(false);
+  const [newStatus, setNewStatus] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   
   console.log("MedicationDetailView: Looking for medication with id:", id);
   console.log("Available medications:", medications?.list);
@@ -52,16 +59,109 @@ export function MedicationDetailView({ medications }) {
     const date = new Date(dateString);
     return date.toLocaleDateString("en-US", options);
   };
+  
+  const handleStatusChange = async (status) => {
+    setNewStatus(status);
+    setShowStatusModal(true);
+  };
+  
+  const handleDeleteMedication = () => {
+    setShowDeleteModal(true);
+  };
+  
+  const confirmStatusChange = async () => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      await axiosInstance.put(`/medications/${medication.id}/`, {
+        ...medication,
+        status: newStatus
+      });
+      setShowStatusModal(false);
+      refreshMedications();
+      // If the status is changed, stay on the same page to show the updated data
+    } catch (err) {
+      console.error('Error updating medication status:', err);
+      setError(err.response?.data?.message || 'Failed to update medication status. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  const confirmDelete = async () => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      await axiosInstance.delete(`/medications/${medication.id}/`);
+      setShowDeleteModal(false);
+      navigate('/patient-dashboard/med');
+    } catch (err) {
+      console.error('Error deleting medication:', err);
+      setError(err.response?.data?.message || 'Failed to delete medication. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="medication-detail-container">      
       <Card className="detail-card">
         <Card.Header>
           <div className="d-flex justify-content-between align-items-center">
-            <h3 className="mb-0">{medication.medication}</h3>
-            <span className={`status-badge status-${medication.status}`}>
-              {medication.status}
-            </span>
+            <div>
+              <h3 className="mb-0">{medication.medication}</h3>
+              {medication.is_user_created && (
+                <span className="user-created-badge">Added by you</span>
+              )}
+            </div>
+            <div className="d-flex align-items-center">
+              <span className={`status-badge status-${medication.status} me-3`}>
+                {medication.status}
+              </span>
+              <Dropdown>
+                <Dropdown.Toggle 
+                  as={Button} 
+                  variant="light" 
+                  size="sm" 
+                  className="no-arrow-dropdown"
+                  id="dropdown-actions"
+                >
+                  <MoreVertical size={16} />
+                </Dropdown.Toggle>
+                <Dropdown.Menu align="end">
+                  <Dropdown.Header>Change Status</Dropdown.Header>
+                  <Dropdown.Item 
+                    onClick={() => handleStatusChange('active')}
+                    disabled={medication.status === 'active'}
+                  >
+                    Active
+                  </Dropdown.Item>
+                  <Dropdown.Item 
+                    onClick={() => handleStatusChange('stopped')}
+                    disabled={medication.status === 'stopped'}
+                  >
+                    Stopped
+                  </Dropdown.Item>
+                  <Dropdown.Item 
+                    onClick={() => handleStatusChange('completed')}
+                    disabled={medication.status === 'completed'}
+                  >
+                    Completed
+                  </Dropdown.Item>
+                  <Dropdown.Divider />
+                  {medication.is_user_created && (
+                    <Dropdown.Item 
+                      onClick={handleDeleteMedication} 
+                      className="text-danger"
+                    >
+                      <Trash2 size={16} className="me-2" /> Delete Medication
+                    </Dropdown.Item>
+                  )}
+                </Dropdown.Menu>
+              </Dropdown>
+            </div>
           </div>
         </Card.Header>
         
@@ -138,6 +238,48 @@ export function MedicationDetailView({ medications }) {
           )}
         </Card.Body>
       </Card>
+      
+      {/* Status Change Confirmation Modal */}
+      <Modal show={showStatusModal} onHide={() => setShowStatusModal(false)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Change Medication Status</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {error && <Alert variant="danger">{error}</Alert>}
+          <p>Are you sure you want to change the status of <strong>{medication.medication}</strong> to <strong>{newStatus}</strong>?</p>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowStatusModal(false)} disabled={loading}>
+            Cancel
+          </Button>
+          <Button variant="primary" onClick={confirmStatusChange} disabled={loading}>
+            {loading ? <Spinner animation="border" size="sm" /> : 'Confirm'}
+          </Button>
+        </Modal.Footer>
+      </Modal>
+      
+      {/* Delete Confirmation Modal */}
+      <Modal show={showDeleteModal} onHide={() => setShowDeleteModal(false)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Delete Medication</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {error && <Alert variant="danger">{error}</Alert>}
+          <div className="d-flex align-items-center mb-3">
+            <AlertOctagon size={24} className="text-danger me-2" />
+            <h5 className="mb-0 text-danger">Warning</h5>
+          </div>
+          <p>Are you sure you want to delete <strong>{medication.medication}</strong>? This action cannot be undone.</p>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowDeleteModal(false)} disabled={loading}>
+            Cancel
+          </Button>
+          <Button variant="danger" onClick={confirmDelete} disabled={loading}>
+            {loading ? <Spinner animation="border" size="sm" /> : 'Delete'}
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </div>
   );
 }
