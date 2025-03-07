@@ -314,7 +314,7 @@ function PatientDashboard() {
                   setSelectedPersona={setSelectedPersona}
                 />
               } />
-              <Route path="vital-signs" element={<VitalSignsTab vitals={patientData?.vitals} />} />
+              <Route path="vital-signs" element={<VitalSignsTab />} />
               <Route 
                 path="immunizations/*" 
                 element={

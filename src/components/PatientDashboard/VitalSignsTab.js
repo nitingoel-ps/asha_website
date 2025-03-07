@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Card, Row, Col, Table, Container, Spinner } from "react-bootstrap";
+import { Card, Row, Col, Table, Container, Spinner, Button, Modal, Form, Alert } from "react-bootstrap";
 import ObservationGraph from "./ObservationGraph";
 import "./VitalSignsTab.css";
 import { 
@@ -10,16 +10,49 @@ import {
   FaWeight,
   FaChartLine,
   FaCalendarAlt,
-  FaHospital
+  FaHospital,
+  FaTrashAlt,
+  FaPlusCircle
 } from "react-icons/fa";
+import axiosInstance from "../../utils/axiosInstance";
 
-function VitalSignsTab({ vitals = [] }) {
+function VitalSignsTab() {
+  const [vitals, setVitals] = useState([]);
   const [selectedVital, setSelectedVital] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [newVital, setNewVital] = useState({
+    vital_sign: "Blood Pressure",
+    reading: "",
+    units_of_measure: "mmHg",
+    date_taken: new Date().toISOString().split('T')[0],
+    source: "Self-reported"
+  });
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const [deleteLoading, setDeleteLoading] = useState(null);
   const detailsRef = useRef(null);
-  const graphRef = useRef(null);  // Add the missing graphRef
+  const graphRef = useRef(null);
   const shouldScrollRef = useRef(false);
+
+  // Fetch vital signs data from the new API endpoint
+  useEffect(() => {
+    fetchVitalSigns();
+  }, []);
+
+  const fetchVitalSigns = async () => {
+    try {
+      setIsLoading(true);
+      const response = await axiosInstance.get("/vital-signs/");
+      setVitals(response.data.vital_signs || []);
+      setIsLoading(false);
+    } catch (error) {
+      console.error("Error fetching vital signs:", error);
+      setVitals([]);
+      setIsLoading(false);
+    }
+  };
 
   // Handle responsive layout
   useEffect(() => {
@@ -48,7 +81,7 @@ function VitalSignsTab({ vitals = [] }) {
     }
   }, [selectedVital, isLoading]);
 
-  const keyVitals = vitals ? {
+  const keyVitals = {
     "Blood Pressure": {
       data: vitals.filter(v => v.vital_sign === "Blood Pressure"),
       icon: <FaHeart className="vital-icon" />
@@ -73,7 +106,7 @@ function VitalSignsTab({ vitals = [] }) {
       data: vitals.filter(v => v.vital_sign === "Body Mass Index"),
       icon: <FaChartLine className="vital-icon" />
     }
-  } : {};
+  };
 
   const handleCardClick = (vitalSign) => {
     setIsLoading(true);
@@ -91,11 +124,161 @@ function VitalSignsTab({ vitals = [] }) {
     return date.toLocaleDateString();
   };
 
+  const handleCloseAddModal = () => {
+    setShowAddModal(false);
+    setError("");
+  };
+
+  const handleShowAddModal = () => {
+    setShowAddModal(true);
+    setError("");
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    
+    // If changing vital sign type, update the units automatically
+    if (name === "vital_sign") {
+      let units = "";
+      switch (value) {
+        case "Blood Pressure":
+          units = "mmHg";
+          break;
+        case "Pulse":
+          units = "bpm";
+          break;
+        case "Oxygen Saturation":
+          units = "%";
+          break;
+        case "Height":
+          units = "cm";
+          break;
+        case "Weight":
+          units = "kg";
+          break;
+        case "Body Mass Index":
+          units = "kg/m²";
+          break;
+        default:
+          units = "";
+      }
+      
+      setNewVital({
+        ...newVital,
+        vital_sign: value,
+        units_of_measure: units
+      });
+    } else {
+      setNewVital({
+        ...newVital,
+        [name]: value
+      });
+    }
+  };
+
+  const handleAddVital = async () => {
+    if (!newVital.reading) {
+      setError("Please enter a reading value");
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      const response = await axiosInstance.post("/vital-signs/", newVital);
+      
+      // Reset form
+      setNewVital({
+        vital_sign: "Blood Pressure",
+        reading: "",
+        units_of_measure: "mmHg",
+        date_taken: new Date().toISOString().split('T')[0],
+        source: "Self-reported"
+      });
+      
+      // Close modal and show success message
+      setShowAddModal(false);
+      setSuccess("Vital sign recorded successfully!");
+      
+      // Refresh vital signs data
+      await fetchVitalSigns();
+      
+      // Clear success message after 3 seconds
+      setTimeout(() => {
+        setSuccess("");
+      }, 3000);
+      
+      setIsLoading(false);
+    } catch (error) {
+      console.error("Error adding vital sign:", error);
+      setError("Failed to save vital sign. Please try again.");
+      setIsLoading(false);
+    }
+  };
+
+  const handleDeleteVital = async (vitalId) => {
+    if (window.confirm("Are you sure you want to delete this vital sign record?")) {
+      try {
+        setDeleteLoading(vitalId);
+        await axiosInstance.delete(`/vital-signs/${vitalId}/`);
+        
+        // Refresh vital signs data
+        await fetchVitalSigns();
+        
+        // If currently viewing details, update it
+        if (selectedVital && selectedVital.length > 0) {
+          const vitalType = selectedVital[0].vital_sign;
+          const updatedVitals = vitals.filter(v => v.vital_sign === vitalType);
+          setSelectedVital(updatedVitals);
+        }
+        
+        setSuccess("Vital sign deleted successfully!");
+        
+        // Clear success message after 3 seconds
+        setTimeout(() => {
+          setSuccess("");
+        }, 3000);
+        
+        setDeleteLoading(null);
+      } catch (error) {
+        console.error("Error deleting vital sign:", error);
+        setError("Failed to delete vital sign. Please try again.");
+        setDeleteLoading(null);
+        
+        // Clear error message after 3 seconds
+        setTimeout(() => {
+          setError("");
+        }, 3000);
+      }
+    }
+  };
+
   return (
     <div className="vital-signs-tab">
-      <h3>Vital Signs</h3>
+      <div className="vital-signs-header">
+        <h3>Vital Signs</h3>
+        <Button 
+          variant="primary" 
+          className="add-vital-btn"
+          onClick={handleShowAddModal}
+        >
+          <FaPlusCircle /> Record New Vital
+        </Button>
+      </div>
+
+      {success && (
+        <Alert variant="success" className="alert-message" onClose={() => setSuccess("")} dismissible>
+          {success}
+        </Alert>
+      )}
+      
+      {error && (
+        <Alert variant="danger" className="alert-message" onClose={() => setError("")} dismissible>
+          {error}
+        </Alert>
+      )}
+      
       <div className="row">
-        {Object.entries(keyVitals).map(([vitalSign, { data = [], icon }]) => {  // Add default empty array
+        {Object.entries(keyVitals).map(([vitalSign, { data = [], icon }]) => {
           const latestVital = data[0];
           return (
             <Card 
@@ -173,6 +356,7 @@ function VitalSignsTab({ vitals = [] }) {
                     <th>Units</th>
                     <th>Date Taken</th>
                     <th>Source</th>
+                    <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -183,6 +367,25 @@ function VitalSignsTab({ vitals = [] }) {
                       <td>{vital.units_of_measure}</td>
                       <td>{formatDate(vital.date_taken)}</td>
                       <td>{vital.source}</td>
+                      <td>
+                        {vital.is_user_reported && (
+                          <Button 
+                            variant="danger" 
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteVital(vital.id);
+                            }}
+                            disabled={deleteLoading === vital.id}
+                          >
+                            {deleteLoading === vital.id ? (
+                              <Spinner animation="border" size="sm" />
+                            ) : (
+                              <FaTrashAlt />
+                            )}
+                          </Button>
+                        )}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -201,6 +404,21 @@ function VitalSignsTab({ vitals = [] }) {
                       <div className="reading-value">
                         {vital.reading} <span className="units">{vital.units_of_measure}</span>
                       </div>
+                      {vital.is_user_reported && (
+                        <Button 
+                          variant="danger" 
+                          size="sm"
+                          className="delete-vital-btn"
+                          onClick={() => handleDeleteVital(vital.id)}
+                          disabled={deleteLoading === vital.id}
+                        >
+                          {deleteLoading === vital.id ? (
+                            <Spinner animation="border" size="sm" />
+                          ) : (
+                            <FaTrashAlt />
+                          )}
+                        </Button>
+                      )}
                     </div>
                     <div className="mobile-vital-details">
                       <div className="detail-item">
@@ -219,6 +437,78 @@ function VitalSignsTab({ vitals = [] }) {
           )}
         </div>
       )}
+
+      {/* Modal for adding a new vital sign */}
+      <Modal show={showAddModal} onHide={handleCloseAddModal}>
+        <Modal.Header closeButton>
+          <Modal.Title>Record New Vital Sign</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {error && (
+            <Alert variant="danger" onClose={() => setError("")} dismissible>
+              {error}
+            </Alert>
+          )}
+          <Form>
+            <Form.Group className="mb-3">
+              <Form.Label>Vital Sign Type</Form.Label>
+              <Form.Control
+                as="select"
+                name="vital_sign"
+                value={newVital.vital_sign}
+                onChange={handleInputChange}
+              >
+                <option value="Blood Pressure">Blood Pressure</option>
+                <option value="Pulse">Pulse</option>
+                <option value="Oxygen Saturation">Oxygen Saturation</option>
+                <option value="Height">Height</option>
+                <option value="Weight">Weight</option>
+                <option value="Body Mass Index">Body Mass Index</option>
+              </Form.Control>
+            </Form.Group>
+            
+            <Form.Group className="mb-3">
+              <Form.Label>Reading</Form.Label>
+              <Form.Control
+                type="text"
+                name="reading"
+                placeholder="Enter reading value"
+                value={newVital.reading}
+                onChange={handleInputChange}
+              />
+            </Form.Group>
+            
+            <Form.Group className="mb-3">
+              <Form.Label>Units</Form.Label>
+              <Form.Control
+                type="text"
+                name="units_of_measure"
+                value={newVital.units_of_measure}
+                onChange={handleInputChange}
+                readOnly
+              />
+            </Form.Group>
+            
+            <Form.Group className="mb-3">
+              <Form.Label>Date</Form.Label>
+              <Form.Control
+                type="date"
+                name="date_taken"
+                value={newVital.date_taken}
+                onChange={handleInputChange}
+              />
+            </Form.Group>
+          </Form>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={handleCloseAddModal}>
+            Cancel
+          </Button>
+          <Button variant="primary" onClick={handleAddVital}>
+            Save
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </div>
   );
 }
