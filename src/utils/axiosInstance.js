@@ -1,7 +1,6 @@
 // src/utils/axiosInstance.js
 import axios from 'axios';
 
-//const baseURL = 'https://127.0.0.1:8000/';
 const apiBaseURL = process.env.REACT_APP_API_BASE_URL;
 
 // Function to get CSRF token from cookies
@@ -20,6 +19,25 @@ function getCsrfToken() {
   }
   return cookieValue;
 }
+
+// Create a function that will be set from outside to update user context
+let updateUserFunction = null;
+
+export const setUserUpdateFunction = (fn) => {
+  updateUserFunction = fn;
+};
+
+// Function to fetch and update user context
+const updateUserContext = async () => {
+  if (updateUserFunction) {
+    try {
+      const userResponse = await axiosInstance.get('/user-context');
+      updateUserFunction(userResponse.data);
+    } catch (error) {
+      console.error('Error fetching user context:', error);
+    }
+  }
+};
 
 const axiosInstance = axios.create({
   baseURL: apiBaseURL,
@@ -78,6 +96,9 @@ axiosInstance.interceptors.response.use(
           localStorage.setItem('access_token', newAccessToken);
           axiosInstance.defaults.headers['Authorization'] = `Bearer ${newAccessToken}`;
           originalRequest.headers['Authorization'] = `Bearer ${newAccessToken}`;
+          
+          // After successful token refresh, update user context
+          await updateUserContext();
           
           return axiosInstance(originalRequest);
         } catch (refreshError) {

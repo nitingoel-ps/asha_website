@@ -1,34 +1,78 @@
-import React, { createContext, useState, useContext } from 'react';
-import { Amplify } from 'aws-amplify';
-import { signUp } from 'aws-amplify/auth';
+import React, { createContext, useState, useContext, useEffect } from 'react';
+import axiosInstance, { setUserUpdateFunction } from '../utils/axiosInstance';
 
-// Hook to access AuthContext
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  // State for authentication
-  const [isAuthenticated, setIsAuthenticated] = useState(
-    !!localStorage.getItem('access_token') // Check if the user is already logged in
-  );
-
-  // State for storing user details
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  // Function to handle login
+  // Function to update user state, will be passed to axiosInstance
+  const updateUser = (userData) => {
+    setUser(userData);
+  };
+
+  // Set up the user update function for token refresh
+  useEffect(() => {
+    setUserUpdateFunction(updateUser);
+  }, []);
+
+  // Initialize auth state on app load
+  useEffect(() => {
+    const initializeAuth = async () => {
+      const token = localStorage.getItem('access_token');
+      
+      if (token) {
+        try {
+          // Set authorization header
+          axiosInstance.defaults.headers['Authorization'] = `Bearer ${token}`;
+          
+          // Fetch user data
+          const userResponse = await axiosInstance.get('/user-context');
+          setUser(userResponse.data);
+          setIsAuthenticated(true);
+        } catch (error) {
+          console.error("Error initializing auth:", error);
+          localStorage.removeItem('access_token');
+          localStorage.removeItem('refresh_token');
+        }
+      }
+      
+      setLoading(false);
+    };
+
+    initializeAuth();
+  }, []);
+
   const login = () => {
     setIsAuthenticated(true);
   };
 
-  // Function to handle logout
   const logout = () => {
+    // Clear tokens
     localStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');
+    
+    // Reset auth state
     setIsAuthenticated(false);
-    setUser(null); // Clear user data
+    setUser(null);
+    
+    // Clear authorization header
+    delete axiosInstance.defaults.headers['Authorization'];
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, login, logout, user, setUser }}>
+    <AuthContext.Provider
+      value={{
+        isAuthenticated,
+        user,
+        loading,
+        login,
+        logout,
+        setUser
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
