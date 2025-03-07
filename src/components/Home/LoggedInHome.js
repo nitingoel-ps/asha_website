@@ -68,22 +68,6 @@ function LoggedInHome() {
             </Card.Body>
           </Card>
         </Col>
-
-        {/* Configuration */}
-        <Col md={6} lg={3} className="mb-4">
-          <Card className="action-card shadow h-100">
-            <Card.Body className="d-flex flex-column">
-              <div className="text-secondary mb-3">
-                <FaCog size={48} />
-              </div>
-              <h5>Configuration</h5>
-              <p className="flex-grow-1">Manage application settings and configurations.</p>
-              <Button as={Link} to="/configuration" variant="secondary">
-                Manage Settings
-              </Button>
-            </Card.Body>
-          </Card>
-        </Col>
       </Row>
     </Container>
   );
