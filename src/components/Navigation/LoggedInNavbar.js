@@ -88,8 +88,8 @@ function LoggedInNavbar() {
                     <Nav.Link as={Link} to="/add-providers" onClick={closeMenu} className="mobile-nav-subitem">
                       <FaHospital className="nav-icon" /> Connect to Providers
                     </Nav.Link>
-                    <Nav.Link as={Link} to="/upload-files" onClick={closeMenu} className="mobile-nav-subitem">
-                      <FaFileUpload className="nav-icon" /> Upload Files Manually
+                    <Nav.Link as={Link} to="/my-documents" onClick={closeMenu} className="mobile-nav-subitem">
+                      <FaFileUpload className="nav-icon" /> Upload Documents
                     </Nav.Link>
                   </div>
                 )}
@@ -104,8 +104,8 @@ function LoggedInNavbar() {
                 <NavDropdown.Item as={Link} to="/add-providers" onClick={closeMenu}>
                   <FaHospital className="nav-icon" /> Connect to Providers
                 </NavDropdown.Item>
-                <NavDropdown.Item as={Link} to="/upload-files" onClick={closeMenu}>
-                  <FaFileUpload className="nav-icon" /> Upload Files Manually
+                <NavDropdown.Item as={Link} to="/my-documents" onClick={closeMenu}>
+                  <FaFileUpload className="nav-icon" /> Upload Documents
                 </NavDropdown.Item>
               </NavDropdown>
             )}

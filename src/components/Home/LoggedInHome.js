@@ -50,8 +50,8 @@ function LoggedInHome() {
                 <Button as={Link} to="/add-providers" variant="outline-info" className="mb-2 w-100">
                   <FaHospital className="me-1" /> Connect to Providers
                 </Button>
-                <Button as={Link} to="/upload-files" variant="outline-info" className="w-100">
-                  <FaFileUpload className="me-1" /> Upload Files Manually
+                <Button as={Link} to="/my-documents" variant="outline-info" className="w-100">
+                  <FaFileUpload className="me-1" /> Upload Documents
                 </Button>
               </div>
             </Card.Body>
