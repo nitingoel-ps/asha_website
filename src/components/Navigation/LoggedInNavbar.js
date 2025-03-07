@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { Navbar, Nav, Container, NavDropdown, Image } from 'react-bootstrap';
-import { FaHome, FaSignOutAlt, FaTachometerAlt, FaFileUpload, FaHospital, FaCog, FaRobot, FaPlusCircle, FaChevronRight, FaUserCircle } from 'react-icons/fa';
+import { FaHome, FaSignOutAlt, FaTachometerAlt, FaCog, FaRobot, FaPlusCircle, FaUserCircle } from 'react-icons/fa';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from "react-router-dom";
 import './navbar.css'; // Import custom navbar styles
@@ -12,7 +12,6 @@ function LoggedInNavbar() {
   const [expanded, setExpanded] = useState(false);
   const navbarRef = useRef(null);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
-  const [showSubMenu, setShowSubMenu] = useState(false);
 
   useEffect(() => {
     const handleResize = () => setWindowWidth(window.innerWidth);
@@ -41,15 +40,6 @@ function LoggedInNavbar() {
 
   const closeMenu = () => setExpanded(false);
 
-  const isMobile = windowWidth < 992; // Bootstrap lg breakpoint
-
-  const toggleSubMenu = (e) => {
-    if (isMobile) {
-      e.preventDefault();
-      setShowSubMenu(!showSubMenu);
-    }
-  };
-
   // Get first name or username for display
   const displayName = user?.first_name || user?.username || "User";
   
@@ -75,61 +65,31 @@ function LoggedInNavbar() {
       onToggle={(expanded) => setExpanded(expanded)}
     >
       <Container>
+        {/* Brand on left */}
         <Navbar.Brand as={Link} to="/" onClick={closeMenu}>
           <FaHome className="nav-icon" /> ASHA AI
         </Navbar.Brand>
+        
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
+        
         <Navbar.Collapse id="basic-navbar-nav">
-          <Nav className="ms-auto mobile-nav">
-            <Nav.Link as={Link} to="/patient-dashboard" onClick={closeMenu} className="nav-item">
-              <FaTachometerAlt className="nav-icon" /> Health Dashboard
+          {/* Main navigation items - centered on desktop */}
+          <Nav className="main-nav-items mx-auto">
+            <Nav.Link as={Link} to="/patient-dashboard" onClick={closeMenu} className="main-nav-item">
+              <FaTachometerAlt className="main-nav-icon" /> Health Dashboard
             </Nav.Link>
             
-            {isMobile ? (
-              // On mobile: create a collapsible parent item with sub-items
-              <>
-                <div 
-                  className={`mobile-nav-parent ${showSubMenu ? 'active' : ''}`}
-                  onClick={toggleSubMenu}
-                >
-                  <div className="mobile-nav-parent-content">
-                    <FaPlusCircle className="nav-icon" /> Add Health Data
-                  </div>
-                  <FaChevronRight className={`submenu-arrow ${showSubMenu ? 'rotated' : ''}`} />
-                </div>
-
-                {showSubMenu && (
-                  <div className="mobile-submenu">
-                    <Nav.Link as={Link} to="/add-providers" onClick={closeMenu} className="mobile-nav-subitem">
-                      <FaHospital className="nav-icon" /> Connect to Providers
-                    </Nav.Link>
-                    <Nav.Link as={Link} to="/my-documents" onClick={closeMenu} className="mobile-nav-subitem">
-                      <FaFileUpload className="nav-icon" /> Upload Documents
-                    </Nav.Link>
-                  </div>
-                )}
-              </>
-            ) : (
-              // On desktop: use dropdown
-              <NavDropdown 
-                title={<><FaPlusCircle className="nav-icon" /> Add Health Data</>} 
-                id="add-health-data-dropdown"
-                className="nav-item"
-              >
-                <NavDropdown.Item as={Link} to="/add-providers" onClick={closeMenu}>
-                  <FaHospital className="nav-icon" /> Connect to Providers
-                </NavDropdown.Item>
-                <NavDropdown.Item as={Link} to="/my-documents" onClick={closeMenu}>
-                  <FaFileUpload className="nav-icon" /> Upload Documents
-                </NavDropdown.Item>
-              </NavDropdown>
-            )}
-            
-            <Nav.Link as={Link} to="/ai-chat" onClick={closeMenu} className="nav-item">
-              <FaRobot className="nav-icon" /> Talk to AI
+            <Nav.Link as={Link} to="/add-health-data" onClick={closeMenu} className="main-nav-item">
+              <FaPlusCircle className="main-nav-icon" /> Add Health Data
             </Nav.Link>
             
-            {/* User Profile Dropdown */}
+            <Nav.Link as={Link} to="/ai-chat" onClick={closeMenu} className="main-nav-item">
+              <FaRobot className="main-nav-icon" /> Talk to AI
+            </Nav.Link>
+          </Nav>
+          
+          {/* User profile on right - with improved hover effect */}
+          <Nav className="user-nav-section">
             <NavDropdown 
               title={
                 <div className="user-profile-dropdown">
@@ -151,6 +111,7 @@ function LoggedInNavbar() {
               id="user-dropdown"
               align="end"
               className="user-dropdown-menu"
+              menuVariant={windowWidth < 992 ? "dark" : "light"} // Use dark menu on mobile, light on desktop
             >
               <NavDropdown.Item as={Link} to="/configuration" onClick={closeMenu}>
                 <FaCog className="nav-icon" /> Configuration

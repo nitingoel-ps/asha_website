@@ -16,12 +16,39 @@
   font-size: 1.25rem; /* Slightly larger for brand */
 }
 
-/* User avatar styles */
+/* Main navigation items - centered with bright white icons */
+.main-nav-items {
+  display: flex;
+  align-items: center;
+}
+
+.main-nav-item {
+  padding: 0 1.5rem !important; /* More spacing between main nav items */
+  font-weight: 500; /* Make text slightly bolder */
+  color: rgba(255, 255, 255, 0.9) !important; /* Start with slightly off-white */
+  transition: color 0.2s ease !important; /* Smooth transition for color */
+}
+
+/* More subtle hover effect that maintains readability */
+.main-nav-item:hover,
+.main-nav-item:focus {
+  color: #ffffff !important; /* Pure white on hover, but not too different from default */
+  background-color: transparent !important; /* No background color change */
+}
+
+.main-nav-icon {
+  margin-right: 0.5rem;
+  font-size: 1.2rem; /* Slightly larger icon for main nav items */
+  color: #ffffff !important; /* Bright white color for main navigation icons */
+}
+
+/* User avatar styles - more subtle styling */
 .user-avatar {
   width: 32px;
   height: 32px;
   object-fit: cover;
-  border: 2px solid rgba(255, 255, 255, 0.5);
+  border: 2px solid rgba(255, 255, 255, 0.3); /* More subtle border */
+  transition: border-color 0.2s ease;
 }
 
 .user-avatar-fallback {
@@ -30,22 +57,35 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #6c757d;
-  color: white;
-  font-weight: bold;
+  background-color: rgba(108, 117, 125, 0.6); /* More subtle background */
+  color: rgba(255, 255, 255, 0.9); /* Not completely white */
+  font-weight: 500; /* Not as bold */
   border-radius: 50%;
-  border: 2px solid rgba(255, 255, 255, 0.5);
+  border: 2px solid rgba(255, 255, 255, 0.3); /* More subtle border */
+  transition: all 0.2s ease;
 }
 
 .user-profile-dropdown {
   display: flex;
   align-items: center;
   padding: 0 5px;
+  color: rgba(255, 255, 255, 0.9) !important; /* Match the main nav item color */
+  transition: color 0.2s ease !important;
+}
+
+.user-dropdown-menu:hover .user-avatar,
+.user-dropdown-menu:hover .user-avatar-fallback {
+  border-color: rgba(255, 255, 255, 0.5); /* Slightly brighter on hover, but still subtle */
+}
+
+.user-dropdown-menu:hover .user-profile-dropdown {
+  color: #ffffff !important; /* Pure white on hover, matching main nav items */
 }
 
 .user-dropdown-menu .dropdown-toggle::after {
   margin-left: 0.5em;
   vertical-align: middle;
+  color: rgba(255, 255, 255, 0.7); /* More subtle dropdown arrow */
 }
 
 .user-name {
@@ -55,6 +95,125 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+  .user-dropdown-menu:hover, 
+  .user-dropdown-menu:focus {
+    color: #ffffff !important;
+    background-color: rgba(255, 255, 255, 0.1) !important;
+  }
+
+  .dropdown-toggle .nav-link:hover, 
+  .dropdown-toggle .nav-link:focus {
+    color: #ffffff !important;
+    background-color: rgba(255, 255, 255, 0.1) !important;
+  }
+
+/* Make user dropdown toggle not have the harsh blue focus outline */
+.user-dropdown-menu .dropdown-toggle:focus {
+  box-shadow: none !important;
+}
+
+/* User dropdown menu toggle - Fix hover issues */
+.user-dropdown-menu .dropdown-toggle {
+  background-color: transparent !important;
+  padding: 8px !important;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+/* Remove default Bootstrap hover styling for dropdown toggle */
+.user-dropdown-menu .dropdown-toggle:hover,
+.user-dropdown-menu .dropdown-toggle:focus,
+.user-dropdown-menu .dropdown-toggle:active,
+.user-dropdown-menu.show .dropdown-toggle {
+  background-color: rgba(255, 255, 255, 0.1) !important; /* Very subtle highlight */
+  box-shadow: none !important;
+  color: #ffffff !important; /* Ensure text stays white on hover */
+}
+
+/* Additional stronger selector to override Bootstrap defaults */
+.navbar-dark .navbar-nav .nav-item.user-dropdown-menu .nav-link.dropdown-toggle:hover,
+.navbar-dark .navbar-nav .nav-item.user-dropdown-menu .nav-link.dropdown-toggle:focus,
+.navbar-dark .navbar-nav .nav-item.user-dropdown-menu .nav-link.dropdown-toggle:active {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  color: #ffffff !important;
+  box-shadow: none !important;
+}
+
+/* Add styles for logged out navbar items */
+.logged-out-nav-item {
+  color: rgba(255, 255, 255, 0.85) !important;
+  transition: color 0.2s ease, background-color 0.2s ease !important;
+  padding: 0.5rem 1rem !important;
+}
+
+.logged-out-nav-item:hover, 
+.logged-out-nav-item:focus {
+  color: #ffffff !important;
+  background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Add more specificity for Bootstrap override */
+.navbar-dark .navbar-nav .nav-link.logged-out-nav-item {
+  color: rgba(255, 255, 255, 0.85) !important;
+}
+
+.navbar-dark .navbar-nav .nav-link.logged-out-nav-item:hover,
+.navbar-dark .navbar-nav .nav-link.logged-out-nav-item:focus {
+  color: #ffffff !important;
+  background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Override button styles for NavDropdown in LoggedInNavbar */
+.btn-reset {
+  all: unset;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+/* Make sure there's no white background on hover */
+.user-dropdown-menu .dropdown-toggle::after {
+  margin-left: 0.5em;
+  vertical-align: middle;
+  color: rgba(255, 255, 255, 0.7); /* More subtle dropdown arrow */
+}
+
+/* Fix dropdown items for better readability */
+.user-dropdown-menu .dropdown-menu {
+  background-color: #fff;
+  padding: 0.5rem 0;
+  margin-top: 0.5rem;
+  border: none;
+  border-radius: 4px;
+  box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.15);
+}
+
+.user-dropdown-menu .dropdown-item {
+  color: #212529;
+  padding: 0.5rem 1rem;
+  transition: background-color 0.15s ease;
+}
+
+.user-dropdown-menu .dropdown-item:hover,
+.user-dropdown-menu .dropdown-item:focus {
+  background-color: #f8f9fa; /* Light gray background on hover */
+  color: #16181b; /* Slightly darker text for better contrast */
+}
+
+.user-dropdown-menu .dropdown-item .nav-icon {
+  color: #495057; /* Darker icon color for better visibility */
+}
+
+/* Override Bootstrap's default styles that might be causing issues */
+.navbar-dark .navbar-nav .nav-link.dropdown-toggle {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.navbar-dark .navbar-nav .nav-link.dropdown-toggle:hover,
+.navbar-dark .navbar-nav .nav-link.dropdown-toggle:focus {
+  color: #ffffff;
 }
 
 /* Dropdown menu styling */
@@ -67,8 +226,25 @@
   color: rgba(255, 255, 255, 1);
 }
 
+/* User nav section styles */
+.user-nav-section {
+  margin-left: auto;
+}
+
 /* Mobile-specific styles */
 @media (max-width: 991.98px) {
+  /* Reset main nav items spacing on mobile */
+  .main-nav-item {
+    padding: 0.75rem 1rem !important;
+  }
+  
+  /* Reset mx-auto on mobile */
+  .main-nav-items {
+    margin-right: 0 !important;
+    margin-left: 0 !important;
+    width: 100%;
+  }
+  
   .mobile-nav {
     padding-top: 0.5rem;
     padding-bottom: 0.5rem;
@@ -80,8 +256,9 @@
     transition: background-color 0.3s;
   }
   
+  /* More subtle hover effect for mobile menu items */
   .mobile-nav .nav-item:hover {
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: rgba(255, 255, 255, 0.05); /* More subtle background highlight */
   }
 
   /* Improved parent menu item with submenu */
@@ -130,7 +307,7 @@
 
   /* Container for submenu items */
   .mobile-submenu {
-    background-color: rgba(0, 0, 0, 0.2);
+    background-color: rgba(0, 0, 0, 0.15); /* Lighter background */
   }
   
   /* Submenu items */
@@ -141,7 +318,7 @@
   }
   
   .mobile-nav-subitem:hover {
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: rgba(255, 255, 255, 0.05); /* More subtle highlight */
   }
 
   /* Add extra space at the bottom of the mobile menu */
@@ -153,11 +330,12 @@
 
   .user-profile-dropdown {
     margin: 10px 0;
+    color: rgba(255, 255, 255, 0.85) !important; /* Slightly dimmer on mobile */
   }
   
   /* Enhance visibility of dropdown elements on mobile */
   .dropdown-menu {
-    background-color: rgba(33, 37, 41, 0.95);
+    background-color: rgba(33, 37, 41, 0.9); /* Slightly more transparent */
     border-color: rgba(255, 255, 255, 0.1);
   }
   
@@ -167,17 +345,69 @@
   
   .dropdown-item:hover, 
   .dropdown-item:focus {
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: rgba(255, 255, 255, 0.05); /* More subtle background */
     color: white;
   }
   
   .dropdown-divider {
     border-top: 1px solid rgba(255, 255, 255, 0.1);
   }
+
+  .user-dropdown-menu .dropdown-menu {
+    background-color: #343a40; /* Dark background for mobile */
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+  
+  .user-dropdown-menu .dropdown-item {
+    color: rgba(255, 255, 255, 0.85); /* Light text for dark background */
+  }
+  
+  .user-dropdown-menu .dropdown-item:hover,
+  .user-dropdown-menu .dropdown-item:focus {
+    background-color: rgba(255, 255, 255, 0.1); /* Subtle highlight */
+    color: #ffffff;
+  }
+  
+  .user-dropdown-menu .dropdown-item .nav-icon {
+    color: rgba(255, 255, 255, 0.8); /* Light icon for dark background */
+  }
 }
 
 /* Desktop dropdown enhancement */
 @media (min-width: 992px) {
+  /* Ensure main nav items are centered */
+  .navbar-collapse {
+    display: flex;
+    justify-content: space-between;
+  }
+  
+  /* Add subtle transition effect for main nav items */
+  .main-nav-item {
+    position: relative;
+    transition: color 0.2s ease;
+  }
+  
+  /* More subtle underline effect */
+  .main-nav-item::after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 2px;
+    bottom: -3px; /* Position it slightly below the text */
+    left: 50%;
+    background-color: rgba(255, 255, 255, 0.7); /* Semi-transparent white for underline */
+    transition: all 0.3s ease;
+    opacity: 0;
+    transform: translateX(-50%);
+  }
+  
+  /* Slightly thinner underline that appears more gradually */
+  .main-nav-item:hover::after {
+    width: 50%; /* Not as wide as before */
+    opacity: 0.7; /* Not fully opaque */
+  }
+  
+  /* User dropdown styling */
   .navbar-nav .dropdown-menu {
     box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
     border: none;
@@ -186,10 +416,32 @@
 
   .navbar-nav .dropdown-item {
     padding: 0.5rem 1.5rem;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+  
+  /* More subtle hover effect for dropdown items */
+  .navbar-nav .dropdown-item:hover {
+    background-color: rgba(0, 0, 0, 0.05); /* Very light gray */
   }
   
   /* Make dropdown icons consistent with nav icons */
   .dropdown-item .nav-icon {
     color: #212529; /* Darker for dropdown items against light background */
+  }
+
+  /* User dropdown styling improvements */
+  .user-dropdown-menu .dropdown-menu {
+    margin-top: 8px; /* Add a bit more space between the toggle and menu */
+    min-width: 200px; /* Ensure enough width for items */
+    box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.15); /* Subtle shadow */
+    border-radius: 0.25rem;
+  }
+
+  /* User dropdown positioning refinements */
+  .user-dropdown-menu .dropdown-menu {
+    min-width: 220px;
+    right: 0;
+    left: auto;
+    margin-top: 8px;
   }
 }

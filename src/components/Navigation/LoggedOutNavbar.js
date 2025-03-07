@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { Navbar, Nav, Container } from 'react-bootstrap';
 import './Navigation.css';
+import './navbar.css'; // Import our custom navbar styles
 
 function LoggedOutNavbar() {
   const [expanded, setExpanded] = useState(false);
@@ -24,7 +25,7 @@ function LoggedOutNavbar() {
       ref={navbarRef}
       variant="dark" 
       expand="lg" 
-      className="site-navbar"
+      className="site-navbar mobile-friendly-navbar"
       expanded={expanded}
       onToggle={(expanded) => setExpanded(expanded)}
     >
@@ -35,10 +36,10 @@ function LoggedOutNavbar() {
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
         <Navbar.Collapse id="basic-navbar-nav">
           <Nav className="ms-auto">
-            <Nav.Link href="/#features" onClick={() => setExpanded(false)}>Features</Nav.Link>
-            <Nav.Link href="/#how-it-works" onClick={() => setExpanded(false)}>How It Works</Nav.Link>
-            <Nav.Link as={Link} to="/#waitlist" onClick={() => setExpanded(false)}>Sign Up</Nav.Link>
-            <Nav.Link as={Link} to="/login" className="ms-3" onClick={() => setExpanded(false)}>Login</Nav.Link>
+            <Nav.Link href="/#features" className="logged-out-nav-item" onClick={() => setExpanded(false)}>Features</Nav.Link>
+            <Nav.Link href="/#how-it-works" className="logged-out-nav-item" onClick={() => setExpanded(false)}>How It Works</Nav.Link>
+            <Nav.Link as={Link} to="/#waitlist" className="logged-out-nav-item" onClick={() => setExpanded(false)}>Sign Up</Nav.Link>
+            <Nav.Link as={Link} to="/login" className="logged-out-nav-item ms-3" onClick={() => setExpanded(false)}>Login</Nav.Link>
           </Nav>
         </Navbar.Collapse>
       </Container>

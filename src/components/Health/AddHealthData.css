@@ -1,0 +1,46 @@
+.health-data-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.health-data-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Make icons bigger and centered */
+.health-data-card .text-primary,
+.health-data-card .text-info {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+}
+
+/* Style for the back button */
+.back-link {
+  color: #6c757d;
+  display: inline-block;
+  margin-bottom: 1.5rem;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.back-link:hover {
+  color: #343a40;
+}
+
+/* Card header styling */
+.health-data-card h3 {
+  margin-bottom: 1rem;
+  color: #343a40;
+}
+
+/* List styling */
+.health-data-card ul {
+  padding-left: 1.2rem;
+  margin-bottom: 1.5rem;
+}
+
+.health-data-card ul li {
+  margin-bottom: 0.5rem;
+  color: #6c757d;
+}

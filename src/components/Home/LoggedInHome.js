@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { Container, Row, Col, Card, Button } from "react-bootstrap";
-import { FaTachometerAlt, FaPlusCircle, FaHospital, FaFileUpload, FaRobot, FaCog } from "react-icons/fa";
+import { FaTachometerAlt, FaPlusCircle, FaRobot, FaCog } from "react-icons/fa";
 import { useAuth } from "../../context/AuthContext";
 
 function LoggedInHome() {
@@ -37,7 +37,7 @@ function LoggedInHome() {
           </Card>
         </Col>
 
-        {/* Add Health Data - Main Card */}
+        {/* Simplified Add Health Data Card */}
         <Col md={6} lg={3} className="mb-4">
           <Card className="action-card shadow h-100">
             <Card.Body className="d-flex flex-column">
@@ -45,15 +45,10 @@ function LoggedInHome() {
                 <FaPlusCircle size={48} />
               </div>
               <h5>Add Health Data</h5>
-              <p className="flex-grow-1">Add your health information through various methods.</p>
-              <div className="mt-auto">
-                <Button as={Link} to="/add-providers" variant="outline-info" className="mb-2 w-100">
-                  <FaHospital className="me-1" /> Connect to Providers
-                </Button>
-                <Button as={Link} to="/my-documents" variant="outline-info" className="w-100">
-                  <FaFileUpload className="me-1" /> Upload Documents
-                </Button>
-              </div>
+              <p className="flex-grow-1">Add health records by connecting to providers or uploading documents.</p>
+              <Button as={Link} to="/add-health-data" variant="info">
+                Add Data
+              </Button>
             </Card.Body>
           </Card>
         </Col>

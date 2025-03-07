@@ -18,6 +18,7 @@ import ManageStandardLabs from './components/Configuration/StandardLabs/ManageSt
 import ManageStandardPanels from './components/Configuration/StandardLabs/ManageStandardPanels';
 import PanelDetail from './components/Configuration/StandardLabs/PanelDetail';
 import AIChat from './components/AIChat/AIChat';
+import AddHealthData from './components/Health/AddHealthData';
 
 import './theme.css';
 
@@ -69,6 +70,14 @@ function AppContent() {
           element={
             <PrivateRoute>
               <AIChat />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/add-health-data"
+          element={
+            <PrivateRoute>
+              <AddHealthData />
             </PrivateRoute>
           }
         />
