@@ -51,6 +51,9 @@ const StreamingVoiceTab = () => {
   const [audioInitialized, setAudioInitialized] = useState(false);
   const mobileAudioUrlRef = useRef(null);
 
+  // Add a new ref to track cancellation status
+  const isCancelledRef = useRef(false);
+
   useEffect(() => {
     // Initialize AudioContext
     audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
@@ -660,6 +663,9 @@ const StreamingVoiceTab = () => {
   // Update startRecording to handle audio context resume and reset before recording
   const startRecording = async () => {
     console.log('Starting recording');
+    // Reset cancellation flag
+    isCancelledRef.current = false;
+    
     // Clear any existing errors first
     setError(null);
     setMobilePlaybackError(null);
@@ -699,6 +705,9 @@ const StreamingVoiceTab = () => {
     setIsPaused(false);
     setCanPlay(false);
     
+    // Reset audio chunks
+    audioChunksRef.current = [];
+    
     try {
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
         throw new Error('Your browser does not support audio recording');
@@ -717,23 +726,46 @@ const StreamingVoiceTab = () => {
 
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const mimeType = getSupportedMimeType();
-      const options = mimeType ? { mimeType } : undefined;
       
-      mediaRecorderRef.current = new MediaRecorder(stream, options);
+      // Start with minimal options to ensure broader compatibility
+      const options = mimeType ? { mimeType, audioBitsPerSecond: 128000 } : undefined;
+      
+      // Create a new MediaRecorder instance
+      const recorder = new MediaRecorder(stream, options);
+      mediaRecorderRef.current = recorder;
+      
+      // Ensure audio chunks array is empty before starting
       audioChunksRef.current = [];
 
-      mediaRecorderRef.current.ondataavailable = (event) => {
-        audioChunksRef.current.push(event.data);
+      // Set up the data available event handler
+      recorder.ondataavailable = (event) => {
+        if (event.data && event.data.size > 0) {
+          console.log(`Adding audio chunk: ${event.data.size} bytes`);
+          audioChunksRef.current.push(event.data);
+        }
       };
 
-      mediaRecorderRef.current.onstop = async () => {
+      // Set up the stop event handler
+      recorder.onstop = async () => {
+        console.log('MediaRecorder stopped, chunks collected:', audioChunksRef.current.length);
         // Store a local reference since mediaRecorderRef.current might be null when this executes
         const recorder = mediaRecorderRef.current;
         
         try {
+          // Check cancellation flag before proceeding
+          if (isCancelledRef.current) {
+            console.log('Recording was cancelled, skipping sending to server');
+            setIsProcessing(false);
+            return;
+          }
+          
+          // Log the current audio chunks
+          console.log(`Processing ${audioChunksRef.current.length} audio chunks`);
+          
           // If we're canceling (no chunks), just clean up
           if (!audioChunksRef.current.length) {
             console.warn('No audio chunks recorded - likely canceled');
+            setIsRecording(false);
             setIsProcessing(false);
             return;
           }
@@ -743,6 +775,7 @@ const StreamingVoiceTab = () => {
           const mimeType = (recorder ? recorder.mimeType : null) || 'audio/webm';
           
           const audioBlob = new Blob(audioChunksRef.current, { type: mimeType });
+          console.log(`Created audio blob: ${audioBlob.size} bytes, type: ${mimeType}`);
 
           // Convert blob to base64
           const base64Audio = await new Promise((resolve, reject) => {
@@ -776,18 +809,20 @@ const StreamingVoiceTab = () => {
         }
       };
 
-      mediaRecorderRef.current.onerror = (event) => {
+      recorder.onerror = (event) => {
         console.error('MediaRecorder error:', event);
         setError('Recording error: ' + (event.error?.message || 'Unknown error'));
         setIsRecording(false);
         setIsProcessing(false);
       };
 
-      // Start recording with a short timeout to ensure everything is ready
+      // Start recording with a timeslice to ensure data is collected periodically
+      // This ensures ondataavailable is called regularly, not just on stop
       setTimeout(() => {
         try {
-          mediaRecorderRef.current.start();
+          recorder.start(1000); // Request data every second
           setIsRecording(true);
+          console.log('MediaRecorder started with timeslice 1000ms');
         } catch (err) {
           console.error('Error starting recording:', err);
           setError('Error starting recording: ' + err.message);
@@ -910,21 +945,49 @@ const StreamingVoiceTab = () => {
     }
   };
 
+  // Improved handleSend function to ensure we have audio chunks
   const handleSend = () => {
     console.log('Sending audio recording');
     if (mediaRecorderRef.current && isRecording) {
       try {
+        // Explicitly mark as not cancelled
+        isCancelledRef.current = false;
+        
         // Create a local reference to the recorder that won't be nullified during the process
         const recorder = mediaRecorderRef.current;
         
-        // Stop the recording which will trigger the onstop handler
-        recorder.stop();
+        // Log current status before sending
+        console.log(`Sending recording with ${audioChunksRef.current.length} chunks collected`);
         
-        // Stop all tracks
-        recorder.stream.getTracks().forEach(track => track.stop());
+        // If we haven't collected any chunks yet but recorder is active,
+        // request one final chunk before stopping
+        if (audioChunksRef.current.length === 0 && recorder.state === 'recording') {
+          console.log('No chunks collected yet, requesting final chunk');
+          recorder.requestData(); // Force a dataavailable event
+          
+          // Give a small delay before stopping to allow the data to be processed
+          setTimeout(() => {
+            if (recorder.state === 'recording') {
+              recorder.stop();
+              
+              // Stop all tracks
+              recorder.stream.getTracks().forEach(track => track.stop());
+              
+              // Update state
+              setIsRecording(false);
+            }
+          }, 200);
+        } else {
+          // Stop the recording which will trigger the onstop handler
+          recorder.stop();
+          
+          // Stop all tracks
+          recorder.stream.getTracks().forEach(track => track.stop());
+          
+          // Update state
+          setIsRecording(false);
+        }
         
-        // Update state
-        setIsRecording(false);
       } catch (error) {
         console.error('Error stopping recording for send:', error);
         setError('Error sending recording: ' + (error.message || 'Unknown error'));
@@ -939,74 +1002,53 @@ const StreamingVoiceTab = () => {
   const handleCancel = () => {
     console.log('Canceling recording');
     
+    // Set cancellation flag FIRST - this is crucial
+    isCancelledRef.current = true;
+    
     // Clear any existing errors
     setError(null);
     setMobilePlaybackError(null);
     
-    // Save mime type before nullifying the reference
-    let mimeType = null;
+    // Reset states first - before any async operations
+    setIsRecording(false);
+    setIsPlaying(false);
+    setIsProcessing(false);
+    setIsPaused(false);
+    setCanPlay(false);
+    
+    // Clear audio chunks FIRST to ensure no data is sent even if handlers still fire
+    audioChunksRef.current = [];
+    
     if (mediaRecorderRef.current) {
       try {
-        mimeType = mediaRecorderRef.current.mimeType;
-      } catch (e) {
-        console.warn('Could not retrieve mimeType:', e);
-      }
-    }
-    
-    // Stop all tracks from the media recorder first
-    if (mediaRecorderRef.current && isRecording) {
-      console.log('Stopping media recorder tracks');
-      try {
-        // Safely access and stop MediaRecorder
-        if (mediaRecorderRef.current.state !== 'inactive') {
-          // Use stop() only if it's not already stopped to avoid errors
+        // Important: Remove the onstop handler completely before stopping
+        // This ensures we don't trigger data sending when canceling
+        const recorder = mediaRecorderRef.current;
+        recorder.onstop = null;  // Remove the handler completely
+        recorder.ondataavailable = null;  // Remove data handler too
+        
+        if (recorder.state !== 'inactive') {
           try {
-            // Create a clone of the ondataavailable and onstop handlers to prevent errors
-            const originalOnStop = mediaRecorderRef.current.onstop;
-            const originalOnDataAvailable = mediaRecorderRef.current.ondataavailable;
-            
-            // Replace handlers with no-op functions to prevent callbacks during cleanup
-            mediaRecorderRef.current.onstop = () => {};
-            mediaRecorderRef.current.ondataavailable = () => {};
-            
-            mediaRecorderRef.current.stop();
-            
-            // Restore original handlers after stopping (in case we need them elsewhere)
-            if (mediaRecorderRef.current) {
-              mediaRecorderRef.current.onstop = originalOnStop;
-              mediaRecorderRef.current.ondataavailable = originalOnDataAvailable;
-            }
+            recorder.stop();
+            console.log('MediaRecorder stopped');
           } catch (e) {
             console.warn('Error stopping media recorder:', e);
           }
         }
         
         // Always stop all tracks
-        const tracks = mediaRecorderRef.current.stream.getTracks();
+        const tracks = recorder.stream.getTracks();
         tracks.forEach(track => {
           track.stop();
           console.log('Track stopped:', track.kind);
         });
+        
+        // Explicitly set to null to free memory
+        mediaRecorderRef.current = null;
       } catch (error) {
         console.warn('Error stopping media recorder tracks:', error);
       }
-      // Explicitly set to null to free memory AFTER stopping everything
-      mediaRecorderRef.current = null;
     }
-    
-    // Clear recorded audio chunks but handle with correct mime type if needed
-    if (audioChunksRef.current.length > 0) {
-      // If we have chunks but want to cancel, just clear them
-      // This prevents processing them in the onstop handler
-      audioChunksRef.current = [];
-    }
-    
-    // Reset all states before cleaning up audio
-    setIsRecording(false);
-    setIsPlaying(false);
-    setIsProcessing(false);
-    setIsPaused(false);
-    setCanPlay(false);
     
     // Complete audio cleanup after a short delay to avoid state conflicts
     setTimeout(() => {
