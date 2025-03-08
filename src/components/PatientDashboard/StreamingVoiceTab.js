@@ -786,28 +786,106 @@ const StreamingVoiceTab = () => {
     }
   };
 
-  const cancelRecording = () => {
-    if (mediaRecorderRef.current) {
-      mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop()); // Fix stop() call
-    }
-    if (audioSourceRef.current) {
-      audioSourceRef.current.stop();
-      audioSourceRef.current = null;
-    }
-    audioQueueRef.current = []; // Clear the queue
-    isPlayingRef.current = false;
+  // Add a dedicated function to properly stop playback
+  const stopPlayback = async () => {
+    console.log('Stopping playback completely');
     
-    // Use the new endMediaStream function
-    endMediaStream().then(() => {
+    // First pause any playing audio
+    try {
       if (audioElementRef.current) {
         audioElementRef.current.pause();
-        audioElementRef.current.src = '';
       }
-      pendingChunksRef.current = [];
-      setIsRecording(false);
-      setIsPlaying(false);
-      setIsProcessing(false);
-    });
+    } catch (e) {
+      console.warn('Error pausing audio element:', e);
+    }
+    
+    // For mobile, we need to be extra careful
+    if (isMobile) {
+      try {
+        // Create a clone of the audio element without event listeners
+        if (audioElementRef.current) {
+          const audio = audioElementRef.current;
+          
+          // Remove all event listeners explicitly
+          audio.onended = null;
+          audio.onerror = null;
+          audio.onplay = null;
+          audio.onpause = null;
+          audio.oncanplaythrough = null;
+          audio.ontimeupdate = null;
+          
+          // Clear source and force a load to clean the buffer
+          audio.src = '';
+          audio.load();
+        }
+      } catch (error) {
+        console.warn('Non-critical error while stopping mobile playback:', error);
+      }
+    }
+    
+    // Clean up additional resources
+    if (audioSourceRef.current) {
+      try {
+        audioSourceRef.current.stop();
+        audioSourceRef.current.disconnect();
+        audioSourceRef.current = null;
+      } catch (e) {
+        console.warn('Error stopping audio source:', e);
+      }
+    }
+    
+    // Clear queued audio
+    audioQueueRef.current = [];
+    isPlayingRef.current = false;
+    
+    // Reset UI states first
+    setIsPlaying(false);
+    setIsPaused(false);
+    setCanPlay(true); // Keep the ability to play again
+    
+    // No need to clean everything here - we might want to play again
+    // Just ensure we have reference to the blob for replay
+    if (mobileBlob) {
+      // Make sure we have a valid URL for replay
+      if (!mobileAudioUrlRef.current) {
+        try {
+          const url = createSafeBlobUrl(mobileBlob, true);
+          console.log('Created new URL for replay:', url);
+        } catch (e) {
+          console.warn('Error creating URL for replay:', e);
+        }
+      }
+    }
+  };
+
+  // Improve cancelRecording to use stopPlayback
+  const cancelRecording = () => {
+    console.log('Canceling recording or playback');
+    
+    // Stop any recording in progress
+    if (mediaRecorderRef.current) {
+      try {
+        mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
+      } catch (error) {
+        console.warn('Error stopping media recorder tracks:', error);
+      }
+    }
+    
+    // Handle cleanup based on current state
+    if (isPlaying || isPaused) {
+      // If we're playing or paused, just stop the playback properly
+      stopPlayback();
+    } else {
+      // Full cleanup only if we're not in the middle of playback
+      endMediaStream().then(() => {
+        cleanupAudio();
+        pendingChunksRef.current = [];
+        setIsRecording(false);
+        setIsPlaying(false);
+        setIsProcessing(false);
+        setIsPaused(false);
+      });
+    }
   };
 
   const handleSend = () => {
@@ -865,21 +943,32 @@ const StreamingVoiceTab = () => {
     // On mobile, ensure we clean up any previous audio element first
     if (isMobile) {
       try {
-        // Clean up existing audio element
-        if (audioElementRef.current) {
-          try {
-            const audio = audioElementRef.current;
-            audio.pause();
-            audio.onended = null;
-            audio.onerror = null;
-            audio.onplay = null;
-            audio.onpause = null;
-            audio.oncanplaythrough = null;
-            audio.src = '';
-            audio.load(); // Force reload to clean buffers
-            audioElementRef.current = null;
-          } catch (e) {
-            console.warn('Error cleaning up previous audio element:', e);
+        // If we had an error while stopping, do a more thorough cleanup
+        if (mobilePlaybackError) {
+          console.log('Doing thorough cleanup before playback due to previous error');
+          cleanupAudio();
+          
+          // Recreate the blob URL if needed
+          if (mobileBlob && !mobileAudioUrlRef.current) {
+            createSafeBlobUrl(mobileBlob, true);
+          }
+        } else {
+          // Clean up existing audio element
+          if (audioElementRef.current) {
+            try {
+              const audio = audioElementRef.current;
+              audio.pause();
+              audio.onended = null;
+              audio.onerror = null;
+              audio.onplay = null;
+              audio.onpause = null;
+              audio.oncanplaythrough = null;
+              audio.src = '';
+              audio.load(); // Force reload to clean buffers
+              audioElementRef.current = null;
+            } catch (e) {
+              console.warn('Error cleaning up previous audio element:', e);
+            }
           }
         }
         
@@ -910,6 +999,7 @@ const StreamingVoiceTab = () => {
           console.log('Mobile audio started playing');
           setIsPlaying(true);
           setIsPaused(false);
+          setCanPlay(false);
         };
         
         audio.onpause = () => {
@@ -922,6 +1012,7 @@ const StreamingVoiceTab = () => {
           console.log('Mobile audio ended');
           setIsPlaying(false);
           setIsPaused(false);
+          setCanPlay(true);
         };
         
         audio.onerror = (e) => {
@@ -931,6 +1022,7 @@ const StreamingVoiceTab = () => {
           console.error('Mobile audio error:', errorMessage, e);
           setMobilePlaybackError(errorMessage);
           setIsPlaying(false);
+          setCanPlay(true);
         };
         
         // Use the stored mobile URL if available to prevent URL leaks
@@ -955,12 +1047,14 @@ const StreamingVoiceTab = () => {
           } catch (error) {
             console.error('Error starting mobile audio playback:', error);
             setMobilePlaybackError(`Playback error: ${error.message || 'Unknown error'}`);
+            setCanPlay(true);
           }
         }, 100);
       } catch (error) {
         console.error('Error setting up mobile audio:', error);
         setMobilePlaybackError(`Setup error: ${error.message || 'Unknown error'}`);
         setError(`Could not play audio: ${error.message || 'Unknown error'}`);
+        setCanPlay(true);
       }
     } else {
       // Desktop playback remains the same
@@ -1188,7 +1282,7 @@ const StreamingVoiceTab = () => {
               )}
               <Button 
                 variant="danger"
-                onClick={cancelRecording}
+                onClick={stopPlayback} // Use stopPlayback instead of cancelRecording
                 className="control-button"
               >
                 <Square size={20} />
