@@ -660,8 +660,26 @@ const StreamingVoiceTab = () => {
   // Update startRecording to handle audio context resume and reset before recording
   const startRecording = async () => {
     console.log('Starting recording');
-    setError(null); // Clear any existing errors first
-    setMobilePlaybackError(null); // Clear mobile-specific errors
+    // Clear any existing errors first
+    setError(null);
+    setMobilePlaybackError(null);
+    
+    // Stop any active recording first
+    if (mediaRecorderRef.current) {
+      try {
+        if (mediaRecorderRef.current.state !== 'inactive') {
+          // Replace event handlers to prevent callbacks
+          mediaRecorderRef.current.onstop = () => {};
+          mediaRecorderRef.current.ondataavailable = () => {};
+          mediaRecorderRef.current.stop();
+        }
+        const tracks = mediaRecorderRef.current.stream.getTracks();
+        tracks.forEach(track => track.stop());
+        mediaRecorderRef.current = null;
+      } catch (e) {
+        console.warn('Error cleaning up previous recording:', e);
+      }
+    }
     
     // Ensure we clean up any existing audio resources
     try {
@@ -709,18 +727,22 @@ const StreamingVoiceTab = () => {
       };
 
       mediaRecorderRef.current.onstop = async () => {
+        // Store a local reference since mediaRecorderRef.current might be null when this executes
+        const recorder = mediaRecorderRef.current;
+        
         try {
-          // Check if we have any audio data
+          // If we're canceling (no chunks), just clean up
           if (!audioChunksRef.current.length) {
-            console.warn('No audio chunks recorded');
-            setError('No audio was recorded. Please try again.');
+            console.warn('No audio chunks recorded - likely canceled');
             setIsProcessing(false);
             return;
           }
           
-          const audioBlob = new Blob(audioChunksRef.current, { 
-            type: mediaRecorderRef.current.mimeType || 'audio/webm' 
-          });
+          // If the recorder has been nullified but we have chunks, create the blob
+          // with a safe default mime type
+          const mimeType = (recorder ? recorder.mimeType : null) || 'audio/webm';
+          
+          const audioBlob = new Blob(audioChunksRef.current, { type: mimeType });
 
           // Convert blob to base64
           const base64Audio = await new Promise((resolve, reject) => {
@@ -889,21 +911,77 @@ const StreamingVoiceTab = () => {
   };
 
   const handleSend = () => {
+    console.log('Sending audio recording');
     if (mediaRecorderRef.current && isRecording) {
-      mediaRecorderRef.current.stop();
-      mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
-      setIsRecording(false);
+      try {
+        // Create a local reference to the recorder that won't be nullified during the process
+        const recorder = mediaRecorderRef.current;
+        
+        // Stop the recording which will trigger the onstop handler
+        recorder.stop();
+        
+        // Stop all tracks
+        recorder.stream.getTracks().forEach(track => track.stop());
+        
+        // Update state
+        setIsRecording(false);
+      } catch (error) {
+        console.error('Error stopping recording for send:', error);
+        setError('Error sending recording: ' + (error.message || 'Unknown error'));
+        
+        // If there was an error during sending, ensure we clean up properly
+        handleCancel();
+      }
     }
   };
 
-  // Updated handleCancel with better cleanup
+  // Updated handleCancel to fix the mimeType error
   const handleCancel = () => {
     console.log('Canceling recording');
     
-    // Stop all tracks from the media recorder
+    // Clear any existing errors
+    setError(null);
+    setMobilePlaybackError(null);
+    
+    // Save mime type before nullifying the reference
+    let mimeType = null;
+    if (mediaRecorderRef.current) {
+      try {
+        mimeType = mediaRecorderRef.current.mimeType;
+      } catch (e) {
+        console.warn('Could not retrieve mimeType:', e);
+      }
+    }
+    
+    // Stop all tracks from the media recorder first
     if (mediaRecorderRef.current && isRecording) {
       console.log('Stopping media recorder tracks');
       try {
+        // Safely access and stop MediaRecorder
+        if (mediaRecorderRef.current.state !== 'inactive') {
+          // Use stop() only if it's not already stopped to avoid errors
+          try {
+            // Create a clone of the ondataavailable and onstop handlers to prevent errors
+            const originalOnStop = mediaRecorderRef.current.onstop;
+            const originalOnDataAvailable = mediaRecorderRef.current.ondataavailable;
+            
+            // Replace handlers with no-op functions to prevent callbacks during cleanup
+            mediaRecorderRef.current.onstop = () => {};
+            mediaRecorderRef.current.ondataavailable = () => {};
+            
+            mediaRecorderRef.current.stop();
+            
+            // Restore original handlers after stopping (in case we need them elsewhere)
+            if (mediaRecorderRef.current) {
+              mediaRecorderRef.current.onstop = originalOnStop;
+              mediaRecorderRef.current.ondataavailable = originalOnDataAvailable;
+            }
+          } catch (e) {
+            console.warn('Error stopping media recorder:', e);
+          }
+        }
+        
+        // Always stop all tracks
         const tracks = mediaRecorderRef.current.stream.getTracks();
         tracks.forEach(track => {
           track.stop();
@@ -912,20 +990,33 @@ const StreamingVoiceTab = () => {
       } catch (error) {
         console.warn('Error stopping media recorder tracks:', error);
       }
+      // Explicitly set to null to free memory AFTER stopping everything
       mediaRecorderRef.current = null;
     }
     
-    audioChunksRef.current = [];
+    // Clear recorded audio chunks but handle with correct mime type if needed
+    if (audioChunksRef.current.length > 0) {
+      // If we have chunks but want to cancel, just clear them
+      // This prevents processing them in the onstop handler
+      audioChunksRef.current = [];
+    }
     
-    // Complete cleanup
-    cleanupAudio();
-
-    // Reset all states
+    // Reset all states before cleaning up audio
     setIsRecording(false);
     setIsPlaying(false);
     setIsProcessing(false);
     setIsPaused(false);
-    console.log('Recording canceled and states reset');
+    setCanPlay(false);
+    
+    // Complete audio cleanup after a short delay to avoid state conflicts
+    setTimeout(() => {
+      try {
+        cleanupAudio();
+        console.log('Recording canceled and states reset');
+      } catch (error) {
+        console.warn('Non-critical cleanup error:', error);
+      }
+    }, 100);
   };
 
   // Update playResponse for better error handling and mobile compatibility
@@ -1185,6 +1276,24 @@ const StreamingVoiceTab = () => {
       };
     }
   }, []);
+
+  // Add this effect to make sure we always have a clean event handler setup
+  // that doesn't depend on stale references
+  useEffect(() => {
+    // This runs every time isRecording changes
+    if (isRecording && mediaRecorderRef.current) {
+      // Make sure the event handlers are properly refreshed
+      const currentRecorder = mediaRecorderRef.current;
+      
+      // Update the ondataavailable handler
+      currentRecorder.ondataavailable = (event) => {
+        // Only add data if we're still recording (not canceled)
+        if (isRecording) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+    }
+  }, [isRecording]);
 
   return (
     <Card className="streaming-voice-interface">
