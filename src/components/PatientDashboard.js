@@ -216,12 +216,6 @@ function PatientDashboard() {
         <MessageCircle size={16} /> Chat
       </div>
       <div 
-        className={`nav-item ${activeTab === "voice" ? "active" : ""}`} 
-        onClick={() => handleTabChange("voice")}
-      >
-        <Mic size={16} /> Talk
-      </div>      
-      <div 
         className={`nav-item ${activeTab === "streaming-voice" ? "active" : ""}`} 
         onClick={() => handleTabChange("streaming-voice")}
       >
