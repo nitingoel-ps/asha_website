@@ -797,7 +797,50 @@ const StreamingVoiceTab = () => {
             })
           });
 
-          if (!response.ok) throw new Error(`Network response was not ok (${response.status})`);
+          // Enhanced error handling to extract server error message
+          if (!response.ok) {
+            // Try to get detailed error message from response
+            let errorMessage = `Network response was not ok (${response.status})`;
+            
+            try {
+              // Attempt to parse the error response as JSON
+              const errorData = await response.json();
+              
+              // Extract error message from various possible formats
+              if (errorData.detail) {
+                errorMessage = errorData.detail;
+              } else if (errorData.message) {
+                errorMessage = errorData.message;
+              } else if (errorData.error) {
+                errorMessage = errorData.error;
+              } else if (typeof errorData === 'string') {
+                errorMessage = errorData;
+              } else if (Object.keys(errorData).length > 0) {
+                // If we have some data but not in expected format, stringify it
+                const firstKey = Object.keys(errorData)[0];
+                const firstValue = errorData[firstKey];
+                
+                if (Array.isArray(firstValue)) {
+                  errorMessage = `${firstKey}: ${firstValue.join(', ')}`;
+                } else {
+                  errorMessage = JSON.stringify(errorData);
+                }
+              }
+            } catch (parseError) {
+              // If we can't parse the response as JSON, try to get text
+              try {
+                const textError = await response.text();
+                if (textError && textError.length < 100) { // Only use text if it's reasonably short
+                  errorMessage = textError;
+                }
+              } catch (textError) {
+                // If both JSON and text fail, stick with the default error message
+                console.warn('Could not parse error response as text:', textError);
+              }
+            }
+            
+            throw new Error(errorMessage);
+          }
           
           // Handle streaming response
           handleAudioStream(response);
