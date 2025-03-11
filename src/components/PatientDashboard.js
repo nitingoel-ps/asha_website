@@ -200,20 +200,16 @@ function PatientDashboard() {
   const NavigationMenu = () => (
     <div className="nav-menu">
       <div 
-        className={`nav-item ${activeTab === "symptoms" ? "active" : ""}`} 
-        onClick={() => handleTabChange("symptoms")}
-      >
-        <Activity size={16} /> Symptoms
-      </div>
-      <div 
         className={`nav-item ${activeTab === "health-priorities" ? "active" : ""}`} 
         onClick={() => handleTabChange("health-priorities")}
       >
         <Target size={16} /> Health Priorities
       </div>
-      <div className={`nav-item ${activeTab === "summary" ? "active" : ""}`} 
-           onClick={() => handleTabChange("summary")}>
-        <MessageCircle size={16} /> Chat
+      <div 
+        className={`nav-item ${activeTab === "symptoms" ? "active" : ""}`} 
+        onClick={() => handleTabChange("symptoms")}
+      >
+        <Activity size={16} /> Symptoms
       </div>
       <div 
         className={`nav-item ${activeTab === "streaming-voice" ? "active" : ""}`} 
