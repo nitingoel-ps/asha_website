@@ -336,3 +336,92 @@
 .message-content, .ai-chat-message-content {
   word-break: break-word;
 }
+
+/* Activity Indicator Styles for <<...>> messages - updated for inline use */
+.ai-chat-activity-indicator {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 6px;
+  margin: 0 2px;
+  background-color: rgba(0, 123, 255, 0.1);
+  border-left: 2px solid #007bff;
+  border-radius: 3px;
+  font-style: italic;
+  color: #555;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.ai-chat-activity-indicator-pulse {
+  height: 8px;
+  width: 8px;
+  border-radius: 50%;
+  background-color: #007bff;
+  margin-right: 5px;
+  display: inline-block;
+  animation: pulse 1.5s infinite ease-in-out;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(0, 123, 255, 0.7);
+    opacity: 0.8;
+  }
+  
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 6px rgba(0, 123, 255, 0);
+    opacity: 1;
+  }
+  
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(0, 123, 255, 0);
+    opacity: 0.8;
+  }
+}
+
+/* Activity Indicator Styles with active/completed states */
+.ai-chat-activity-indicator {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 6px;
+  margin: 0 2px;
+  border-radius: 3px;
+  font-style: italic;
+  line-height: 1.2;
+  white-space: nowrap;
+  transition: all 0.3s ease;
+}
+
+/* Active state */
+.ai-chat-activity-indicator.active {
+  background-color: rgba(0, 123, 255, 0.1);
+  border-left: 2px solid #007bff;
+  color: #555;
+}
+
+/* Completed state */
+.ai-chat-activity-indicator.completed {
+  background-color: rgba(40, 167, 69, 0.1);
+  border-left: 2px solid #28a745;
+  color: #494;
+}
+
+.ai-chat-activity-indicator-pulse {
+  height: 8px;
+  width: 8px;
+  border-radius: 50%;
+  background-color: #007bff;
+  margin-right: 5px;
+  display: inline-block;
+  animation: pulse 1.5s infinite ease-in-out;
+}
+
+.ai-chat-activity-indicator-check {
+  color: #28a745;
+  margin-left: 5px;
+  font-size: 10px;
+  font-weight: bold;
+}

@@ -4,6 +4,7 @@ import { FaPaperPlane, FaBars, FaPen } from 'react-icons/fa';
 import axiosInstance from '../../utils/axiosInstance';
 import MessageList from './MessageList';
 import ChatList from './ChatList';
+import { processStreamingContent, isActivityMessage } from './MessageUtils';
 
 function ChatWindow({ session, onSessionCreated, sessions = [], onSelectSession, onDeleteSession, onRenameSession, loading, onChatComplete }) {
   const [messages, setMessages] = useState([]);
@@ -195,17 +196,20 @@ function ChatWindow({ session, onSessionCreated, sessions = [], onSelectSession,
 
           if (line) {
             console.log('Processing line:', line);
-            // Update the current message content WITHOUT replacing previous messages
+            
+            // Use processStreamingContent to properly handle activity messages
             setMessages(prev => {
               const newMessages = [...prev];
               // Find the streaming message (it should be the last one)
-              const lastMessage = newMessages[newMessages.length - 1];
+              const aiMessageIndex = newMessages.findIndex(
+                msg => msg.role === 'assistant' && msg.isStreaming
+              );
               
-              if (lastMessage && lastMessage.isStreaming) {
-                console.log('Updating streaming message with new content');
-                lastMessage.content = (lastMessage.content || '') + line + '\n';
-                return newMessages; // Return the updated array, preserving all messages
+              if (aiMessageIndex >= 0) {
+                // Use our utility to properly handle activity indicators
+                return processStreamingContent(newMessages, line + '\n', aiMessageIndex);
               }
+              
               return prev; // Return unchanged if no streaming message found
             });
           }
@@ -217,13 +221,18 @@ function ChatWindow({ session, onSessionCreated, sessions = [], onSelectSession,
         console.log('Processing remaining buffer:', buffer.trim());
         setMessages(prev => {
           const newMessages = [...prev];
-          const lastMessage = newMessages[newMessages.length - 1];
-          if (lastMessage && lastMessage.isStreaming) {
-            lastMessage.content = (lastMessage.content || '') + buffer.trim();
-            lastMessage.isStreaming = false;
-            console.log('Final message content:', lastMessage.content);
-            return newMessages;
+          const aiMessageIndex = newMessages.findIndex(
+            msg => msg.role === 'assistant' && msg.isStreaming
+          );
+          
+          if (aiMessageIndex >= 0) {
+            // Use our utility one more time for remaining buffer
+            const processedMessages = processStreamingContent(newMessages, buffer.trim(), aiMessageIndex);
+            // Mark streaming as complete
+            processedMessages[aiMessageIndex].isStreaming = false;
+            return processedMessages;
           }
+          
           return prev;
         });
       }

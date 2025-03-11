@@ -5,6 +5,7 @@ import ChatList from './ChatList';
 import ChatWindow from './ChatWindow';
 import axiosInstance from '../../utils/axiosInstance';
 import './AIChat.css';
+import { processStreamingContent } from './MessageUtils';
 
 function AIChat() {
   const location = useLocation();
@@ -236,6 +237,28 @@ function AIChat() {
       debouncedRefreshAllSessions();
     }, 2000);
   }, [debouncedRefreshSession, debouncedRefreshAllSessions]);
+
+  // Example of how to modify your streaming handler:
+  const handleStreamingMessage = (content) => {
+    setMessages(currentMessages => {
+      // Find the last AI message to update
+      const aiMessageIndex = currentMessages.findIndex(
+        msg => msg.role === 'ai' && msg.isStreaming
+      );
+      
+      if (aiMessageIndex >= 0) {
+        // Use our utility to handle the content properly
+        // This will replace activity messages when new content arrives
+        return processStreamingContent(currentMessages, content, aiMessageIndex);
+      } else {
+        // If no streaming message exists, create a new one
+        return [
+          ...currentMessages,
+          { role: 'ai', content: content, isStreaming: true }
+        ];
+      }
+    });
+  };
 
   return (
     <Container fluid className="ai-chat-container">
