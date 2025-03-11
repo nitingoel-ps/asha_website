@@ -28,11 +28,20 @@ export const extractActivityText = (content) => {
 export const processReferenceLinks = (content) => {
   if (!content) return '';
   
-  // Replace [Ref: x/y] with <sup><a href="/patient-dashboard/x/y">[ref]</a></sup>
-  return content.replace(
+  // Replace [Ref: x/y] with a superscript link styled as a reference
+  let updatedContent = content.replace(
     /\[Ref:\s*([^\]]+)\]/g, 
-    (match, path) => `<sup><a href="/patient-dashboard/${path.trim()}">[ref]</a></sup>`
+    (match, path) => `<sup><a class="ai-chat-reference" href="/patient-dashboard/${path.trim()}">[ref]</a></sup>`
   );
+  
+  // Replace standalone reference numbers (e.g., [1], [2]) with a styled superscript element.
+  // Using a simpler regex to capture every occurrence.
+  updatedContent = updatedContent.replace(
+    /\[(\d+)\](?!:)/g,
+    (match, number) => `<sup class="ai-chat-reference">[[${number}]]</sup>`
+  );
+  
+  return updatedContent;
 };
 
 /**
