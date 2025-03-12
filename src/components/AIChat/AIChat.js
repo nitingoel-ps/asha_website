@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Container, Row, Col, Button } from 'react-bootstrap';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import ChatList from './ChatList';
 import ChatWindow from './ChatWindow';
 import axiosInstance from '../../utils/axiosInstance';
@@ -10,10 +10,14 @@ import { processStreamingContent } from './MessageUtils';
 function AIChat() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { sessionId } = useParams(); // Get session ID from URL
   const [sessions, setSessions] = useState([]);
   const [selectedSession, setSelectedSession] = useState(null);
   const [loading, setLoading] = useState(true);
   const [initialMessageSent, setInitialMessageSent] = useState(false);
+  
+  // Add a ref to track if we've already processed the URL session ID
+  const processedSessionIdRef = useRef(null);
   
   // Store the initial message in component state instead of relying on location.state
   // This ensures we don't lose it when location.state changes
@@ -21,12 +25,44 @@ function AIChat() {
   
   console.log('AIChat component loaded with initialMessage:', storedInitialMessage);
   console.log('Location state:', location.state);
+  console.log('URL session ID:', sessionId);
 
-  // Only fetch sessions on initial mount, don't clear state yet
+  // Fetch sessions on initial mount
   useEffect(() => {
     console.log('Initial mount effect running');
     fetchSessions();
   }, []);
+
+  // Handle URL-based session selection - only when sessions load or URL changes
+  useEffect(() => {
+    if (sessionId && sessions.length > 0 && !loading) {
+      // Skip if we've already processed this session ID
+      if (processedSessionIdRef.current === sessionId) {
+        console.log('Already processed session ID:', sessionId);
+        return;
+      }
+      
+      console.log('Selecting session from URL parameter:', sessionId);
+      const sessionFromUrl = sessions.find(s => 
+        s.id === sessionId || s.id === parseInt(sessionId)
+      );
+      
+      if (sessionFromUrl) {
+        console.log('Found session matching URL parameter:', sessionFromUrl);
+        // Only update if it's different from the current selection
+        if (!selectedSession || selectedSession.id !== sessionFromUrl.id) {
+          console.log('Setting selected session from URL');
+          setSelectedSession(sessionFromUrl);
+          // Mark this session ID as processed
+          processedSessionIdRef.current = sessionId;
+        }
+      } else {
+        console.log('No session found matching URL parameter');
+        // If session not found, redirect to base chat URL
+        navigate('/ai-chat', { replace: true });
+      }
+    }
+  }, [sessionId, sessions, loading]); // Only depend on sessionId, sessions, and loading
 
   // Handle the initial message after sessions are loaded and not loading
   useEffect(() => {
@@ -85,6 +121,10 @@ function AIChat() {
       const newSession = response.data;
       setSessions([newSession, ...sessions]);
       setSelectedSession(newSession);
+      
+      // Update URL to include the new session ID
+      processedSessionIdRef.current = newSession.id.toString();
+      navigate(`/ai-chat/${newSession.id}`);
     } catch (error) {
       console.error('Error creating new chat session:', error);
     } finally {
@@ -124,6 +164,10 @@ function AIChat() {
         preserveUserMessage: true // Add flag to ensure user message is preserved
       };
       setSelectedSession(sessionWithMessage);
+      
+      // Update URL to include the new session ID
+      processedSessionIdRef.current = newSession.id.toString();
+      navigate(`/ai-chat/${newSession.id}`);
     } catch (error) {
       console.error('Error creating new chat session with message:', error);
     } finally {
@@ -133,15 +177,29 @@ function AIChat() {
   };
 
   const handleSelectSession = async (session) => {
+    // Skip if already selected
+    if (selectedSession && selectedSession.id === session.id) {
+      console.log('Session already selected, skipping:', session.id);
+      return;
+    }
+    
     setLoading(true);
     try {
       // Fetch fresh session data to ensure we have latest messages
       const response = await axiosInstance.get(`/chat-sessions/${session.id}`);
       setSelectedSession(response.data.session); // Access the session object from response
+      
+      // Update URL to reflect the selected session
+      processedSessionIdRef.current = session.id.toString();
+      navigate(`/ai-chat/${session.id}`);
     } catch (error) {
       console.error('Error fetching session details:', error);
       // Fall back to using the session data we already have
       setSelectedSession(session);
+      
+      // Still update URL even if there was an error fetching details
+      processedSessionIdRef.current = session.id.toString();
+      navigate(`/ai-chat/${session.id}`);
     } finally {
       setLoading(false);
     }
@@ -151,8 +209,12 @@ function AIChat() {
     try {
       await axiosInstance.delete(`/chat-sessions/${sessionId}/delete/`);
       setSessions(sessions.filter(session => session.id !== sessionId));
+      
+      // If we're deleting the currently selected session, clear selection and update URL
       if (selectedSession?.id === sessionId) {
         setSelectedSession(null);
+        processedSessionIdRef.current = null;
+        navigate('/ai-chat');
       }
     } catch (error) {
       console.error('Error deleting session:', error);
@@ -264,13 +326,15 @@ function AIChat() {
             onSessionCreated={(newSession) => {
               setSessions([newSession, ...sessions]);
               setSelectedSession(newSession);
+              // Update URL when a new session is created
+              navigate(`/ai-chat/${newSession.id}`);
             }}
             sessions={sessions}
             onSelectSession={handleSelectSession}
             onDeleteSession={handleDeleteSession}
             onRenameSession={handleRenameSession}
             loading={loading}
-            onChatComplete={handleChatComplete} // Add this prop
+            onChatComplete={handleChatComplete}
           />
         </Col>
       </Row>

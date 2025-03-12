@@ -76,7 +76,15 @@ function AppContent() {
           <Route path="manage-standard-panels/:panelId" element={<PanelDetail />} />
         </Route>
         <Route
-          path="/ai-chat/*"
+          path="/ai-chat"
+          element={
+            <PrivateRoute>
+              <AIChat />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/ai-chat/:sessionId"
           element={
             <PrivateRoute>
               <AIChat />

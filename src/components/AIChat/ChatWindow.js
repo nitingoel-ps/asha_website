@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Form, Button, Spinner } from 'react-bootstrap';
 import { FiMenu, FiPlus, FiMic } from 'react-icons/fi';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import axiosInstance from '../../utils/axiosInstance';
 import MessageList from './MessageList';
 import ChatList from './ChatList';
@@ -12,6 +12,7 @@ import { PiListMagnifyingGlassThin } from "react-icons/pi";
 
 function ChatWindow({ session, onSessionCreated, sessions = [], onSelectSession, onDeleteSession, onRenameSession, loading, onChatComplete }) {
   const navigate = useNavigate(); // Add React Router's navigate hook
+  const { sessionId } = useParams(); // Get session ID from URL
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -19,6 +20,7 @@ function ChatWindow({ session, onSessionCreated, sessions = [], onSelectSession,
   const [initialMessageProcessed, setInitialMessageProcessed] = useState(false);
   const messageEndRef = useRef(null);
   const messagesRef = useRef([]);
+  const urlSessionProcessedRef = useRef(false);
   
   // Create a ref for the form to trigger submit programmatically
   const formRef = useRef(null);
@@ -30,6 +32,7 @@ function ChatWindow({ session, onSessionCreated, sessions = [], onSelectSession,
     console.log('Initial message in session:', session?.initialMessage);
     console.log('initialMessageProcessed:', initialMessageProcessed);
     console.log('isLoading:', isLoading);
+    console.log('URL sessionId:', sessionId);
 
     // Reset messages when switching sessions
     setMessages([]);
@@ -37,6 +40,15 @@ function ChatWindow({ session, onSessionCreated, sessions = [], onSelectSession,
     
     if (session?.id) {
       fetchMessages(session.id);
+    } else if (sessionId && sessions.length > 0 && !urlSessionProcessedRef.current) {
+      // If we have a URL sessionId but no selected session, try to find and select it
+      // Only do this once to prevent loops
+      const sessionFromUrl = sessions.find(s => s.id === sessionId || s.id === parseInt(sessionId));
+      if (sessionFromUrl && onSelectSession) {
+        console.log('Found session from URL, selecting it:', sessionFromUrl);
+        urlSessionProcessedRef.current = true;
+        onSelectSession(sessionFromUrl);
+      }
     }
   }, [session, sessions]);
 
@@ -365,7 +377,14 @@ function ChatWindow({ session, onSessionCreated, sessions = [], onSelectSession,
         session_name: 'New Chat'
       });
       const newSession = response.data;
+      
+      // Mark that we've processed URL changes to prevent loops
+      urlSessionProcessedRef.current = true;
+      
       onSessionCreated(newSession);
+      
+      // Update URL to reflect the new session - parent component will handle this
+      // We don't need to navigate here as the parent will do it
     } catch (error) {
       console.error('Error creating new chat session:', error);
     } finally {
