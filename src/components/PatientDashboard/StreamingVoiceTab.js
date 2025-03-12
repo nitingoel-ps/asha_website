@@ -1,10 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Button, Card, Spinner, Alert } from 'react-bootstrap';
-import { Mic, Square, X, Pause, Play } from 'lucide-react';
+import { Mic, Square, X, Pause, Play, Keyboard } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import './StreamingVoiceTab.css';
 import { fetchWithAuth } from "../../utils/fetchWithAuth";
 
 const StreamingVoiceTab = () => {
+  const navigate = useNavigate();
   const [isRecording, setIsRecording] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -784,6 +786,10 @@ const StreamingVoiceTab = () => {
     }
   };
 
+  const handleNavigateToTextChat = () => {
+    navigate('/ai-chat');
+  };
+
   // Component cleanup
   useEffect(() => {
     return () => {
@@ -800,98 +806,110 @@ const StreamingVoiceTab = () => {
 
   return (
     <Card className="streaming-voice-interface">
+      <div className="top-icon">
+        <Button variant="link" onClick={handleNavigateToTextChat}>
+          <Keyboard size={24} />
+        </Button>
+      </div>
       <Card.Body>
-        <div className="voice-controls">
-          {error && (
-            <div className="error-message alert alert-danger">
-              {error}
-              <Button 
-                variant="outline-danger" 
-                size="sm"
-                onClick={() => setError(null)}
-              >
-                <X size={16} />
-              </Button>
-            </div>
-          )}
-
-          {/* Display autoplay failure warning */}
-          {autoplayFailed && (
-            <Alert variant="warning" className="autoplay-warning">
-              Automatic playback failed. Please click Play to hear the response.
-            </Alert>
-          )}
-
-          {!isRecording && !isProcessing && !isPlaying && !isPaused && !autoplayFailed && (
-            <Button 
-              variant="primary" 
-              className="record-button"
-              onClick={startRecording}
-            >
-              <Mic /> Click to speak
-            </Button>
-          )}
-
-          {isRecording && (
-            <div className="recording-controls">
-              <div className="recording-buttons">
-                <Button 
-                  variant="success" 
-                  className="send-button"
-                  onClick={handleSend}
-                >
-                  Send
-                </Button>
-                <Button 
-                  variant="danger" 
-                  className="cancel-button"
-                  onClick={handleCancel}
-                >
-                  Cancel
-                </Button>
-              </div>
-              <div className="recording-indicator">
-                Recording... <span className="pulse"></span>
-              </div>
-            </div>
-          )}
-
-          {isProcessing && !isPlaying && !isPaused && !autoplayFailed && (
-            <div className="streaming-indicator">
-              <Spinner animation="border" size="sm" />
-              Processing...
-            </div>
-          )}
-
-          {/* Modified playback controls to handle both normal playback and autoplay failure */}
-          {(isPlaying || isPaused || autoplayFailed) && (
-            <div className="playback-controls">
-              {isPaused || autoplayFailed ? (
-                <Button 
-                  variant="primary"
-                  onClick={autoplayFailed ? startManualPlayback : handleResumePlayback}
-                  className="control-button"
-                >
-                  <Play size={20} />
-                </Button>
-              ) : (
-                <Button 
-                  variant="primary"
-                  onClick={handlePausePlayback}
-                  className="control-button"
-                >
-                  <Pause size={20} />
-                </Button>
+        <div className="main-content-container">
+          {/* Move error messages to a separate container */}
+          {(error || autoplayFailed) && (
+            <div className="error-container">
+              {error && (
+                <div className="error-message alert alert-danger">
+                  {error}
+                  <Button 
+                    variant="outline-danger" 
+                    size="sm"
+                    onClick={() => setError(null)}
+                  >
+                    <X size={18} />
+                  </Button>
+                </div>
               )}
-              <Button 
-                variant="danger"
-                onClick={stopAllPlayback}
-                className="control-button"
-              >
-                <Square size={20} />
-              </Button>
+
+              {/* Display autoplay failure warning */}
+              {autoplayFailed && (
+                <Alert variant="warning" className="autoplay-warning">
+                  Automatic playback failed. Please click Play to hear the response.
+                </Alert>
+              )}
             </div>
           )}
+          
+          <div className="voice-controls">
+            {!isRecording && !isProcessing && !isPlaying && !isPaused && !autoplayFailed && (
+              <Button 
+                variant="primary" 
+                className="record-button"
+                onClick={startRecording}
+              >
+                <Mic size={20} /> Click to speak
+              </Button>
+            )}
+
+            {isRecording && (
+              <div className="recording-controls">
+                <div className="recording-buttons">
+                  <Button 
+                    variant="success" 
+                    className="send-button"
+                    onClick={handleSend}
+                  >
+                    Send
+                  </Button>
+                  <Button 
+                    variant="danger" 
+                    className="cancel-button"
+                    onClick={handleCancel}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+                <div className="recording-indicator">
+                  Recording... <span className="pulse"></span>
+                </div>
+              </div>
+            )}
+
+            {isProcessing && !isPlaying && !isPaused && !autoplayFailed && (
+              <div className="streaming-indicator">
+                <Spinner animation="border" size="sm" />
+                Processing...
+              </div>
+            )}
+
+            {/* Modified playback controls to handle both normal playback and autoplay failure */}
+            {(isPlaying || isPaused || autoplayFailed) && (
+              <div className="playback-controls">
+                {isPaused || autoplayFailed ? (
+                  <Button 
+                    variant="primary"
+                    onClick={autoplayFailed ? startManualPlayback : handleResumePlayback}
+                    className="control-button"
+                  >
+                    <Play size={20} />
+                  </Button>
+                ) : (
+                  <Button 
+                    variant="primary"
+                    onClick={handlePausePlayback}
+                    className="control-button"
+                  >
+                    <Pause size={20} />
+                  </Button>
+                )}
+                <Button 
+                  variant="danger"
+                  onClick={stopAllPlayback}
+                  className="control-button"
+                >
+                  <Square size={20} />
+                </Button>
+              </div>
+            )}
+          </div>
         </div>
       </Card.Body>
     </Card>
