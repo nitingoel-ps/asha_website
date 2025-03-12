@@ -1,0 +1,465 @@
+.streaming-voice-interface-container {
+  height: 100vh;
+  width: 100%;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+}
+
+.streaming-voice-interface {
+  height: 100vh;
+  width: 100%;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+  max-height: 100vh;
+  /* Ensure the interface takes up the full height of its container */
+  min-height: 100%;
+}
+
+.streaming-voice-interface {
+  width: 100%;
+  height: 100vh !important;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Ensure the Card component doesn't take up unnecessary space */
+.streaming-voice-interface.card {
+  box-shadow: none;
+  border: none;
+  background: transparent;
+  /* Make sure the card takes the full height */
+  height: 100% !important;
+  width: 100% !important;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Ensure the Card.Body component doesn't add unnecessary padding */
+.streaming-voice-interface .card-body {
+  padding: 10px;
+  height: 100%; /* Changed from auto to 100% */
+  width: 100% !important;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center; /* This centers content vertically */
+  overflow: visible;
+  flex: 1; /* Make it take available space */
+}
+
+/* Style for the keyboard icon at the bottom */
+.streaming-voice-interface .top-icon {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  background-color: rgba(255, 255, 255, 0.8);
+  border-radius: 50%;
+  padding: 5px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.top-icon button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border-radius: 50%;
+}
+
+.top-icon button:hover {
+  opacity: 0.8;
+  transform: scale(1.1);
+}
+
+.voice-controls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center; /* Center content vertically */
+  gap: 15px;
+  padding: 15px;
+  width: 100%;
+  height: 100%; /* Changed from auto to 100% */
+  overflow-y: visible;
+  max-height: none;
+  /* Add flex properties to ensure it takes up available space */
+  flex: 1;
+  /* Add position relative to ensure it's in the flow */
+  position: relative;
+}
+
+.record-button {
+  font-size: 1.2em;
+  padding: 12px 24px;
+  border-radius: 50px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: auto !important;
+  min-width: 180px !important;
+  text-align: center;
+}
+
+.recording-controls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: auto !important;
+  min-width: 200px !important;
+}
+
+.recording-buttons {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 8px;
+  width: 100%;
+  justify-content: center;
+}
+
+.send-button,
+.cancel-button {
+  min-width: 90px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
+
+.recording-indicator {
+  color: #dc3545;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  justify-content: center;
+}
+
+.streaming-indicator {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #0d6efd;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: auto !important;
+  min-width: 150px !important;
+  justify-content: center;
+}
+
+.pulse {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: #dc3545;
+  animation: pulse 1s infinite;
+}
+
+/* Error message styling to minimize space usage */
+.error-message {
+  width: 100%;
+  max-width: 500px;
+  margin-bottom: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 1rem; /* Increased for better visibility */
+  padding: 10px 15px; /* Increased padding for better visibility */
+  border-radius: 4px;
+  word-break: break-word;
+  max-height: none; /* Remove height limit */
+  overflow-y: visible;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Add shadow for better visibility */
+}
+
+.error-message button {
+  padding: 0 6px;
+  flex-shrink: 0;
+  margin-left: 8px;
+}
+
+.autoplay-warning {
+  width: 100%;
+  max-width: 500px;
+  font-size: 1rem; /* Increased for better visibility */
+  padding: 10px 15px; /* Increased padding for better visibility */
+  margin-bottom: 15px;
+  word-break: break-word;
+  max-height: none; /* Remove height limit */
+  overflow-y: visible;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Add shadow for better visibility */
+}
+
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.4; }
+  100% { opacity: 1; }
+}
+
+@media (max-width: 768px) {
+  .streaming-voice-interface {
+    margin: 0;
+    height: 100vh; /* Changed from auto to 100% */
+    width: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  /* Ensure the Card component takes only the space it needs */
+  .streaming-voice-interface.card {
+    position: static;
+    flex: 1 1 auto; /* Changed from 0 0 auto to 1 1 auto */
+    box-shadow: none;
+    border: none;
+    height: 100% !important;
+    width: 100% !important;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .streaming-voice-interface .card-body {
+    padding: 10px;
+    height: 100%; /* Ensure it takes full height */
+    width: 100% !important;
+    overflow: visible;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex: 1; /* Make it take available space */
+  }
+  
+  .voice-controls {
+    padding: 10px;
+    gap: 10px;
+    height: 100%; /* Changed from auto to 100% */
+    min-height: auto;
+    width: 100%;
+    max-width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* Center content vertically */
+    align-items: center;
+    flex: 1; /* Make it take available space */
+    position: relative;
+  }
+  
+  /* Make the keyboard icon fixed on mobile to ensure it's always visible */
+  .streaming-voice-interface .top-icon {
+    position: fixed;
+    bottom: 25px; /* Increased to ensure it's visible */
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    background-color: white; /* Fully opaque for better visibility */
+    border-radius: 50%;
+    padding: 8px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3); /* Stronger shadow for better visibility */
+  }
+  
+  .top-icon button {
+    width: 45px; /* Slightly larger for better visibility */
+    height: 45px; /* Slightly larger for better visibility */
+  }
+  
+  /* Add back the record button styles */
+  .record-button {
+    font-size: 1em;
+    padding: 10px 20px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: auto !important;
+    min-width: 180px !important;
+  }
+  
+  /* Ensure error messages are clearly visible on mobile */
+  .error-message, 
+  .autoplay-warning {
+    font-size: 1rem; /* Increased for better visibility */
+    padding: 12px 15px; /* Increased padding for better visibility */
+    margin-bottom: 15px;
+    border-radius: 6px; /* Increased for better visibility */
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15); /* Stronger shadow for better visibility */
+    width: 100%;
+    max-width: 90%;
+  }
+  
+  /* Ensure the close button is visible */
+  .error-message button {
+    padding: 4px 8px; /* Increased padding for better touch target */
+    margin-left: 10px; /* Increased margin for better spacing */
+    font-size: 1rem; /* Increased font size for better visibility */
+  }
+  
+  .send-button,
+  .cancel-button {
+    min-width: 80px; /* Increased from 70px */
+    padding: 8px 15px; /* Increased padding for better touch target */
+    font-size: 1rem; /* Increased font size for better visibility */
+  }
+  
+  /* Ensure the main content container has enough padding for the keyboard icon */
+  .main-content-container {
+    padding-bottom: 90px; /* Increased to ensure space for keyboard icon */
+    justify-content: center; /* Ensure vertical centering */
+    width: 100%;
+  }
+  
+  /* Adjust error container on mobile */
+  .error-container {
+    position: absolute;
+    top: 20px;
+    left: 0;
+    right: 0;
+    padding: 0 10px;
+    max-height: none; /* Remove height limit */
+    margin-bottom: 20px; /* Increased margin for better separation */
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .streaming-indicator {
+    width: auto !important;
+    min-width: 150px !important;
+  }
+  
+  .recording-controls {
+    width: auto !important;
+    min-width: 200px !important;
+  }
+  
+  .playback-controls {
+    width: auto !important;
+    min-width: 100px !important;
+  }
+}
+
+/* Fix for Bootstrap Card component */
+.card.streaming-voice-interface {
+  height: 100vh !important;
+  min-height: 100% !important;
+  max-height: none !important;
+  width: 100% !important;
+  overflow: visible !important;
+  display: flex;
+  flex-direction: column;
+  position: relative; /* Ensure relative positioning for absolute children */
+}
+
+/* Ensure the component fits within the tab-content-wrapper */
+.tab-content-wrapper .streaming-voice-interface {
+  position: relative; /* Changed from static to relative */
+  height: 100% !important;
+  max-height: none !important;
+  width: 100% !important;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Ensure the component doesn't force the parent to scroll */
+.content-area .streaming-voice-interface {
+  flex: 1 1 auto;
+  height: 100%;
+  width: 100% !important;
+  position: relative; /* Ensure relative positioning for absolute children */
+}
+
+.play-button {
+  margin-top: 8px;
+  min-width: 140px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
+
+.playback-controls {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: auto !important;
+  min-width: 100px !important;
+}
+
+.control-button {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+/* Add a container for the main content to ensure vertical centering */
+.main-content-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  padding-bottom: 70px; /* Reduced from 80px */
+  position: relative; /* Ensure relative positioning for absolute children */
+}
+
+/* Add specific styles for error messages to ensure they don't push content */
+.error-container {
+  position: absolute; /* Changed from relative to absolute */
+  top: 20px;
+  left: 0;
+  right: 0;
+  width: 100%;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-height: none; /* Remove height limit */
+  overflow-y: visible;
+  padding: 0 15px;
+  margin-bottom: 15px; /* Add margin to separate from content */
+}
+
+/* Add margin to voice controls when error container is present */
+.error-container + .voice-controls {
+  margin-top: 10px; /* Add some space between error container and voice controls */
+}

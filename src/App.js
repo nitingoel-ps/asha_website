@@ -20,6 +20,7 @@ import PanelDetail from './components/Configuration/StandardLabs/PanelDetail';
 import AIChat from './components/AIChat/AIChat';
 import AddHealthData from './components/Health/AddHealthData';
 import LoadingSpinner from './components/LoadingSpinner';
+import AIVoice from './components/AIVoice/AIVoice';
 
 import './theme.css';
 
@@ -79,6 +80,14 @@ function AppContent() {
           element={
             <PrivateRoute>
               <AIChat />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/ai-voice"
+          element={
+            <PrivateRoute>
+              <AIVoice />
             </PrivateRoute>
           }
         />

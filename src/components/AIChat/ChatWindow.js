@@ -375,7 +375,7 @@ function ChatWindow({ session, onSessionCreated, sessions = [], onSelectSession,
 
   // Function to handle navigation to voice streaming page
   const handleMicrophoneClick = () => {
-    navigate('/patient-dashboard/streaming-voice');
+    navigate('/ai-voice');
   };
 
   return (

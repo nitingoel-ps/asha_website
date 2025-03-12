@@ -20,7 +20,6 @@ import { useNavigate, useParams, Outlet, Routes, Route, useLocation, Navigate } 
 import "../styles/PatientDashboard.css";
 import { NewImmunizationsTab } from "./PatientDashboard/NewImmunizations/NewImmunizationsTab";
 import VoiceTab from "./PatientDashboard/VoiceTab";
-import StreamingVoiceTab from "./PatientDashboard/StreamingVoiceTab";
 import LabPanelsTab from './PatientDashboard/LabPanels/LabPanelsTab';
 import ObservationDetail from './PatientDashboard/LabPanels/ObservationDetail';
 import HealthPrioritiesTab from './PatientDashboard/HealthPriorities/HealthPrioritiesTab';
@@ -212,12 +211,6 @@ function PatientDashboard() {
         <Activity size={16} /> Symptoms
       </div>
       <div 
-        className={`nav-item ${activeTab === "streaming-voice" ? "active" : ""}`} 
-        onClick={() => handleTabChange("streaming-voice")}
-      >
-        <Mic size={16} /> Talk (Testing Streaming)
-      </div>       
-      <div 
         className={`nav-item ${activeTab === "vital-signs" ? "active" : ""}`} 
         onClick={() => handleTabChange("vital-signs")}
       >
@@ -341,7 +334,6 @@ function PatientDashboard() {
                   setMessages={setVoiceMessages}
                 />
               } />
-              <Route path="streaming-voice" element={<StreamingVoiceTab />} />
               <Route path="lab-panels" element={
                 <LabPanelsTab standardPanels={patientData?.all_observations?.standard_panels} />
               } />
