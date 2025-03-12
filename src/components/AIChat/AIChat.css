@@ -4,9 +4,11 @@
 }
 
 .ai-chat-sidebar {
-  border-right: 1px solid #dee2e6;
+  border-right: 1px solid #f0f0f0;
   height: 100%;
   overflow-y: auto;
+  background-color: #f9f9f9;
+  padding: 0;
 }
 
 .ai-chat-main {
@@ -64,6 +66,23 @@
 
 .ai-chat-session-item {
   cursor: pointer;
+  border: none !important;
+  border-radius: 0 !important;
+  padding: 10px 15px !important;
+  margin-bottom: 0 !important;
+  background-color: transparent !important;
+  transition: background-color 0.2s ease;
+}
+
+.ai-chat-session-item:hover {
+  background-color: rgba(0, 0, 0, 0.03) !important;
+}
+
+.ai-chat-session-item.active {
+  background-color: rgba(0, 123, 255, 0.08) !important;
+  border-left: 3px solid #007bff !important;
+  color: #007bff !important;
+  font-weight: 500;
 }
 
 .ai-chat-session-item .delete-button {
@@ -73,7 +92,7 @@
 }
 
 .ai-chat-session-item:hover .delete-button {
-  opacity: 1;
+  opacity: 0.7;
 }
 
 .ai-chat-session-item .edit-button {
@@ -84,7 +103,7 @@
 }
 
 .ai-chat-session-item:hover .edit-button {
-  opacity: 1;
+  opacity: 0.7;
 }
 
 .ai-chat-session-item .form-control {
@@ -245,7 +264,7 @@
   padding: 0.25rem 0.5rem;
   font-size: 0.75rem;
   border-radius: 4px;
-  color: #212529; /* Change to black */
+  color: #212529;
   background-color: white;
   border: 1px solid #e0e0e0;
 }
@@ -473,4 +492,74 @@
   font-weight: bold;
 }
 
-/* Remove the existing desktop media query for mic-btn */
+/* Chat session group headers */
+.chat-session-group-header {
+  font-size: 0.75rem;
+  color: #888;
+  padding: 15px 15px 5px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 5px;
+}
+
+/* Make the Today header stand out */
+.chat-session-group-header.today {
+  color: #007bff;
+  font-weight: 600;
+}
+
+.chat-session-group-header:first-child {
+  margin-top: 0;
+}
+
+/* Style for the small new chat button */
+.new-chat-small {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  border-radius: 4px;
+  color: #212529;
+  background-color: white;
+  border: 1px solid #e0e0e0;
+  transition: all 0.2s ease;
+}
+
+.new-chat-small:hover {
+  background-color: #f8f9fa;
+  border-color: #d0d0d0;
+}
+
+/* Improve ListGroup appearance */
+.list-group-flush {
+  border-radius: 0;
+}
+
+.list-group-flush .list-group-item {
+  border-right: 0;
+  border-left: 0;
+  border-radius: 0;
+}
+
+/* Empty state styling */
+.chat-empty-state {
+  text-align: center;
+  padding: 30px 15px;
+  color: #888;
+  font-size: 0.9rem;
+}
+
+/* Chat sidebar header */
+.chat-sidebar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px;
+  border-bottom: 1px solid #f0f0f0;
+  background-color: #f9f9f9;
+}
+
+.chat-sidebar-header h6 {
+  margin: 0;
+  font-weight: 500;
+  color: #333;
+}
