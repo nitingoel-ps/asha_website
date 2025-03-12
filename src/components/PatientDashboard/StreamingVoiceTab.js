@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Button, Card, Spinner } from 'react-bootstrap';
+import { Button, Card, Spinner, Alert } from 'react-bootstrap';
 import { Mic, Square, X, Pause, Play } from 'lucide-react';
 import './StreamingVoiceTab.css';
 import { fetchWithAuth } from "../../utils/fetchWithAuth";
@@ -11,6 +11,7 @@ const StreamingVoiceTab = () => {
   const [error, setError] = useState(null);
   const [isPaused, setIsPaused] = useState(false);
   const [isStreamComplete, setIsStreamComplete] = useState(false);
+  const [autoplayFailed, setAutoplayFailed] = useState(false); // New state for autoplay failures
 
   const mediaRecorderRef = useRef(null);
   const audioContextRef = useRef(null);
@@ -35,6 +36,10 @@ const StreamingVoiceTab = () => {
   const isTransitioningRef = useRef(false);
   const isPlaybackCompleteRef = useRef(false);
   const userInteractionContextRef = useRef(null);
+  const autoplayFailedRef = useRef(false); // New ref for tracking autoplay failures in callbacks
+
+  // Add new ref to store all received chunks for replay from beginning
+  const allAudioChunksUrlsRef = useRef([]);
 
   const initializeAudioContext = async () => {
     if (!audioContextRef.current) {
@@ -57,6 +62,9 @@ const StreamingVoiceTab = () => {
       // Create an audio element to play the chunk directly
       const audioBlob = new Blob([arrayBuffer], { type: 'audio/mpeg' });
       const audioUrl = URL.createObjectURL(audioBlob);
+      
+      // Store this URL in our complete list for potential replay from beginning
+      allAudioChunksUrlsRef.current.push(audioUrl);
       
       if (!audioBuffersRef.current.audio) {
         const audio = new Audio();
@@ -103,14 +111,23 @@ const StreamingVoiceTab = () => {
         audioBuffersRef.current.audio.src = audioUrl;
         await audioBuffersRef.current.audio.play().catch(e => {
           console.warn('Error starting audio playback:', e);
-          // If we can't play, try a simple beep as fallback
-          playBeepSound();
+          // Set autoplay failed flags
+          autoplayFailedRef.current = true;
+          setAutoplayFailed(true);
+          
+          // Don't add to pendingChunks here anymore - we'll use allAudioChunksUrlsRef for complete playback
+          isPlayingRef.current = false;
         });
       }
       
-      // Update UI state
-      if (!isPlaying) {
-        setIsPlaying(true);
+      // Update UI state only if autoplay hasn't failed
+      if (!autoplayFailedRef.current) {
+        if (!isPlaying) {
+          setIsPlaying(true);
+          setIsProcessing(false);
+        }
+      } else {
+        // Just hide processing indicator when autoplay fails
         setIsProcessing(false);
       }
       
@@ -225,10 +242,22 @@ const StreamingVoiceTab = () => {
         // Cleanup audio elements
         stopPlayback();
 
+        // Clean up all stored URL objects
+        allAudioChunksUrlsRef.current.forEach(url => {
+          try {
+            URL.revokeObjectURL(url);
+          } catch (e) {
+            // Ignore cleanup errors
+          }
+        });
+        allAudioChunksUrlsRef.current = [];
+
         // Reset states
         isStreamCompleteRef.current = false;
         isPlaybackCompleteRef.current = false;
         setIsStreamComplete(false);
+        setAutoplayFailed(false);
+        autoplayFailedRef.current = false;
       }
     } catch (error) {
       console.warn('Non-critical cleanup error:', error);
@@ -256,6 +285,9 @@ const StreamingVoiceTab = () => {
       isPlaybackCompleteRef.current = false;
       // Clean up old audio resources but preserve the request
       cleanupAudio(true);
+      
+      // Reset the stored URLs for this new stream
+      allAudioChunksUrlsRef.current = [];
       
       // Initialize audio context for Web Audio API
       await initializeAudioContext();
@@ -705,6 +737,53 @@ const StreamingVoiceTab = () => {
     setIsPaused(false);
   };
 
+  // New function to manually start playback after autoplay fails
+  const startManualPlayback = () => {
+    // If autoplay failed, we should play from the beginning using all stored chunks
+    if (allAudioChunksUrlsRef.current.length > 0 && !isPlayingRef.current) {
+      // Clear any existing pending chunks to avoid duplicate playback
+      pendingChunksRef.current = [];
+      
+      // Create a copy of all URLs to avoid modifying the original array
+      const allUrls = [...allAudioChunksUrlsRef.current];
+      
+      // Get the first URL and queue the rest
+      const firstUrl = allUrls.shift();
+      pendingChunksRef.current = allUrls;
+      
+      if (!audioBuffersRef.current.audio) {
+        audioBuffersRef.current.audio = new Audio();
+        
+        audioBuffersRef.current.audio.onended = () => {
+          if (pendingChunksRef.current.length > 0) {
+            const nextUrl = pendingChunksRef.current.shift();
+            audioBuffersRef.current.audio.src = nextUrl;
+            audioBuffersRef.current.audio.play().catch(e => console.warn('Error playing next chunk:', e));
+          } else {
+            isPlayingRef.current = false;
+            if (isStreamCompleteRef.current) {
+              handlePlaybackComplete();
+            }
+          }
+        };
+      }
+      
+      audioBuffersRef.current.audio.src = firstUrl;
+      audioBuffersRef.current.audio.play()
+        .then(() => {
+          // Update state on successful manual playback
+          isPlayingRef.current = true;
+          setAutoplayFailed(false);
+          autoplayFailedRef.current = false;
+          setIsPlaying(true);
+        })
+        .catch(e => {
+          console.warn('Manual playback also failed:', e);
+          setError('Could not play audio. Your browser may have strict autoplay policies.');
+        });
+    }
+  };
+
   // Component cleanup
   useEffect(() => {
     return () => {
@@ -736,7 +815,14 @@ const StreamingVoiceTab = () => {
             </div>
           )}
 
-          {!isRecording && !isProcessing && !isPlaying && !isPaused && (
+          {/* Display autoplay failure warning */}
+          {autoplayFailed && (
+            <Alert variant="warning" className="autoplay-warning">
+              Automatic playback failed. Please click Play to hear the response.
+            </Alert>
+          )}
+
+          {!isRecording && !isProcessing && !isPlaying && !isPaused && !autoplayFailed && (
             <Button 
               variant="primary" 
               className="record-button"
@@ -770,19 +856,20 @@ const StreamingVoiceTab = () => {
             </div>
           )}
 
-          {isProcessing && !isPlaying && !isPaused && (
+          {isProcessing && !isPlaying && !isPaused && !autoplayFailed && (
             <div className="streaming-indicator">
               <Spinner animation="border" size="sm" />
               Processing...
             </div>
           )}
 
-          {(isPlaying || isPaused) && (
+          {/* Modified playback controls to handle both normal playback and autoplay failure */}
+          {(isPlaying || isPaused || autoplayFailed) && (
             <div className="playback-controls">
-              {isPaused ? (
+              {isPaused || autoplayFailed ? (
                 <Button 
                   variant="primary"
-                  onClick={handleResumePlayback}
+                  onClick={autoplayFailed ? startManualPlayback : handleResumePlayback}
                   className="control-button"
                 >
                   <Play size={20} />
