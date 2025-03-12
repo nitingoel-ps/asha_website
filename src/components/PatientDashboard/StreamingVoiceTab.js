@@ -11,51 +11,30 @@ const StreamingVoiceTab = () => {
   const [error, setError] = useState(null);
   const [isPaused, setIsPaused] = useState(false);
   const [isStreamComplete, setIsStreamComplete] = useState(false);
-  // Add state to track MediaSource support
-  const [isMediaSourceSupported, setIsMediaSourceSupported] = useState(true);
 
   const mediaRecorderRef = useRef(null);
   const audioContextRef = useRef(null);
   const audioSourceRef = useRef(null);
   const audioChunksRef = useRef([]);
 
-  // MediaSource refs
-  const mediaSourceRef = useRef(null);
-  const sourceBufferRef = useRef(null);
+  // Refs for audio playback
   const audioElementRef = useRef(null);
+  const audioBuffersRef = useRef([]);
+  const isPlayingRef = useRef(false);
+  const currentAudioRef = useRef(null);
   const pendingChunksRef = useRef([]);
-  const isSourceOpenRef = useRef(false);
-
+  
   // Add ref for tracking stream state
   const isStreamCompleteRef = useRef(false);
   const isCancelledRef = useRef(false);
   const lastAudioUpdateRef = useRef(Date.now());
-  const playbackTimeoutRef = useRef(null);
 
   // Add new refs for request handling
   const isSubmittingRef = useRef(false);
   const currentRequestControllerRef = useRef(null);
-  const isTransitioningRef = useRef(false);  // Add this new ref
-
-  // Add new ref for tracking playback completion
+  const isTransitioningRef = useRef(false);
   const isPlaybackCompleteRef = useRef(false);
-
-  // Add refs for Web Audio API fallback
-  const fallbackAudioBuffersRef = useRef([]);
-  const fallbackIsPlayingRef = useRef(false);
-  const fallbackAudioNodeRef = useRef(null);
-  const fallbackStartTimeRef = useRef(0);
-  const fallbackPlaybackPositionRef = useRef(0);
-  const fallbackPendingChunksRef = useRef([]);
-
-  // Check for MediaSource support on component mount
-  useEffect(() => {
-    const isSupported = typeof MediaSource !== 'undefined';
-    setIsMediaSourceSupported(isSupported);
-    if (!isSupported) {
-      console.log('MediaSource API is not supported in this browser. Using Web Audio API fallback.');
-    }
-  }, []);
+  const userInteractionContextRef = useRef(null);
 
   const initializeAudioContext = async () => {
     if (!audioContextRef.current) {
@@ -68,34 +47,8 @@ const StreamingVoiceTab = () => {
     return audioContextRef.current;
   };
 
-  // New function to decode audio data for fallback
-  const decodeAudioData = async (arrayBuffer) => {
-    try {
-      if (!audioContextRef.current) {
-        await initializeAudioContext();
-      }
-      
-      // The decoding is failing because we're getting MP3 fragments, not complete MP3 files
-      // Let's log detailed diagnostic information
-      console.log('Attempting to decode audio chunk:', {
-        byteLength: arrayBuffer.byteLength,
-        firstFewBytes: new Uint8Array(arrayBuffer).slice(0, 16).join(','),
-      });
-      
-      return await audioContextRef.current.decodeAudioData(arrayBuffer);
-    } catch (error) {
-      console.error('Error decoding audio data:', {
-        message: error.message,
-        name: error.name, 
-        stack: error.stack,
-        details: error
-      });
-      throw error;
-    }
-  };
-
-  // Modified function to handle audio chunks in fallback mode
-  const queueAndPlayFallbackAudio = async (arrayBuffer) => {
+  // Function to queue and play audio chunks
+  const queueAndPlayAudio = async (arrayBuffer) => {
     try {
       if (!audioContextRef.current) {
         await initializeAudioContext();
@@ -105,19 +58,19 @@ const StreamingVoiceTab = () => {
       const audioBlob = new Blob([arrayBuffer], { type: 'audio/mpeg' });
       const audioUrl = URL.createObjectURL(audioBlob);
       
-      if (!fallbackAudioBuffersRef.current.audio) {
+      if (!audioBuffersRef.current.audio) {
         const audio = new Audio();
         audio.onended = () => {
           // Clean up the URL when done
           URL.revokeObjectURL(audioUrl);
           
           // Play next chunk if available
-          if (fallbackPendingChunksRef.current.length > 0) {
-            const nextChunkUrl = fallbackPendingChunksRef.current.shift();
-            fallbackAudioBuffersRef.current.audio.src = nextChunkUrl;
-            fallbackAudioBuffersRef.current.audio.play().catch(e => console.warn('Error playing next chunk:', e));
+          if (pendingChunksRef.current.length > 0) {
+            const nextChunkUrl = pendingChunksRef.current.shift();
+            audioBuffersRef.current.audio.src = nextChunkUrl;
+            audioBuffersRef.current.audio.play().catch(e => console.warn('Error playing next chunk:', e));
           } else {
-            fallbackIsPlayingRef.current = false;
+            isPlayingRef.current = false;
             if (isStreamCompleteRef.current) {
               handlePlaybackComplete();
             }
@@ -129,28 +82,28 @@ const StreamingVoiceTab = () => {
           URL.revokeObjectURL(audioUrl);
           
           // Try next chunk
-          if (fallbackPendingChunksRef.current.length > 0) {
-            const nextChunkUrl = fallbackPendingChunksRef.current.shift();
+          if (pendingChunksRef.current.length > 0) {
+            const nextChunkUrl = pendingChunksRef.current.shift();
             audio.src = nextChunkUrl;
             audio.play().catch(e => console.warn('Error playing next chunk:', e));
           } else {
-            fallbackIsPlayingRef.current = false;
+            isPlayingRef.current = false;
           }
         };
         
-        fallbackAudioBuffersRef.current.audio = audio;
+        audioBuffersRef.current.audio = audio;
       }
       
       // If we're currently playing, queue this chunk
-      if (fallbackIsPlayingRef.current) {
-        fallbackPendingChunksRef.current.push(audioUrl);
+      if (isPlayingRef.current) {
+        pendingChunksRef.current.push(audioUrl);
       } else {
         // Otherwise play it immediately
-        fallbackIsPlayingRef.current = true;
-        fallbackAudioBuffersRef.current.audio.src = audioUrl;
-        await fallbackAudioBuffersRef.current.audio.play().catch(e => {
+        isPlayingRef.current = true;
+        audioBuffersRef.current.audio.src = audioUrl;
+        await audioBuffersRef.current.audio.play().catch(e => {
           console.warn('Error starting audio playback:', e);
-          // If we can't play this chunk, try using the beep fallback
+          // If we can't play, try a simple beep as fallback
           playBeepSound();
         });
       }
@@ -162,7 +115,7 @@ const StreamingVoiceTab = () => {
       }
       
     } catch (error) {
-      console.error('Error queuing fallback audio:', {
+      console.error('Error queuing audio:', {
         message: error.message,
         name: error.name,
         stack: error.stack,
@@ -191,53 +144,46 @@ const StreamingVoiceTab = () => {
       // Short beep
       oscillator.start();
       oscillator.stop(audioContextRef.current.currentTime + 0.2);
-      
-      // Set timeout to play another beep after a delay if more chunks arrive
-      setTimeout(() => {
-        if (fallbackPendingChunksRef.current.length > 0) {
-          playBeepSound();
-        }
-      }, 2000); // Play a beep every 2 seconds while receiving data
     } catch (error) {
       console.warn('Error playing beep sound:', error);
     }
   };
 
-  // Modified pause function for direct Audio element playback
-  const pauseFallbackPlayback = () => {
-    if (fallbackAudioBuffersRef.current.audio) {
-      fallbackAudioBuffersRef.current.audio.pause();
-      fallbackIsPlayingRef.current = false;
+  // Pause playback function
+  const pausePlayback = () => {
+    if (audioBuffersRef.current.audio) {
+      audioBuffersRef.current.audio.pause();
+      isPlayingRef.current = false;
     }
   };
 
-  // Modified resume function for direct Audio element playback
-  const resumeFallbackPlayback = () => {
-    if (fallbackAudioBuffersRef.current.audio) {
-      fallbackAudioBuffersRef.current.audio.play()
+  // Resume playback function
+  const resumePlayback = () => {
+    if (audioBuffersRef.current.audio) {
+      audioBuffersRef.current.audio.play()
         .catch(e => console.warn('Error resuming playback:', e));
-      fallbackIsPlayingRef.current = true;
-    } else if (fallbackPendingChunksRef.current.length > 0) {
-      const nextChunkUrl = fallbackPendingChunksRef.current.shift();
-      if (!fallbackAudioBuffersRef.current.audio) {
-        fallbackAudioBuffersRef.current.audio = new Audio();
+      isPlayingRef.current = true;
+    } else if (pendingChunksRef.current.length > 0) {
+      const nextChunkUrl = pendingChunksRef.current.shift();
+      if (!audioBuffersRef.current.audio) {
+        audioBuffersRef.current.audio = new Audio();
       }
-      fallbackAudioBuffersRef.current.audio.src = nextChunkUrl;
-      fallbackAudioBuffersRef.current.audio.play()
+      audioBuffersRef.current.audio.src = nextChunkUrl;
+      audioBuffersRef.current.audio.play()
         .catch(e => console.warn('Error resuming playback:', e));
-      fallbackIsPlayingRef.current = true;
+      isPlayingRef.current = true;
     }
   };
 
-  // Modified stop function for direct Audio element playback
-  const stopFallbackPlayback = () => {
-    if (fallbackAudioBuffersRef.current.audio) {
-      fallbackAudioBuffersRef.current.audio.pause();
-      fallbackAudioBuffersRef.current.audio.src = '';
+  // Stop playback function
+  const stopPlayback = () => {
+    if (audioBuffersRef.current.audio) {
+      audioBuffersRef.current.audio.pause();
+      audioBuffersRef.current.audio.src = '';
     }
     
     // Clean up any pending URLs
-    fallbackPendingChunksRef.current.forEach(url => {
+    pendingChunksRef.current.forEach(url => {
       try {
         URL.revokeObjectURL(url);
       } catch (e) {
@@ -245,86 +191,15 @@ const StreamingVoiceTab = () => {
       }
     });
     
-    fallbackPendingChunksRef.current = [];
-    fallbackIsPlayingRef.current = false;
-    fallbackAudioBuffersRef.current = {};
-  };
-
-  const setupMediaSource = async () => {
-    // If MediaSource is not supported, we'll use the Web Audio API fallback
-    if (!isMediaSourceSupported) {
-      return Promise.resolve();
-    }
-    
-    const audio = new Audio();
-    audio.autoplay = true;
-    const mediaSource = new MediaSource();
-
-    return new Promise((resolve) => {
-      mediaSource.addEventListener('sourceopen', () => {
-        try {
-          // First, remove any existing source buffers
-          if (mediaSource.sourceBuffers.length > 0) {
-            Array.from(mediaSource.sourceBuffers).forEach(buffer => {
-              try {
-                mediaSource.removeSourceBuffer(buffer);
-              } catch (e) {
-                console.warn('Error removing source buffer:', e);
-              }
-            });
-          }
-
-          const sourceBuffer = mediaSource.addSourceBuffer('audio/mpeg');
-          if (!sourceBuffer) {
-            throw new Error('Failed to create source buffer');
-          }          
-
-          sourceBuffer.mode = 'sequence';
-          audioElementRef.current = audio;
-          mediaSourceRef.current = mediaSource;
-          sourceBufferRef.current = sourceBuffer;
-          isSourceOpenRef.current = true;
-          isPlaybackCompleteRef.current = false;
-
-          sourceBuffer.addEventListener('updateend', () => {
-            if (pendingChunksRef.current.length > 0 && !sourceBuffer.updating) {
-              processPendingChunks();
-            }
-          });
-
-          // Add event listeners for tracking playback
-          audio.addEventListener('ended', handlePlaybackComplete);
-          audio.addEventListener('error', (e) => {
-          console.error('Audio playback error:', e, 
-            e.target.error ? `Error details: ${e.target.error.message || e.target.error.code}` : 'No error details available');
-          handlePlaybackComplete();
-          });
-
-          resolve();
-        } catch (error) {
-          console.error('Error setting up MediaSource:', error);
-          setError('Error setting up audio playback');
-          resolve(); // Resolve anyway to prevent hanging
-        }
-      });
-
-      audio.src = URL.createObjectURL(mediaSource);
-      
-      audio.addEventListener('timeupdate', () => {
-        lastAudioUpdateRef.current = Date.now();
-      });
-
-      audio.addEventListener('ended', () => {
-        cleanupStates(true);
-      });
-    });
+    pendingChunksRef.current = [];
+    isPlayingRef.current = false;
+    audioBuffersRef.current = {};
   };
 
   const handlePlaybackComplete = () => {
     console.log('Playback completed');
     isPlaybackCompleteRef.current = true;
     cleanupStates(true);
-    console.log(('calling cleanupAudio(false) from handlePlaybackComplete'));
     setTimeout(() => cleanupAudio(false), 100);
   };
 
@@ -347,38 +222,8 @@ const StreamingVoiceTab = () => {
         currentRequestControllerRef.current = null;
         isSubmittingRef.current = false;
 
-        // Cleanup MediaSource if supported
-        if (isMediaSourceSupported) {
-          // Remove event listeners before cleanup
-          if (audioElementRef.current) {
-            audioElementRef.current.removeEventListener('ended', handlePlaybackComplete);
-            audioElementRef.current.pause();
-            audioElementRef.current.src = '';
-            audioElementRef.current = null;
-          }
-
-          if (mediaSourceRef.current?.readyState === 'open') {
-            try {
-              if (mediaSourceRef.current.sourceBuffers.length > 0) {
-                Array.from(mediaSourceRef.current.sourceBuffers).forEach(buffer => {
-                  if (!buffer.updating) {
-                    mediaSourceRef.current.removeSourceBuffer(buffer);
-                  }
-                });
-              }
-              mediaSourceRef.current.endOfStream();
-            } catch (e) {
-              console.warn('Non-critical: Could not end media stream:', e);
-            }
-          }
-          mediaSourceRef.current = null;
-          sourceBufferRef.current = null;
-          isSourceOpenRef.current = false;
-          pendingChunksRef.current = [];
-        } else {
-          // Cleanup Web Audio API fallback
-          stopFallbackPlayback();
-        }
+        // Cleanup audio elements
+        stopPlayback();
 
         // Reset states
         isStreamCompleteRef.current = false;
@@ -390,40 +235,12 @@ const StreamingVoiceTab = () => {
     }
   };
 
-  const processPendingChunks = () => {
-    if (!sourceBufferRef.current || sourceBufferRef.current.updating) {
-      return;
-    }
-
-    if (pendingChunksRef.current.length > 0) {
-      const chunk = pendingChunksRef.current.shift();
-      try {
-        sourceBufferRef.current.appendBuffer(chunk);
-      } catch (error) {
-        console.error('Error appending buffer:', error);
-      }
-    }
-  };
-
   const handleAudioChunk = async (arrayBuffer) => {
     lastAudioUpdateRef.current = Date.now();
-    console.log('In handleAudioChunk - Received audio chunk:', arrayBuffer.byteLength);
+    console.log('Received audio chunk:', arrayBuffer.byteLength);
     
-    if (isMediaSourceSupported) {
-      if (sourceBufferRef.current?.updating) {
-        pendingChunksRef.current.push(arrayBuffer);
-      } else {
-        try {
-          sourceBufferRef.current?.appendBuffer(arrayBuffer);
-        } catch (error) {
-          console.error('Error appending buffer:', error);
-          pendingChunksRef.current.push(arrayBuffer);
-        }
-      }
-    } else {
-      // Use Web Audio API fallback
-      await queueAndPlayFallbackAudio(arrayBuffer);
-    }
+    // Process with unified Web Audio API approach
+    await queueAndPlayAudio(arrayBuffer);
 
     if (!isPlaying) {
       setIsPlaying(true);
@@ -437,25 +254,15 @@ const StreamingVoiceTab = () => {
       console.log("Entered handleAudioStream");
       isTransitioningRef.current = true;
       isPlaybackCompleteRef.current = false;
-      // Clean up old media resources but preserve the request
-      console.log(('calling cleanupAudio(false) from handleAudioStream'));
+      // Clean up old audio resources but preserve the request
       cleanupAudio(true);
       
-      // Setup new media source (if supported)
-      if (isMediaSourceSupported) {
-        await setupMediaSource();
-      } else {
-        // Initialize audio context for Web Audio API fallback
-        await initializeAudioContext();
-        // Reset fallback state
-        fallbackPendingChunksRef.current = [];
-        fallbackAudioBuffersRef.current = {};  // Changed to an object to store buffer
-        fallbackPlaybackPositionRef.current = 0;
-        fallbackIsPlayingRef.current = false;
-        
-        // Show a notification that we're using audio fallback
-        console.log('Using audio fallback mode - will play notification sounds on receiving audio');
-      }
+      // Initialize audio context for Web Audio API
+      await initializeAudioContext();
+      // Reset audio state
+      pendingChunksRef.current = [];
+      audioBuffersRef.current = {};
+      isPlayingRef.current = false;
       
       reader = response.body.getReader();
       const decoder = new TextDecoder();
@@ -471,20 +278,12 @@ const StreamingVoiceTab = () => {
         const { value, done } = await reader.read();
         
         if (done) {
-          console.log('In handleAudioStream - received done. Stream complete');
+          console.log('Stream complete');
           isStreamCompleteRef.current = true;
           setIsStreamComplete(true);
           setIsProcessing(false);
           
-          if (isMediaSourceSupported && mediaSourceRef.current?.readyState === 'open') {
-            try {
-              mediaSourceRef.current.endOfStream();
-            } catch (e) {
-              console.warn('Non-critical error ending media stream:', e);
-            }
-          } else if (!isMediaSourceSupported && !fallbackIsPlayingRef.current && 
-                    fallbackPendingChunksRef.current.length === 0) {
-            // If using fallback and no more chunks to play, signal completion
+          if (!isPlayingRef.current && pendingChunksRef.current.length === 0) {
             handlePlaybackComplete();
           }
           break;
@@ -545,6 +344,8 @@ const StreamingVoiceTab = () => {
     }
 
     try {
+      // Save the user interaction context for audio playback
+      userInteractionContextRef.current = true;
       isSubmittingRef.current = true;
 
       // Cancel any existing request
@@ -560,18 +361,35 @@ const StreamingVoiceTab = () => {
       await initializeAudioContext();
       
       isCancelledRef.current = false;
+      
+      // MODIFIED: Instead of stopping immediately, add a small delay to capture final audio
+      setIsProcessing(true);
+      
+      // First, get reference to the recorder
       const recorder = mediaRecorderRef.current;
       
-      recorder.stop();
-      recorder.stream.getTracks().forEach(track => track.stop());
+      // Request one final chunk immediately before stopping
+      if (recorder && recorder.state === 'recording') {
+        recorder.requestData();
+      }
+      
+      // Add a small delay before stopping to ensure the last audio is captured
+      await new Promise(resolve => setTimeout(resolve, 250));
+      
+      // Now stop the recorder after the delay
+      if (recorder && recorder.state === 'recording') {
+        recorder.stop();
+        recorder.stream.getTracks().forEach(track => track.stop());
+      }
+      
       setIsRecording(false);
 
       if (audioChunksRef.current.length === 0) {
         console.warn('No audio recorded');
+        setIsProcessing(false);
+        isSubmittingRef.current = false;
         return;
       }
-
-      setIsProcessing(true);
 
       // Get the actual MIME type used in recording
       const actualType = audioChunksRef.current[0]?.type || 'audio/webm';
@@ -585,7 +403,7 @@ const StreamingVoiceTab = () => {
         reader.readAsDataURL(audioBlob);
       });
       
-      console.log('Calling /streaming-voice-chat/ from handleSend() - Sending audio to server:', base64Audio.length);
+      console.log('Calling /streaming-voice-chat/ - Sending audio to server');
       const response = await fetchWithAuth('/streaming-voice-chat/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -617,34 +435,6 @@ const StreamingVoiceTab = () => {
     }
   };
 
-  // Update pause/resume handlers to work with both playback methods
-  const handlePausePlayback = () => {
-    if (isMediaSourceSupported && audioElementRef.current) {
-      audioElementRef.current.pause();
-    } else {
-      pauseFallbackPlayback();
-    }
-    setIsPaused(true);
-    setIsPlaying(false);
-  };
-
-  const handleResumePlayback = () => {
-    if (isMediaSourceSupported && audioElementRef.current) {
-      audioElementRef.current.play();
-    } else {
-      resumeFallbackPlayback();
-    }
-    setIsPaused(false);
-    setIsPlaying(true);
-  };
-
-  const stopPlayback = () => {
-    console.log('Calling cleanupAudio() from stopPlayback');
-    cleanupAudio();
-    setIsPlaying(false);
-    setIsPaused(false);
-  };
-
   const startRecording = async () => {
     console.log('Starting recording');
     // Reset cancellation flag
@@ -654,7 +444,10 @@ const StreamingVoiceTab = () => {
     setError(null);
     
     try {
-      // Initialize AudioContext first
+      // Save the user interaction context
+      userInteractionContextRef.current = true;
+      
+      // Initialize AudioContext first - critical to do this in user gesture handler
       await initializeAudioContext();
       
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
@@ -679,10 +472,6 @@ const StreamingVoiceTab = () => {
       
       // Clean up any existing audio resources
       try {
-        if (audioElementRef.current) {
-          audioElementRef.current.pause();
-        }
-        console.log('Calling cleanupAudio() from startRecording');
         cleanupAudio();
       } catch (err) {
         console.warn('Non-critical error cleaning up before recording:', err);
@@ -735,8 +524,6 @@ const StreamingVoiceTab = () => {
       // Set up the stop event handler
       recorder.onstop = async () => {
         console.log('MediaRecorder stopped, chunks collected:', audioChunksRef.current.length);
-        // Store a local reference since mediaRecorderRef.current might be null when this executes
-        const recorder = mediaRecorderRef.current;
         
         try {
           // Check cancellation flag before proceeding
@@ -773,13 +560,12 @@ const StreamingVoiceTab = () => {
         setIsProcessing(false);
       };
 
-      // Start recording with a timeslice to ensure data is collected periodically
-      // This ensures ondataavailable is called regularly, not just on stop
+      // MODIFIED: Start recording with a shorter timeslice to get more frequent chunks
       setTimeout(() => {
         try {
-          recorder.start(1000); // Request data every second
+          recorder.start(500); // Request data every 500ms for more granular chunks
           setIsRecording(true);
-          console.log('MediaRecorder started with timeslice 1000ms');
+          console.log('MediaRecorder started with timeslice 500ms');
         } catch (err) {
           console.error('Error starting recording:', err);
           setError('Error starting recording: ' + err.message);
@@ -874,7 +660,6 @@ const StreamingVoiceTab = () => {
     // Complete audio cleanup after a short delay to avoid state conflicts
     setTimeout(() => {
       try {
-        console.log('Calling cleanupAudio() from setTimeout');
         cleanupAudio();
         console.log('Recording canceled and states reset');
       } catch (error) {
@@ -900,6 +685,26 @@ const StreamingVoiceTab = () => {
     setIsProcessing(false);
   };
 
+  // Update pause/resume handlers for playback
+  const handlePausePlayback = () => {
+    pausePlayback();
+    setIsPaused(true);
+    setIsPlaying(false);
+  };
+
+  const handleResumePlayback = () => {
+    resumePlayback();
+    setIsPaused(false);
+    setIsPlaying(true);
+  };
+
+  // Renamed from stopAllPlayback to match its invocation in the render method
+  const stopAllPlayback = () => {
+    cleanupAudio();
+    setIsPlaying(false);
+    setIsPaused(false);
+  };
+
   // Component cleanup
   useEffect(() => {
     return () => {
@@ -907,7 +712,6 @@ const StreamingVoiceTab = () => {
       if (currentRequestControllerRef.current) {
         currentRequestControllerRef.current.abort();
       }
-      console.log('Calling cleanupAudio(false) from useEffect cleanup');
       cleanupAudio(false);
       if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
         audioContextRef.current.close();
@@ -924,19 +728,6 @@ const StreamingVoiceTab = () => {
               {error}
               <Button 
                 variant="outline-danger" 
-                size="sm"
-                onClick={() => setError(null)}
-              >
-                <X size={16} />
-              </Button>
-            </div>
-          )}
-
-          {!isMediaSourceSupported && !error && (
-            <div className="info-message alert alert-info">
-              Using audio fallback mode for your device. Audio playback may be limited.
-              <Button 
-                variant="outline-info" 
                 size="sm"
                 onClick={() => setError(null)}
               >
@@ -1007,7 +798,7 @@ const StreamingVoiceTab = () => {
               )}
               <Button 
                 variant="danger"
-                onClick={stopPlayback}
+                onClick={stopAllPlayback}
                 className="control-button"
               >
                 <Square size={20} />
