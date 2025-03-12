@@ -387,12 +387,14 @@ function ChatWindow({ session, onSessionCreated, sessions = [], onSelectSession,
         <PiListMagnifyingGlassThin size={20} />
       </Button>
       
-      {/* Add new microphone button */}
+      {/* Updated microphone button to match keyboard button styling */}
       <Button
         className="mic-btn"
         onClick={handleMicrophoneClick}
+        aria-label="Switch to voice chat"
+        variant="link"
       >
-        <FiMic size={20} />
+        <FiMic size={24} />
       </Button>
       
       <Button
