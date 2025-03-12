@@ -88,6 +88,14 @@ const SymptomsList = ({ symptoms = [], onRefresh }) => {
   const confirmDeleteSymptom = async () => {
     if (!selectedSymptom) return;
     
+    // If symptom has logs, don't attempt deletion
+    if (deleteInfo.logs > 0) {
+      // Navigate to symptom detail page instead
+      setShowDeleteModal(false);
+      navigate(`${selectedSymptom.id}`);
+      return;
+    }
+    
     setIsDeleting(true);
     try {
       await axiosInstance.delete(`/symptoms/${selectedSymptom.id}/`);
@@ -381,16 +389,22 @@ const SymptomsList = ({ symptoms = [], onRefresh }) => {
       {/* Delete Confirmation Modal */}
       <Modal show={showDeleteModal} onHide={handleCloseDeleteModal}>
         <Modal.Header closeButton>
-          <Modal.Title>Confirm Delete</Modal.Title>
+          <Modal.Title>
+            {deleteInfo.logs > 0 ? 'Cannot Delete Symptom' : 'Confirm Delete'}
+          </Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <div className="text-center mb-4">
-            <AlertTriangle size={48} className="text-danger mb-3" />
-            <h5>Are you sure you want to delete "{deleteInfo.name}"?</h5>
+            <AlertTriangle size={48} className={deleteInfo.logs > 0 ? "text-warning mb-3" : "text-danger mb-3"} />
+            <h5>{deleteInfo.logs > 0 
+              ? `Cannot delete "${deleteInfo.name}"`
+              : `Are you sure you want to delete "${deleteInfo.name}"?`}
+            </h5>
             
             {deleteInfo.logs > 0 ? (
               <div className="alert alert-warning mt-3">
-                <strong>Warning:</strong> This symptom has {deleteInfo.logs} log entries that will also be deleted.
+                <strong>This symptom has {deleteInfo.logs} log entries.</strong><br/>
+                You must delete all log entries before you can delete this symptom.
               </div>
             ) : (
               <p className="text-muted">This action cannot be undone.</p>
@@ -401,13 +415,22 @@ const SymptomsList = ({ symptoms = [], onRefresh }) => {
           <Button variant="secondary" onClick={handleCloseDeleteModal} disabled={isDeleting}>
             Cancel
           </Button>
-          <Button 
-            variant="danger" 
-            onClick={confirmDeleteSymptom} 
-            disabled={isDeleting}
-          >
-            {isDeleting ? 'Deleting...' : 'Delete'}
-          </Button>
+          {deleteInfo.logs > 0 ? (
+            <Button 
+              variant="primary" 
+              onClick={confirmDeleteSymptom}
+            >
+              View Symptom Details
+            </Button>
+          ) : (
+            <Button 
+              variant="danger" 
+              onClick={confirmDeleteSymptom} 
+              disabled={isDeleting}
+            >
+              {isDeleting ? 'Deleting...' : 'Delete'}
+            </Button>
+          )}
         </Modal.Footer>
       </Modal>
     </div>
