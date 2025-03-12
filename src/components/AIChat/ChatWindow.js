@@ -389,7 +389,7 @@ function ChatWindow({ session, onSessionCreated, sessions = [], onSelectSession,
       
       {/* Add new microphone button */}
       <Button
-        className="d-md-none mic-btn"
+        className="mic-btn"
         onClick={handleMicrophoneClick}
       >
         <FiMic size={20} />

@@ -16,6 +16,7 @@
 }
 
 .ai-chat-window {
+  position: relative;
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -447,4 +448,13 @@
   margin-left: 5px;
   font-size: 10px;
   font-weight: bold;
+}
+
+@media (min-width: 768px) {
+  .mic-btn {
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
 }
