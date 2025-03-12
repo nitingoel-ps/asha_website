@@ -11,6 +11,8 @@ const StreamingVoiceTab = () => {
   const [error, setError] = useState(null);
   const [isPaused, setIsPaused] = useState(false);
   const [isStreamComplete, setIsStreamComplete] = useState(false);
+  // Add state to track MediaSource support
+  const [isMediaSourceSupported, setIsMediaSourceSupported] = useState(true);
 
   const mediaRecorderRef = useRef(null);
   const audioContextRef = useRef(null);
@@ -38,6 +40,23 @@ const StreamingVoiceTab = () => {
   // Add new ref for tracking playback completion
   const isPlaybackCompleteRef = useRef(false);
 
+  // Add refs for Web Audio API fallback
+  const fallbackAudioBuffersRef = useRef([]);
+  const fallbackIsPlayingRef = useRef(false);
+  const fallbackAudioNodeRef = useRef(null);
+  const fallbackStartTimeRef = useRef(0);
+  const fallbackPlaybackPositionRef = useRef(0);
+  const fallbackPendingChunksRef = useRef([]);
+
+  // Check for MediaSource support on component mount
+  useEffect(() => {
+    const isSupported = typeof MediaSource !== 'undefined';
+    setIsMediaSourceSupported(isSupported);
+    if (!isSupported) {
+      console.log('MediaSource API is not supported in this browser. Using Web Audio API fallback.');
+    }
+  }, []);
+
   const initializeAudioContext = async () => {
     if (!audioContextRef.current) {
       audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
@@ -49,7 +68,194 @@ const StreamingVoiceTab = () => {
     return audioContextRef.current;
   };
 
+  // New function to decode audio data for fallback
+  const decodeAudioData = async (arrayBuffer) => {
+    try {
+      if (!audioContextRef.current) {
+        await initializeAudioContext();
+      }
+      
+      // The decoding is failing because we're getting MP3 fragments, not complete MP3 files
+      // Let's log detailed diagnostic information
+      console.log('Attempting to decode audio chunk:', {
+        byteLength: arrayBuffer.byteLength,
+        firstFewBytes: new Uint8Array(arrayBuffer).slice(0, 16).join(','),
+      });
+      
+      return await audioContextRef.current.decodeAudioData(arrayBuffer);
+    } catch (error) {
+      console.error('Error decoding audio data:', {
+        message: error.message,
+        name: error.name, 
+        stack: error.stack,
+        details: error
+      });
+      throw error;
+    }
+  };
+
+  // Modified function to handle audio chunks in fallback mode
+  const queueAndPlayFallbackAudio = async (arrayBuffer) => {
+    try {
+      if (!audioContextRef.current) {
+        await initializeAudioContext();
+      }
+      
+      // Create an audio element to play the chunk directly
+      const audioBlob = new Blob([arrayBuffer], { type: 'audio/mpeg' });
+      const audioUrl = URL.createObjectURL(audioBlob);
+      
+      if (!fallbackAudioBuffersRef.current.audio) {
+        const audio = new Audio();
+        audio.onended = () => {
+          // Clean up the URL when done
+          URL.revokeObjectURL(audioUrl);
+          
+          // Play next chunk if available
+          if (fallbackPendingChunksRef.current.length > 0) {
+            const nextChunkUrl = fallbackPendingChunksRef.current.shift();
+            fallbackAudioBuffersRef.current.audio.src = nextChunkUrl;
+            fallbackAudioBuffersRef.current.audio.play().catch(e => console.warn('Error playing next chunk:', e));
+          } else {
+            fallbackIsPlayingRef.current = false;
+            if (isStreamCompleteRef.current) {
+              handlePlaybackComplete();
+            }
+          }
+        };
+        
+        audio.onerror = (e) => {
+          console.warn('Audio playback error:', e);
+          URL.revokeObjectURL(audioUrl);
+          
+          // Try next chunk
+          if (fallbackPendingChunksRef.current.length > 0) {
+            const nextChunkUrl = fallbackPendingChunksRef.current.shift();
+            audio.src = nextChunkUrl;
+            audio.play().catch(e => console.warn('Error playing next chunk:', e));
+          } else {
+            fallbackIsPlayingRef.current = false;
+          }
+        };
+        
+        fallbackAudioBuffersRef.current.audio = audio;
+      }
+      
+      // If we're currently playing, queue this chunk
+      if (fallbackIsPlayingRef.current) {
+        fallbackPendingChunksRef.current.push(audioUrl);
+      } else {
+        // Otherwise play it immediately
+        fallbackIsPlayingRef.current = true;
+        fallbackAudioBuffersRef.current.audio.src = audioUrl;
+        await fallbackAudioBuffersRef.current.audio.play().catch(e => {
+          console.warn('Error starting audio playback:', e);
+          // If we can't play this chunk, try using the beep fallback
+          playBeepSound();
+        });
+      }
+      
+      // Update UI state
+      if (!isPlaying) {
+        setIsPlaying(true);
+        setIsProcessing(false);
+      }
+      
+    } catch (error) {
+      console.error('Error queuing fallback audio:', {
+        message: error.message,
+        name: error.name,
+        stack: error.stack,
+        details: error
+      });
+      
+      // If all else fails, at least play a beep
+      playBeepSound();
+    }
+  };
+  
+  // Play a simple beep sound as placeholder for audio chunks on unsupported browsers
+  const playBeepSound = () => {
+    try {
+      // Create an oscillator for a simple beep sound
+      const oscillator = audioContextRef.current.createOscillator();
+      const gainNode = audioContextRef.current.createGain();
+      
+      oscillator.type = 'sine';
+      oscillator.frequency.setValueAtTime(440, audioContextRef.current.currentTime); // A4 note
+      gainNode.gain.setValueAtTime(0.1, audioContextRef.current.currentTime); // Low volume
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContextRef.current.destination);
+      
+      // Short beep
+      oscillator.start();
+      oscillator.stop(audioContextRef.current.currentTime + 0.2);
+      
+      // Set timeout to play another beep after a delay if more chunks arrive
+      setTimeout(() => {
+        if (fallbackPendingChunksRef.current.length > 0) {
+          playBeepSound();
+        }
+      }, 2000); // Play a beep every 2 seconds while receiving data
+    } catch (error) {
+      console.warn('Error playing beep sound:', error);
+    }
+  };
+
+  // Modified pause function for direct Audio element playback
+  const pauseFallbackPlayback = () => {
+    if (fallbackAudioBuffersRef.current.audio) {
+      fallbackAudioBuffersRef.current.audio.pause();
+      fallbackIsPlayingRef.current = false;
+    }
+  };
+
+  // Modified resume function for direct Audio element playback
+  const resumeFallbackPlayback = () => {
+    if (fallbackAudioBuffersRef.current.audio) {
+      fallbackAudioBuffersRef.current.audio.play()
+        .catch(e => console.warn('Error resuming playback:', e));
+      fallbackIsPlayingRef.current = true;
+    } else if (fallbackPendingChunksRef.current.length > 0) {
+      const nextChunkUrl = fallbackPendingChunksRef.current.shift();
+      if (!fallbackAudioBuffersRef.current.audio) {
+        fallbackAudioBuffersRef.current.audio = new Audio();
+      }
+      fallbackAudioBuffersRef.current.audio.src = nextChunkUrl;
+      fallbackAudioBuffersRef.current.audio.play()
+        .catch(e => console.warn('Error resuming playback:', e));
+      fallbackIsPlayingRef.current = true;
+    }
+  };
+
+  // Modified stop function for direct Audio element playback
+  const stopFallbackPlayback = () => {
+    if (fallbackAudioBuffersRef.current.audio) {
+      fallbackAudioBuffersRef.current.audio.pause();
+      fallbackAudioBuffersRef.current.audio.src = '';
+    }
+    
+    // Clean up any pending URLs
+    fallbackPendingChunksRef.current.forEach(url => {
+      try {
+        URL.revokeObjectURL(url);
+      } catch (e) {
+        // Ignore cleanup errors
+      }
+    });
+    
+    fallbackPendingChunksRef.current = [];
+    fallbackIsPlayingRef.current = false;
+    fallbackAudioBuffersRef.current = {};
+  };
+
   const setupMediaSource = async () => {
+    // If MediaSource is not supported, we'll use the Web Audio API fallback
+    if (!isMediaSourceSupported) {
+      return Promise.resolve();
+    }
+    
     const audio = new Audio();
     audio.autoplay = true;
     const mediaSource = new MediaSource();
@@ -132,6 +338,7 @@ const StreamingVoiceTab = () => {
           isSubmitting: isSubmittingRef.current
         }
       });
+      
       // Only cleanup if playback is complete or we're explicitly not preserving the request
       if (isPlaybackCompleteRef.current || !preserveRequest) {
         if (currentRequestControllerRef.current && !isStreamCompleteRef.current) {
@@ -140,32 +347,38 @@ const StreamingVoiceTab = () => {
         currentRequestControllerRef.current = null;
         isSubmittingRef.current = false;
 
-        // Remove event listeners before cleanup
-        if (audioElementRef.current) {
-          audioElementRef.current.removeEventListener('ended', handlePlaybackComplete);
-          audioElementRef.current.pause();
-          audioElementRef.current.src = '';
-          audioElementRef.current = null;
-        }
-
-        if (mediaSourceRef.current?.readyState === 'open') {
-          try {
-            if (mediaSourceRef.current.sourceBuffers.length > 0) {
-              Array.from(mediaSourceRef.current.sourceBuffers).forEach(buffer => {
-                if (!buffer.updating) {
-                  mediaSourceRef.current.removeSourceBuffer(buffer);
-                }
-              });
-            }
-            mediaSourceRef.current.endOfStream();
-          } catch (e) {
-            console.warn('Non-critical: Could not end media stream:', e);
+        // Cleanup MediaSource if supported
+        if (isMediaSourceSupported) {
+          // Remove event listeners before cleanup
+          if (audioElementRef.current) {
+            audioElementRef.current.removeEventListener('ended', handlePlaybackComplete);
+            audioElementRef.current.pause();
+            audioElementRef.current.src = '';
+            audioElementRef.current = null;
           }
+
+          if (mediaSourceRef.current?.readyState === 'open') {
+            try {
+              if (mediaSourceRef.current.sourceBuffers.length > 0) {
+                Array.from(mediaSourceRef.current.sourceBuffers).forEach(buffer => {
+                  if (!buffer.updating) {
+                    mediaSourceRef.current.removeSourceBuffer(buffer);
+                  }
+                });
+              }
+              mediaSourceRef.current.endOfStream();
+            } catch (e) {
+              console.warn('Non-critical: Could not end media stream:', e);
+            }
+          }
+          mediaSourceRef.current = null;
+          sourceBufferRef.current = null;
+          isSourceOpenRef.current = false;
+          pendingChunksRef.current = [];
+        } else {
+          // Cleanup Web Audio API fallback
+          stopFallbackPlayback();
         }
-        mediaSourceRef.current = null;
-        sourceBufferRef.current = null;
-        isSourceOpenRef.current = false;
-        pendingChunksRef.current = [];
 
         // Reset states
         isStreamCompleteRef.current = false;
@@ -195,15 +408,21 @@ const StreamingVoiceTab = () => {
   const handleAudioChunk = async (arrayBuffer) => {
     lastAudioUpdateRef.current = Date.now();
     console.log('In handleAudioChunk - Received audio chunk:', arrayBuffer.byteLength);
-    if (sourceBufferRef.current?.updating) {
-      pendingChunksRef.current.push(arrayBuffer);
-    } else {
-      try {
-        sourceBufferRef.current?.appendBuffer(arrayBuffer);
-      } catch (error) {
-        console.error('Error appending buffer:', error);
+    
+    if (isMediaSourceSupported) {
+      if (sourceBufferRef.current?.updating) {
         pendingChunksRef.current.push(arrayBuffer);
+      } else {
+        try {
+          sourceBufferRef.current?.appendBuffer(arrayBuffer);
+        } catch (error) {
+          console.error('Error appending buffer:', error);
+          pendingChunksRef.current.push(arrayBuffer);
+        }
       }
+    } else {
+      // Use Web Audio API fallback
+      await queueAndPlayFallbackAudio(arrayBuffer);
     }
 
     if (!isPlaying) {
@@ -222,8 +441,21 @@ const StreamingVoiceTab = () => {
       console.log(('calling cleanupAudio(false) from handleAudioStream'));
       cleanupAudio(true);
       
-      // Setup new media source
-      await setupMediaSource();
+      // Setup new media source (if supported)
+      if (isMediaSourceSupported) {
+        await setupMediaSource();
+      } else {
+        // Initialize audio context for Web Audio API fallback
+        await initializeAudioContext();
+        // Reset fallback state
+        fallbackPendingChunksRef.current = [];
+        fallbackAudioBuffersRef.current = {};  // Changed to an object to store buffer
+        fallbackPlaybackPositionRef.current = 0;
+        fallbackIsPlayingRef.current = false;
+        
+        // Show a notification that we're using audio fallback
+        console.log('Using audio fallback mode - will play notification sounds on receiving audio');
+      }
       
       reader = response.body.getReader();
       const decoder = new TextDecoder();
@@ -244,12 +476,16 @@ const StreamingVoiceTab = () => {
           setIsStreamComplete(true);
           setIsProcessing(false);
           
-          if (mediaSourceRef.current?.readyState === 'open') {
+          if (isMediaSourceSupported && mediaSourceRef.current?.readyState === 'open') {
             try {
               mediaSourceRef.current.endOfStream();
             } catch (e) {
               console.warn('Non-critical error ending media stream:', e);
             }
+          } else if (!isMediaSourceSupported && !fallbackIsPlayingRef.current && 
+                    fallbackPendingChunksRef.current.length === 0) {
+            // If using fallback and no more chunks to play, signal completion
+            handlePlaybackComplete();
           }
           break;
         }
@@ -275,7 +511,7 @@ const StreamingVoiceTab = () => {
           }
         }
       }
-        } catch (error) {
+    } catch (error) {
       if (isTransitioningRef.current) {
         console.log('Stream cleanup during transition - ignoring error:', {
           name: error.name,
@@ -381,21 +617,25 @@ const StreamingVoiceTab = () => {
     }
   };
 
-  // Update pause/resume handlers to work with MediaSource
+  // Update pause/resume handlers to work with both playback methods
   const handlePausePlayback = () => {
-    if (audioElementRef.current) {
+    if (isMediaSourceSupported && audioElementRef.current) {
       audioElementRef.current.pause();
-      setIsPaused(true);
-      setIsPlaying(false);
+    } else {
+      pauseFallbackPlayback();
     }
+    setIsPaused(true);
+    setIsPlaying(false);
   };
 
   const handleResumePlayback = () => {
-    if (audioElementRef.current) {
+    if (isMediaSourceSupported && audioElementRef.current) {
       audioElementRef.current.play();
-      setIsPaused(false);
-      setIsPlaying(true);
+    } else {
+      resumeFallbackPlayback();
     }
+    setIsPaused(false);
+    setIsPlaying(true);
   };
 
   const stopPlayback = () => {
@@ -684,6 +924,19 @@ const StreamingVoiceTab = () => {
               {error}
               <Button 
                 variant="outline-danger" 
+                size="sm"
+                onClick={() => setError(null)}
+              >
+                <X size={16} />
+              </Button>
+            </div>
+          )}
+
+          {!isMediaSourceSupported && !error && (
+            <div className="info-message alert alert-info">
+              Using audio fallback mode for your device. Audio playback may be limited.
+              <Button 
+                variant="outline-info" 
                 size="sm"
                 onClick={() => setError(null)}
               >
