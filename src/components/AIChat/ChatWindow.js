@@ -1,12 +1,17 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Form, Button, Spinner } from 'react-bootstrap';
-import { FaPaperPlane, FaBars, FaPen } from 'react-icons/fa';
+import { FiMenu, FiPlus, FiMic } from 'react-icons/fi';
+import { useNavigate } from 'react-router-dom';
 import axiosInstance from '../../utils/axiosInstance';
 import MessageList from './MessageList';
 import ChatList from './ChatList';
 import { processStreamingContent, isActivityMessage } from './MessageUtils';
+import { FiSend, FiEdit } from 'react-icons/fi';
+import { PiListMagnifyingGlassThin } from "react-icons/pi";
+
 
 function ChatWindow({ session, onSessionCreated, sessions = [], onSelectSession, onDeleteSession, onRenameSession, loading, onChatComplete }) {
+  const navigate = useNavigate(); // Add React Router's navigate hook
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -348,6 +353,12 @@ function ChatWindow({ session, onSessionCreated, sessions = [], onSelectSession,
   }, []);
 
   const handleNewChat = async () => {
+    // If we have no messages in the current session, don't create a new one
+    if (session && messages.length === 0) {
+      console.log('Current session is empty, not creating a new one');
+      return; // Just reuse the current empty session
+    }
+    
     try {
       setIsLoading(true);
       const response = await axiosInstance.post('/chat-sessions/', {
@@ -362,19 +373,33 @@ function ChatWindow({ session, onSessionCreated, sessions = [], onSelectSession,
     }
   };
 
+  // Function to handle navigation to voice streaming page
+  const handleMicrophoneClick = () => {
+    navigate('/patient-dashboard/streaming-voice');
+  };
+
   return (
     <div className="ai-chat-window">
       <Button
         className="d-md-none toggle-chat-list-btn"
         onClick={() => setIsChatListVisible(!isChatListVisible)}
       >
-        <FaBars size={20} />
+        <PiListMagnifyingGlassThin size={20} />
       </Button>
+      
+      {/* Add new microphone button */}
+      <Button
+        className="d-md-none mic-btn"
+        onClick={handleMicrophoneClick}
+      >
+        <FiMic size={20} />
+      </Button>
+      
       <Button
         className="d-md-none new-chat-btn"
         onClick={handleNewChat}
       >
-        <FaPen size={20} />
+        <FiEdit size={20} />
       </Button>
       <div className={`ai-chat-sidebar ${isChatListVisible ? 'd-block' : 'd-none'}`}>
         <ChatList
@@ -397,7 +422,7 @@ function ChatWindow({ session, onSessionCreated, sessions = [], onSelectSession,
         <Form.Group className="d-flex align-items-center">
           <Form.Control
             type="text"
-            name="message" // Add a name for the form field
+            name="message"
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             placeholder="Type your message..."
@@ -409,7 +434,7 @@ function ChatWindow({ session, onSessionCreated, sessions = [], onSelectSession,
             className="ms-2"
             onClick={() => console.log('Send button clicked')}
           >
-            {isLoading ? <Spinner size="sm" animation="border" /> : <FaPaperPlane size={20} />}
+            {isLoading ? <Spinner size="sm" animation="border" /> : <FiSend size={20} />}
           </Button>
         </Form.Group>
       </Form>

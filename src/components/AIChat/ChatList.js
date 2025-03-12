@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ListGroup, Button, Spinner, Form } from 'react-bootstrap';
-import { FaTrash, FaPen, FaCheck, FaTimes, FaPlus } from 'react-icons/fa';
+// Replace FA icons with FI (Feather Icons) which have thinner lines
+import { FiTrash2, FiEdit, FiPlus, FiCheck, FiX, FiPlusCircle, FiEdit2 } from 'react-icons/fi';
 
 function ChatList({ sessions = [], selectedSession, onSelectSession, onDeleteSession, onRenameSession, loading, onNewChat }) {
   const [editingId, setEditingId] = useState(null);
@@ -33,7 +34,6 @@ function ChatList({ sessions = [], selectedSession, onSelectSession, onDeleteSes
 
   return (
     <>
-      {/* Add a subtle header with small new chat option */}
       <div className="d-flex justify-content-between align-items-center mb-2 p-2">
         <h6 className="mb-0">Chat History</h6>
         {onNewChat && (
@@ -44,7 +44,7 @@ function ChatList({ sessions = [], selectedSession, onSelectSession, onDeleteSes
             className="new-chat-small"
             title="Start a new chat"
           >
-            <FaPlus />
+            <FiPlus />
           </Button>
         )}
       </div>
@@ -82,14 +82,14 @@ function ChatList({ sessions = [], selectedSession, onSelectSession, onDeleteSes
                     className="edit-button p-1"
                     onClick={(e) => handleSaveEdit(e, session.id)}
                   >
-                    <FaCheck />
+                    <FiCheck />
                   </Button>
                   <Button
                     variant="link"
                     className="edit-button p-1"
                     onClick={handleCancelEdit}
                   >
-                    <FaTimes />
+                    <FiX />
                   </Button>
                 </>
               ) : (
@@ -98,7 +98,7 @@ function ChatList({ sessions = [], selectedSession, onSelectSession, onDeleteSes
                   className="edit-button p-1"
                   onClick={(e) => handleEditClick(e, session)}
                 >
-                  <FaPen />
+                  <FiEdit2 />
                 </Button>
               )}
               <Button
@@ -109,7 +109,7 @@ function ChatList({ sessions = [], selectedSession, onSelectSession, onDeleteSes
                   onDeleteSession(session.id);
                 }}
               >
-                <FaTrash />
+                <FiTrash2 />
               </Button>
             </div>
           </ListGroup.Item>

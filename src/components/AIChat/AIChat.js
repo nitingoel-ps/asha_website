@@ -71,6 +71,12 @@ function AIChat() {
   };
 
   const handleNewChat = async () => {
+    // Check if the current session exists and has no messages
+    if (selectedSession && selectedSession.messages && selectedSession.messages.length === 0) {
+      console.log('Current session is empty, reusing it instead of creating a new one');
+      return; // Just reuse the current empty session
+    }
+    
     try {
       setLoading(true);
       const response = await axiosInstance.post('/chat-sessions/', {
@@ -237,28 +243,6 @@ function AIChat() {
       debouncedRefreshAllSessions();
     }, 2000);
   }, [debouncedRefreshSession, debouncedRefreshAllSessions]);
-
-  // Example of how to modify your streaming handler:
-  const handleStreamingMessage = (content) => {
-    setMessages(currentMessages => {
-      // Find the last AI message to update
-      const aiMessageIndex = currentMessages.findIndex(
-        msg => msg.role === 'ai' && msg.isStreaming
-      );
-      
-      if (aiMessageIndex >= 0) {
-        // Use our utility to handle the content properly
-        // This will replace activity messages when new content arrives
-        return processStreamingContent(currentMessages, content, aiMessageIndex);
-      } else {
-        // If no streaming message exists, create a new one
-        return [
-          ...currentMessages,
-          { role: 'ai', content: content, isStreaming: true }
-        ];
-      }
-    });
-  };
 
   return (
     <Container fluid className="ai-chat-container">

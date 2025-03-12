@@ -190,10 +190,29 @@
   z-index: 1000;
   padding: 5px 10px;
   font-size: 14px;
-  background-color: rgba(128, 128, 128, 0.7) !important; /* Grey background with transparency */
-  border: none !important;
-  color: white !important;
+  background-color: rgba(255, 255, 255, 0.9) !important; /* White background with slight transparency */
+  border: none !important; /* Remove border */
+  color: #000 !important; /* Black text/icon color */
   border-radius: 5px !important; /* Add border radius for better appearance */
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+  outline: none !important; /* Remove outline */
+}
+
+/* Add new microphone button style */
+.mic-btn {
+  position: absolute;
+  top: 0px;
+  left: 50%;
+  transform: translateX(-50%); /* Center horizontally */
+  z-index: 1000;
+  padding: 5px 10px;
+  font-size: 14px;
+  background-color: rgba(255, 255, 255, 0.9) !important;
+  border: none !important;
+  color: #000 !important;
+  border-radius: 5px !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  outline: none !important;
 }
 
 .new-chat-btn {
@@ -203,10 +222,12 @@
   z-index: 1000;
   padding: 5px 10px;
   font-size: 14px;
-  background-color: rgba(128, 128, 128, 0.7) !important; /* Grey background with transparency */
-  border: none !important;
-  color: white !important;
+  background-color: rgba(255, 255, 255, 0.9) !important; /* White background with slight transparency */
+  border: none !important; /* Remove border */
+  color: #000 !important; /* Black text/icon color */
   border-radius: 5px !important; /* Add border radius for better appearance */
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+  outline: none !important; /* Remove outline */
 }
 
 /* Style for the small new chat button */
@@ -214,7 +235,9 @@
   padding: 0.25rem 0.5rem;
   font-size: 0.75rem;
   border-radius: 4px;
-  color: #6c757d;
+  color: #212529; /* Change to black */
+  background-color: white;
+  border: 1px solid #e0e0e0;
 }
 
 /* Mobile-specific fixes */
