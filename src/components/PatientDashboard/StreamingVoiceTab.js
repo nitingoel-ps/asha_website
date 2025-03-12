@@ -215,9 +215,9 @@ const StreamingVoiceTab = () => {
   const handleAudioStream = async (response) => {
     let reader;
     try {
+      console.log("Entered handleAudioStream");
       isTransitioningRef.current = true;
       isPlaybackCompleteRef.current = false;
-      console.log("Entered handleAudioStream");
       // Clean up old media resources but preserve the request
       console.log(('calling cleanupAudio(false) from handleAudioStream'));
       cleanupAudio(true);
@@ -275,9 +275,14 @@ const StreamingVoiceTab = () => {
           }
         }
       }
-    } catch (error) {
+        } catch (error) {
       if (isTransitioningRef.current) {
-        console.log('Stream cleanup during transition - ignoring error');
+        console.log('Stream cleanup during transition - ignoring error:', {
+          name: error.name,
+          message: error.message,
+          stack: error.stack,
+          details: error
+        });
         return;
       }
       if (error.name === 'AbortError' && isStreamCompleteRef.current) {
@@ -332,20 +337,26 @@ const StreamingVoiceTab = () => {
 
       setIsProcessing(true);
 
-      const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+      // Get the actual MIME type used in recording
+      const actualType = audioChunksRef.current[0]?.type || 'audio/webm';
+      console.log('Actual recorded audio MIME type:', actualType);
+      
+      const audioBlob = new Blob(audioChunksRef.current, { type: actualType });
       const base64Audio = await new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onloadend = () => resolve(reader.result);
         reader.onerror = reject;
         reader.readAsDataURL(audioBlob);
       });
+      
       console.log('Calling /streaming-voice-chat/ from handleSend() - Sending audio to server:', base64Audio.length);
       const response = await fetchWithAuth('/streaming-voice-chat/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           audio: base64Audio.split(',')[1],
-          stream: true
+          stream: true,
+          audio_format: actualType // Send the format info to the server
         }),
         signal: controller.signal
       });
@@ -451,14 +462,23 @@ const StreamingVoiceTab = () => {
       }
 
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mimeType = 'audio/webm';
       
-      // Rest of the startRecording function remains the same
+      // Get the supported MIME type based on browser compatibility
+      const mimeType = getSupportedMimeType();
+      console.log('Using MIME type:', mimeType);
+      
       // Start with minimal options to ensure broader compatibility
       const options = mimeType ? { mimeType, audioBitsPerSecond: 128000 } : undefined;
       
       // Create a new MediaRecorder instance
-      const recorder = new MediaRecorder(stream, options);
+      let recorder;
+      try {
+        recorder = new MediaRecorder(stream, options);
+      } catch (e) {
+        console.warn('Failed to create MediaRecorder with options, trying without options:', e);
+        recorder = new MediaRecorder(stream);
+      }
+      
       mediaRecorderRef.current = recorder;
       
       // Ensure audio chunks array is empty before starting
@@ -467,7 +487,7 @@ const StreamingVoiceTab = () => {
       // Set up the data available event handler
       recorder.ondataavailable = (event) => {
         if (event.data && event.data.size > 0) {
-          console.log(`Adding audio chunk: ${event.data.size} bytes`);
+          console.log(`Adding audio chunk: ${event.data.size} bytes, type: ${event.data.type}`);
           audioChunksRef.current.push(event.data);
         }
       };
@@ -530,6 +550,36 @@ const StreamingVoiceTab = () => {
       console.error('Error accessing microphone:', err);
       setError('Error accessing microphone: ' + err.message);
     }
+  };
+
+  // Helper function to check supported MIME types
+  const getSupportedMimeType = () => {
+    // List of MIME types to try in order of preference
+    const mimeTypes = [
+      'audio/webm',
+      'audio/webm;codecs=opus',
+      'audio/mp4',
+      'audio/mpeg',
+      'audio/ogg;codecs=opus',
+      'audio/wav',
+      'audio/aac'
+    ];
+
+    for (const type of mimeTypes) {
+      try {
+        if (MediaRecorder.isTypeSupported(type)) {
+          console.log(`Browser supports MIME type: ${type}`);
+          return type;
+        }
+      } catch (e) {
+        console.warn(`Error checking support for ${type}:`, e);
+      }
+    }
+
+    // If we get here, no MIME type is explicitly supported
+    // Return undefined to let the browser use its default
+    console.log('No specified MIME type supported, using browser default');
+    return undefined;
   };
 
   const handleCancel = () => {
