@@ -27,7 +27,7 @@ function MedicalReportCard({ report, onClick }) {
         <div className="text-muted small d-flex flex-column gap-2 mt-auto">
           <div className="d-flex align-items-center gap-2">
             <Calendar size={16} />
-            <span>{new Date(report.report_date).toLocaleDateString()}</span>
+            <span>{new Date(report.report_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
           </div>
           
           <div className="d-flex align-items-center gap-2">

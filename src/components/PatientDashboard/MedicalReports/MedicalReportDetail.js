@@ -31,7 +31,7 @@ function MedicalReportDetail({ report, onBack }) {
         <div className="mr-report-meta mt-3">
           <div className="mr-meta-item">
             <span className="mr-meta-icon">📅</span>
-            {new Date(report.report_date).toLocaleDateString()}
+            {new Date(report.report_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
           </div>
           <div className="mr-meta-item">
             <span className="mr-meta-icon">🏢</span>

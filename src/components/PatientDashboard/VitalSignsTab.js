@@ -333,7 +333,11 @@ function VitalSignsTab() {
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString();
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    });
   };
 
   const handleCloseAddModal = () => {
@@ -572,7 +576,7 @@ function VitalSignsTab() {
                 <div className="vital-card-header">
                   <Card.Title>{vitalSign}</Card.Title>
                   <span className="vital-date">
-                    {latestVital ? new Date(latestVital.date_taken).toLocaleDateString() : "No date"}
+                    {latestVital ? formatDate(latestVital.date_taken) : "No date"}
                   </span>
                 </div>
                 {latestVital && (
