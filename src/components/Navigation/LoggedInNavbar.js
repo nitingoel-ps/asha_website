@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { Navbar, Nav, Container, NavDropdown, Image } from 'react-bootstrap';
-import { FaHome, FaSignOutAlt, FaTachometerAlt, FaCog, FaRobot, FaPlusCircle, FaBars } from 'react-icons/fa';
+import { FaHome, FaSignOutAlt, FaTachometerAlt, FaCog, FaRobot, FaPlusCircle, FaBars, FaHeartbeat } from 'react-icons/fa';
+import { PiUserSound } from "react-icons/pi";
+
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from "react-router-dom";
 import MobileMenu from './MobileMenu';
@@ -94,7 +96,7 @@ function LoggedInNavbar() {
             {/* Main navigation items - centered on desktop */}
             <Nav className="main-nav-items mx-auto">
               <Nav.Link as={Link} to="/patient-dashboard" onClick={closeMenu} className="main-nav-item">
-                <FaTachometerAlt className="main-nav-icon" /> Health Dashboard
+                <FaHeartbeat className="main-nav-icon" /> Health Records
               </Nav.Link>
               
               <Nav.Link as={Link} to="/add-health-data" onClick={closeMenu} className="main-nav-item">
@@ -102,7 +104,7 @@ function LoggedInNavbar() {
               </Nav.Link>
               
               <Nav.Link as={Link} to="/ai-chat" onClick={closeMenu} className="main-nav-item">
-                <FaRobot className="main-nav-icon" /> Talk to AI
+                <PiUserSound className="main-nav-icon" /> Talk to AI
               </Nav.Link>
             </Nav>
             

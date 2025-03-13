@@ -101,7 +101,7 @@ const MobileMenu = ({ show, onClose, user, onLogout }) => {
           <li className="mobile-menu-item">
             <Link to="/patient-dashboard" className="mobile-menu-link" onClick={handleLinkClick}>
               <FaTachometerAlt className="mobile-menu-icon" />
-              <span>Health Dashboard</span>
+              <span>Health Records</span>
             </Link>
           </li>
           <li className="mobile-menu-item">

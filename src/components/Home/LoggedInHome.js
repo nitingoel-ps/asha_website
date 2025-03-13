@@ -28,10 +28,10 @@ function LoggedInHome() {
               <div className="text-primary mb-3">
                 <FaTachometerAlt size={48} />
               </div>
-              <h5>Health Dashboard</h5>
+              <h5>Health Records</h5>
               <p className="flex-grow-1">View and manage all your health information in one place.</p>
               <Button as={Link} to="/patient-dashboard" variant="primary">
-                Go to Dashboard
+                View Records
               </Button>
             </Card.Body>
           </Card>
