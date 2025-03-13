@@ -218,8 +218,14 @@ const AIVoice = () => {
   const handlePlaybackComplete = () => {
     console.log('Playback completed');
     isPlaybackCompleteRef.current = true;
-    cleanupStates(true);
-    setTimeout(() => cleanupAudio(false), 100);
+    
+    // Don't auto cleanup if we're in autoplay failed state
+    if (!autoplayFailedRef.current) {
+      cleanupStates(true);
+      setTimeout(() => cleanupAudio(false), 100);
+    } else {
+      console.log('Skipping auto cleanup due to autoplay failed state');
+    }
   };
 
   const cleanupAudio = (preserveRequest = false) => {
@@ -229,9 +235,16 @@ const AIVoice = () => {
         currentStates: {
           isStreamComplete: isStreamCompleteRef.current,
           isPlaybackComplete: isPlaybackCompleteRef.current,
-          isSubmitting: isSubmittingRef.current
+          isSubmitting: isSubmittingRef.current,
+          autoplayFailed: autoplayFailedRef.current
         }
       });
+      
+      // Don't cleanup if we're in autoplay failed state unless explicitly stopping
+      if (autoplayFailedRef.current && preserveRequest) {
+        console.log('Skipping cleanup due to autoplay failed state');
+        return;
+      }
       
       // Only cleanup if playback is complete or we're explicitly not preserving the request
       if (isPlaybackCompleteRef.current || !preserveRequest) {
@@ -285,18 +298,26 @@ const AIVoice = () => {
       console.log("Entered handleAudioStream");
       isTransitioningRef.current = true;
       isPlaybackCompleteRef.current = false;
-      // Clean up old audio resources but preserve the request
-      cleanupAudio(true);
       
-      // Reset the stored URLs for this new stream
-      allAudioChunksUrlsRef.current = [];
+      // Only clean up old audio resources if we're not in autoplay failed state
+      if (!autoplayFailedRef.current) {
+        // Clean up old audio resources but preserve the request
+        cleanupAudio(true);
+      }
+      
+      // Reset the stored URLs for this new stream only if not in autoplay failed state
+      if (!autoplayFailedRef.current) {
+        allAudioChunksUrlsRef.current = [];
+      }
       
       // Initialize audio context for Web Audio API
       await initializeAudioContext();
-      // Reset audio state
-      pendingChunksRef.current = [];
-      audioBuffersRef.current = {};
-      isPlayingRef.current = false;
+      // Reset audio state only if not in autoplay failed state
+      if (!autoplayFailedRef.current) {
+        pendingChunksRef.current = [];
+        audioBuffersRef.current = {};
+        isPlayingRef.current = false;
+      }
       
       reader = response.body.getReader();
       const decoder = new TextDecoder();
@@ -317,7 +338,7 @@ const AIVoice = () => {
           setIsStreamComplete(true);
           setIsProcessing(false);
           
-          if (!isPlayingRef.current && pendingChunksRef.current.length === 0) {
+          if (!isPlayingRef.current && pendingChunksRef.current.length === 0 && !autoplayFailedRef.current) {
             handlePlaybackComplete();
           }
           break;
@@ -883,31 +904,30 @@ const AIVoice = () => {
 
               {/* Playback controls */}
               {(isPlaying || isPaused || autoplayFailed) && (
-                <div className="playback-controls">
-                  {isPaused || autoplayFailed ? (
+                <div className="voice-playback">
+                  <div className="voice-playback__controls">
+                    {isPaused || autoplayFailed ? (
+                      <Button 
+                        className="voice-playback__button"
+                        onClick={autoplayFailed ? startManualPlayback : handleResumePlayback}
+                      >
+                        <Play size={20} />
+                      </Button>
+                    ) : (
+                      <Button 
+                        className="voice-playback__button"
+                        onClick={handlePausePlayback}
+                      >
+                        <Pause size={20} />
+                      </Button>
+                    )}
                     <Button 
-                      variant="primary"
-                      onClick={autoplayFailed ? startManualPlayback : handleResumePlayback}
-                      className="control-button"
+                      className="voice-playback__button voice-playback__button--stop"
+                      onClick={stopAllPlayback}
                     >
-                      <Play size={20} />
+                      <Square size={20} />
                     </Button>
-                  ) : (
-                    <Button 
-                      variant="primary"
-                      onClick={handlePausePlayback}
-                      className="control-button"
-                    >
-                      <Pause size={20} />
-                    </Button>
-                  )}
-                  <Button 
-                    variant="danger"
-                    onClick={stopAllPlayback}
-                    className="control-button"
-                  >
-                    <Square size={20} />
-                  </Button>
+                  </div>
                 </div>
               )}
             </div>

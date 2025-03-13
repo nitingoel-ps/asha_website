@@ -40,15 +40,37 @@
   overflow: hidden;
 }
 
-.visit-badge {
+.visit-icons {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.visit-icon-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
   background-color: #E6F6FF;
   color: #0086C9;
-  padding: 4px 12px;
+  padding: 0.25rem 0.5rem;
   border-radius: 9999px;
   font-size: 0.75rem;
   font-weight: 500;
-  white-space: nowrap;
-  flex-shrink: 0;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.visit-icon-badge:hover {
+  background-color: #BEE3F8;
+  transform: translateY(-1px);
+}
+
+.visit-icon-badge svg {
+  color: #0086C9;
+}
+
+.icon-count {
+  font-weight: 600;
 }
 
 .visit-card .text-muted {

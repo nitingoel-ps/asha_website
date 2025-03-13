@@ -121,7 +121,7 @@
 
 .list-item {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 12px;
   padding: 16px;
   background: white;
@@ -146,14 +146,33 @@
   width: 20px;
   height: 20px;
   color: #4A5568;
+  margin-top: 2px;
+}
+
+.item-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .item-text {
-  flex: 1;
   font-size: 0.9375rem;
+  font-weight: 500;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.item-instruction {
+  font-size: 0.875rem;
+  color: #718096;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  line-height: 1.4;
 }
 
 .item-arrow {
@@ -161,11 +180,11 @@
   width: 16px;
   height: 16px;
   color: #A0AEC0;
+  margin-top: 2px;
 }
 
 @media (max-width: 640px) {
   .visit-detail {
-    /* Adjust height calculation to account for the back button and padding */
     height: calc(100vh - 160px);
     padding: 16px;
     overflow-x: hidden;
@@ -213,7 +232,7 @@
   }
 
   .visit-section:last-child {
-    margin-bottom: 32px; /* Add space at the bottom for better scrolling */
+    margin-bottom: 32px;
     padding-bottom: 32px;
   }
 }

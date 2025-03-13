@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { Button } from 'react-bootstrap';
-import { FileText, ExternalLink, ChevronRight, Activity } from 'lucide-react';
+import { FileText, ExternalLink, ChevronRight, Activity, Pill } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import axiosInstance from '../../../utils/axiosInstance';
 import './VisitDetail.css';
@@ -24,6 +24,10 @@ function VisitDetail({ visit }) {
 
   const handleLabReportClick = (reportId) => {
     navigate(`/patient-dashboard/medical-reports/${reportId}`);
+  };
+
+  const handleMedicationClick = (medicationId) => {
+    navigate(`/patient-dashboard/med/${medicationId}`);
   };
 
   // Fix: Add logging and simplify document click handler
@@ -191,13 +195,35 @@ function VisitDetail({ visit }) {
                 <button
                   key={index}
                   className="list-item"
-                  onClick={() => handleOpenDocument(doc, index)} // Pass the index
+                  onClick={() => handleOpenDocument(doc, index)}
                 >
                   <FileText className="item-icon" />
                   <span className="item-text">
                     {doc.type} {doc.category && doc.category.toLowerCase() !== "unknown" ? `(${doc.category})` : ''}
                   </span>
                   <ExternalLink className="item-arrow" />
+                </button>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {visit.medications && visit.medications.length > 0 && (
+          <section className="visit-section">
+            <h3>Prescribed Medications</h3>
+            <div className="grid-list">
+              {visit.medications.map((medication) => (
+                <button
+                  key={medication.id}
+                  className="list-item"
+                  onClick={() => handleMedicationClick(medication.id)}
+                >
+                  <Pill className="item-icon" />
+                  <div className="item-content">
+                    <span className="item-text">{medication.name}</span>
+                    <span className="item-instruction">{medication.instruction}</span>
+                  </div>
+                  <ChevronRight className="item-arrow" />
                 </button>
               ))}
             </div>

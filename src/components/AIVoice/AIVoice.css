@@ -362,8 +362,8 @@
   }
   
   .playback-controls {
-    width: auto !important;
-    min-width: 100px !important;
+    padding: 12px;
+    gap: 10px;
   }
 }
 
@@ -408,7 +408,7 @@
 
 .playback-controls {
   display: flex;
-  gap: 10px;
+  gap: 16px;
   align-items: center;
   justify-content: center;
   position: absolute;
@@ -417,16 +417,80 @@
   transform: translate(-50%, -50%);
   width: auto !important;
   min-width: 100px !important;
+  padding: 16px;
+  background: transparent;
 }
 
 .control-button {
-  width: 36px;
-  height: 36px;
+  width: 48px;
+  height: 48px;
+  min-width: 48px; /* Ensure perfect circle */
+  min-height: 48px; /* Ensure perfect circle */
   padding: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 50%;
+  border-radius: 9999px; /* Ensure perfect circle */
+  border: none;
+  background: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  transition: all 0.2s ease;
+  color: #333333;
+  position: relative; /* For perfect centering of icon */
+  overflow: hidden; /* Ensure content doesn't break circle */
+}
+
+.control-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  background: #f8f8f8;
+}
+
+.control-button:active {
+  transform: translateY(1px);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  background: #f0f0f0;
+}
+
+.control-button svg {
+  width: 20px;
+  height: 20px;
+  position: absolute; /* Perfect centering */
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  transition: all 0.2s ease;
+  opacity: 0.85;
+}
+
+.control-button:hover svg {
+  opacity: 1;
+}
+
+/* Variant-specific styles */
+.control-button[variant="danger"] {
+  color: #555555;
+}
+
+/* Mobile adjustments - keep same size for consistency */
+@media (max-width: 768px) {
+  .playback-controls {
+    padding: 12px;
+    gap: 12px;
+  }
+
+  /* Keep the same size as desktop for consistency */
+  .control-button {
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
+    min-height: 48px;
+  }
+
+  .control-button svg {
+    width: 20px;
+    height: 20px;
+  }
 }
 
 /* Add a container for the main content to ensure vertical centering */
@@ -462,4 +526,108 @@
 /* Add margin to voice controls when error container is present */
 .error-container + .voice-controls {
   margin-top: 10px; /* Add some space between error container and voice controls */
+}
+
+.voice-playback {
+  position: relative;
+  width: 100%;
+}
+
+.voice-playback__controls {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: auto !important;
+  min-width: 100px !important;
+  padding: 16px;
+  background: transparent;
+  z-index: 10;
+}
+
+/* Highly specific selector to override any Bootstrap styles */
+.streaming-voice-interface .voice-playback__button.btn {
+  width: 48px !important;
+  height: 48px !important;
+  min-width: 48px !important;
+  min-height: 48px !important;
+  padding: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 9999px !important;
+  border: none !important;
+  background: #bfdbef !important; /* Light blue background */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12) !important;
+  transition: all 0.2s ease !important;
+  color: #073c72 !important; /* Deeper blue for icon */
+  position: relative !important;
+  overflow: hidden !important;
+  margin: 0 !important;
+  line-height: 1 !important;
+}
+
+.streaming-voice-interface .voice-playback__button.btn:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(25, 118, 210, 0.15) !important;
+  background: #BBDEFB !important; /* Slightly darker on hover */
+}
+
+.streaming-voice-interface .voice-playback__button.btn:active {
+  transform: translateY(1px) !important;
+  box-shadow: 0 1px 4px rgba(25, 118, 210, 0.1) !important;
+  background: #90CAF9 !important; /* Even darker when pressed */
+}
+
+.streaming-voice-interface .voice-playback__button.btn svg {
+  width: 20px !important;
+  height: 20px !important;
+  position: absolute !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  transition: all 0.2s ease !important;
+  opacity: 0.9 !important;
+}
+
+.streaming-voice-interface .voice-playback__button.btn:hover svg {
+  opacity: 1 !important;
+}
+
+/* Stop button specific styles */
+.streaming-voice-interface .voice-playback__button--stop.btn {
+  background: #f6bac3 !important; /* Light red background */
+  color: #D32F2F !important; /* Deeper red for icon */
+}
+
+.streaming-voice-interface .voice-playback__button--stop.btn:hover {
+  background: #f67683 !important; /* Slightly darker on hover */
+}
+
+.streaming-voice-interface .voice-playback__button--stop.btn:active {
+  background: #EF9A9A !important; /* Even darker when pressed */
+}
+
+/* Mobile adjustments with maintained specificity */
+@media (max-width: 768px) {
+  .voice-playback__controls {
+    padding: 12px;
+    gap: 12px;
+  }
+
+  .streaming-voice-interface .voice-playback__button.btn {
+    width: 48px !important;
+    height: 48px !important;
+    min-width: 48px !important;
+    min-height: 48px !important;
+  }
+
+  .streaming-voice-interface .voice-playback__button.btn svg {
+    width: 20px !important;
+    height: 20px !important;
+  }
 }
