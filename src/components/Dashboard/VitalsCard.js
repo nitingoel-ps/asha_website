@@ -45,7 +45,7 @@ function VitalsCard() {
         <div className="card-title">
           <span>❤️</span> Key Vitals
         </div>
-        <Link to="/vitals" className="card-action">View All Vitals</Link>
+        <Link to="/patient-dashboard/vital-signs" className="card-action">View All Vitals</Link>
       </div>
       <div className="card-body">
         <div className="vital-grid">
