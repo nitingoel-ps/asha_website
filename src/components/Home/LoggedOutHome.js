@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Button, Container, Row, Col, Card, Form, Alert } from 'react-bootstrap';
+import { Button, Container, Row, Col, Card, Form, Alert, Carousel } from 'react-bootstrap';
 import NeuralNetwork from './NeuralNetwork';
 import './Home.css';
 //import happyCoupleImage from '../../assets/images/happy_people.png';
 //import happyCoupleImage from '../../assets/images/hero-consultation.jpg';
 import happyCoupleImage from '../../assets/images/doc_office.png';
-import { BsDatabase, BsChatDots, BsLightbulb, BsShare } from 'react-icons/bs';
+import { BsDatabase, BsChatDots, BsLightbulb, BsShare, BsChevronLeft, BsChevronRight } from 'react-icons/bs';
 import axiosInstance from '../../utils/axiosInstance';
 
 // Cognito configuration only for waitlist
@@ -24,6 +24,24 @@ const waitlistConfig = {
   }
 };
 Amplify.configure(waitlistConfig);
+
+// Custom hook for responsive carousel
+const useResponsiveCarousel = () => {
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
+  
+  return isMobile;
+};
 
 // Move VerificationModal outside of LoggedOutHome
 const VerificationModal = ({
@@ -78,6 +96,7 @@ function LoggedOutHome() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [submitError, setSubmitError] = useState('');
+  const isMobile = useResponsiveCarousel();
 
   const location = useLocation();
 
@@ -280,50 +299,187 @@ function LoggedOutHome() {
       <section id="how-it-works" className="how-it-works-section">
         <Container>
           <h2 className="text-center mb-5">How It Works</h2>
-          <Row className="justify-content-center">
-            <Col md={4} className="mb-4">
-              <Card className="bg-dark text-white slide-up">
-                <Card.Body className="text-center">
-                  <div className="mb-3">
-                    <i className="bi bi-1-circle display-4"></i>
-                  </div>
-                  <Card.Title>Connect Your Providers</Card.Title>
-                  <Card.Text>
-                    Easily link your healthcare providers and insurance companies to 
-                    import your medical records.
-                  </Card.Text>
-                </Card.Body>
-              </Card>
-            </Col>
-            <Col md={4} className="mb-4">
-              <Card className="bg-dark text-white slide-up">
-                <Card.Body className="text-center">
-                  <div className="mb-3">
-                    <i className="bi bi-2-circle display-4"></i>
-                  </div>
-                  <Card.Title>Organize Your Data</Card.Title>
-                  <Card.Text>
-                    Your records are automatically organized and analyzed for easy access 
-                    and understanding.
-                  </Card.Text>
-                </Card.Body>
-              </Card>
-            </Col>
-            <Col md={4} className="mb-4">
-              <Card className="bg-dark text-white slide-up">
-                <Card.Body className="text-center">
-                  <div className="mb-3">
-                    <i className="bi bi-3-circle display-4"></i>
-                  </div>
-                  <Card.Title>Get AI Insights</Card.Title>
-                  <Card.Text>
-                    Receive personalized health insights and recommendations based on 
-                    your medical history.
-                  </Card.Text>
-                </Card.Body>
-              </Card>
-            </Col>
-          </Row>
+          <div className="carousel-container">
+            {isMobile ? (
+              // Mobile Carousel - One card per slide
+              <Carousel
+                className="how-it-works-carousel mobile-carousel"
+                indicators={true}
+                interval={null}
+                touch={true}
+                prevIcon={<div className="carousel-nav-icon carousel-prev-icon"><BsChevronLeft /></div>}
+                nextIcon={<div className="carousel-nav-icon carousel-next-icon"><BsChevronRight /></div>}
+                fade={true}
+              >
+                {/* Card 1 */}
+                <Carousel.Item>
+                  <Card className="carousel-card" style={{ backgroundColor: '#2a2a2a' }}>
+                    <Card.Body style={{ backgroundColor: '#2a2a2a' }}>
+                      <div className="step-number">1</div>
+                      <Card.Title>Consolidate Your Health Data</Card.Title>
+                      <Card.Text>
+                        Integrations with your providers' systems. Ability to scan or upload documents.
+                      </Card.Text>
+                    </Card.Body>
+                  </Card>
+                </Carousel.Item>
+                
+                {/* Card 2 */}
+                <Carousel.Item>
+                  <Card className="carousel-card" style={{ backgroundColor: '#2a2a2a' }}>
+                    <Card.Body style={{ backgroundColor: '#2a2a2a' }}>
+                      <div className="step-number">2</div>
+                      <Card.Title>AI-Powered Health Review</Card.Title>
+                      <Card.Text>
+                        Advanced AI analyzes your health records to create easy-to-understand summaries and actionable insights. We compare your data against current medical guidelines to identify gaps in care and preventive measures.
+                      </Card.Text>
+                    </Card.Body>
+                  </Card>
+                </Carousel.Item>
+                
+                {/* Card 3 */}
+                <Carousel.Item>
+                  <Card className="carousel-card" style={{ backgroundColor: '#2a2a2a' }}>
+                    <Card.Body style={{ backgroundColor: '#2a2a2a' }}>
+                      <div className="step-number">3</div>
+                      <Card.Title>Meet Asha, Your AI Assistant</Card.Title>
+                      <Card.Text>
+                        Simply talk to Asha to find anything in your records, get explanations of medical terms, or conduct health research. Set and track health goals with personalized guidance and support.
+                      </Card.Text>
+                    </Card.Body>
+                  </Card>
+                </Carousel.Item>
+                
+                {/* Card 4 */}
+                <Carousel.Item>
+                  <Card className="carousel-card" style={{ backgroundColor: '#2a2a2a' }}>
+                    <Card.Body style={{ backgroundColor: '#2a2a2a' }}>
+                      <div className="step-number">4</div>
+                      <Card.Title>Log Your Health Journey</Card.Title>
+                      <Card.Text>
+                        Asha can also help you keep your health data current by easily updating your medications, tracking vital signs, and recording symptoms.
+                      </Card.Text>
+                    </Card.Body>
+                  </Card>
+                </Carousel.Item>
+                
+                {/* Card 5 */}
+                <Carousel.Item>
+                  <Card className="carousel-card" style={{ backgroundColor: '#2a2a2a' }}>
+                    <Card.Body style={{ backgroundColor: '#2a2a2a' }}>
+                      <div className="step-number">5</div>
+                      <Card.Title>Secure Data Sharing</Card.Title>
+                      <Card.Text>
+                        Share your health information securely with healthcare providers for consultations or second opinions. Control what you share and maintain a complete record of all your medical interactions.
+                      </Card.Text>
+                    </Card.Body>
+                  </Card>
+                </Carousel.Item>
+                
+                {/* Card 6 */}
+                <Carousel.Item>
+                  <Card className="carousel-card" style={{ backgroundColor: '#2a2a2a' }}>
+                    <Card.Body style={{ backgroundColor: '#2a2a2a' }}>
+                      <div className="step-number">6</div>
+                      <Card.Title>Proactive Health Insights</Card.Title>
+                      <Card.Text>
+                        Receive personalized health recommendations and preventive care reminders based on your medical history and current health status. Stay informed about your health journey.
+                      </Card.Text>
+                    </Card.Body>
+                  </Card>
+                </Carousel.Item>
+              </Carousel>
+            ) : (
+              // Desktop Carousel - Three cards per slide
+              <Carousel
+                className="how-it-works-carousel desktop-carousel"
+                indicators={true}
+                interval={null}
+                touch={true}
+                prevIcon={<div className="carousel-nav-icon carousel-prev-icon"><BsChevronLeft /></div>}
+                nextIcon={<div className="carousel-nav-icon carousel-next-icon"><BsChevronRight /></div>}
+                slide={true}
+              >
+                {/* First Slide - Cards 1-3 */}
+                <Carousel.Item>
+                  <Row className="carousel-row">
+                    <Col lg={4} md={4} className="carousel-col">
+                      <Card className="carousel-card" style={{ backgroundColor: '#2a2a2a' }}>
+                        <Card.Body style={{ backgroundColor: '#2a2a2a' }}>
+                          <div className="step-number">1</div>
+                          <Card.Title>Consolidate Your Health Data</Card.Title>
+                          <Card.Text>
+                            Integrations with your providers' systems. Ability to scan or upload documents.
+                          </Card.Text>
+                        </Card.Body>
+                      </Card>
+                    </Col>
+                    <Col lg={4} md={4} className="carousel-col">
+                      <Card className="carousel-card" style={{ backgroundColor: '#2a2a2a' }}>
+                        <Card.Body style={{ backgroundColor: '#2a2a2a' }}>
+                          <div className="step-number">2</div>
+                          <Card.Title>AI-Powered Health Review</Card.Title>
+                          <Card.Text>
+                            Advanced AI analyzes your health records to create easy-to-understand summaries and actionable insights. We compare your data against current medical guidelines to identify gaps in care and preventive measures.
+                          </Card.Text>
+                        </Card.Body>
+                      </Card>
+                    </Col>
+                    <Col lg={4} md={4} className="carousel-col">
+                      <Card className="carousel-card" style={{ backgroundColor: '#2a2a2a' }}>
+                        <Card.Body style={{ backgroundColor: '#2a2a2a' }}>
+                          <div className="step-number">3</div>
+                          <Card.Title>Meet Asha, Your AI Assistant</Card.Title>
+                          <Card.Text>
+                            Simply talk to Asha to find anything in your records, get explanations of medical terms, or conduct health research. Set and track health goals with personalized guidance and support.
+                          </Card.Text>
+                        </Card.Body>
+                      </Card>
+                    </Col>
+                  </Row>
+                </Carousel.Item>
+                
+                {/* Second Slide - Cards 4-6 */}
+                <Carousel.Item>
+                  <Row className="carousel-row">
+                    <Col lg={4} md={4} className="carousel-col">
+                      <Card className="carousel-card" style={{ backgroundColor: '#2a2a2a' }}>
+                        <Card.Body style={{ backgroundColor: '#2a2a2a' }}>
+                          <div className="step-number">4</div>
+                          <Card.Title>Log Your Health Journey</Card.Title>
+                          <Card.Text>
+                            Asha can also help you keep your health data current by easily updating your medications, tracking vital signs, and recording symptoms.
+                          </Card.Text>
+                        </Card.Body>
+                      </Card>
+                    </Col>
+                    <Col lg={4} md={4} className="carousel-col">
+                      <Card className="carousel-card" style={{ backgroundColor: '#2a2a2a' }}>
+                        <Card.Body style={{ backgroundColor: '#2a2a2a' }}>
+                          <div className="step-number">5</div>
+                          <Card.Title>Secure Data Sharing</Card.Title>
+                          <Card.Text>
+                            Share your health information securely with healthcare providers for consultations or second opinions. Control what you share and maintain a complete record of all your medical interactions.
+                          </Card.Text>
+                        </Card.Body>
+                      </Card>
+                    </Col>
+                    <Col lg={4} md={4} className="carousel-col">
+                      <Card className="carousel-card" style={{ backgroundColor: '#2a2a2a' }}>
+                        <Card.Body style={{ backgroundColor: '#2a2a2a' }}>
+                          <div className="step-number">6</div>
+                          <Card.Title>Proactive Health Insights</Card.Title>
+                          <Card.Text>
+                            Receive personalized health recommendations and preventive care reminders based on your medical history and current health status. Stay informed about your health journey.
+                          </Card.Text>
+                        </Card.Body>
+                      </Card>
+                    </Col>
+                  </Row>
+                </Carousel.Item>
+              </Carousel>
+            )}
+          </div>
         </Container>
       </section>
 

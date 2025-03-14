@@ -172,6 +172,204 @@
   padding: 5rem 0;
 }
 
+/* Carousel Styling */
+.carousel-container {
+  position: relative;
+  padding: 0 50px; /* Space for navigation arrows */
+}
+
+.how-it-works-carousel {
+  margin-bottom: 60px !important; /* Increase space for indicators below */
+  position: relative;
+}
+
+/* Smooth transitions */
+.carousel-inner .carousel-item {
+  transition: transform 0.6s ease-in-out;
+}
+
+/* Desktop Carousel */
+.desktop-carousel .carousel-row {
+  margin: 0 -15px;
+  display: flex;
+}
+
+/* Mobile Carousel */
+.mobile-carousel .carousel-card {
+  margin: 0 auto;
+  max-width: 90%;
+}
+
+.carousel-col {
+  padding: 0 15px;
+  margin-bottom: 20px;
+}
+
+.carousel-card {
+  background-color: #2a2a2a !important; /* Force dark background */
+  border: none;
+  border-radius: 10px;
+  height: 100%;
+  min-height: 300px; /* Ensure minimum height for consistency */
+  color: white;
+  transition: transform 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.carousel-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
+  background-color: #333333 !important;
+}
+
+.carousel-card .card-body {
+  padding: 2rem;
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background-color: #2a2a2a; /* Ensure card body has the same background */
+}
+
+.carousel-card .card-title {
+  color: #00CED1;
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  padding-left: 2.5rem; /* Space for step number */
+}
+
+.carousel-card .card-text {
+  color: #e0e0e0;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.step-number {
+  position: absolute;
+  top: 1.5rem;
+  left: 1.5rem;
+  width: 2rem;
+  height: 2rem;
+  background-color: rgba(0, 206, 209, 0.2);
+  color: #00CED1;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 1.2rem;
+}
+
+/* Carousel Navigation */
+.carousel-nav-icon {
+  width: 40px;
+  height: 40px;
+  background-color: rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1.2rem;
+  transition: background-color 0.3s ease;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+  cursor: pointer;
+}
+
+.carousel-prev-icon {
+  left: 0;
+}
+
+.carousel-next-icon {
+  right: 0;
+}
+
+.carousel-nav-icon:hover {
+  background-color: rgba(255, 255, 255, 0.5);
+}
+
+/* Carousel Indicators */
+.how-it-works-section .carousel-indicators {
+  margin-bottom: 0;
+  position: relative;
+  bottom: 0;
+  margin-top: 20px;
+}
+
+.how-it-works-section .carousel-indicators [data-bs-target] {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: rgba(0, 206, 209, 0.5);
+  border: none;
+  margin: 0 5px;
+  opacity: 0.5;
+}
+
+.how-it-works-section .carousel-indicators .active {
+  background-color: #00CED1;
+  opacity: 1;
+}
+
+/* Override Bootstrap's default indicator styles */
+.how-it-works-section .carousel-indicators button {
+  width: 10px !important;
+  height: 10px !important;
+  border-radius: 50% !important;
+  background-color: rgba(0, 206, 209, 0.5) !important;
+  border: none !important;
+  margin: 0 5px !important;
+}
+
+.how-it-works-section .carousel-indicators button.active {
+  background-color: #00CED1 !important;
+  opacity: 1 !important;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 767px) {
+  .carousel-container {
+    padding: 0 30px; /* Smaller padding on mobile */
+  }
+  
+  .mobile-carousel .carousel-card {
+    margin: 0 auto;
+    max-width: 90%;
+    min-height: 250px;
+    background-color: #2a2a2a !important;
+  }
+  
+  .carousel-card .card-body {
+    padding: 1.5rem;
+    background-color: #2a2a2a;
+  }
+  
+  .carousel-card .card-title {
+    font-size: 1.3rem;
+  }
+  
+  .carousel-nav-icon {
+    width: 30px;
+    height: 30px;
+    font-size: 1rem;
+  }
+  
+  /* Ensure mobile carousel items have equal height */
+  .mobile-carousel .carousel-inner .carousel-item {
+    height: auto;
+    min-height: 300px;
+    display: flex;
+    align-items: center;
+  }
+}
+
 .waitlist-section {
   background-color: white;
   padding: 5rem 0;
@@ -310,4 +508,34 @@
   .logged-in-container {
     padding-top: 76px;
   }
+}
+
+/* Fix for carousel indicators */
+.carousel-indicators {
+  position: absolute !important;
+  bottom: -50px !important; /* Move further down */
+  left: 0 !important;
+  right: 0 !important;
+  margin: 0 auto !important;
+  z-index: 15 !important;
+}
+
+/* Fix for mobile carousel with fade transition */
+.mobile-carousel .carousel-inner {
+  overflow: hidden !important;
+}
+
+.mobile-carousel .carousel-item {
+  transition: opacity 0.6s ease-in-out !important;
+}
+
+.mobile-carousel .carousel-fade .carousel-item {
+  opacity: 0;
+  transition-duration: .6s;
+  transition-property: opacity;
+}
+
+.mobile-carousel .carousel-fade .carousel-item.active {
+  opacity: 1;
+  z-index: 1;
 }
