@@ -205,16 +205,22 @@ function PatientDashboard() {
         <Target size={16} /> Health Priorities
       </div>
       <div 
-        className={`nav-item ${activeTab === "symptoms" ? "active" : ""}`} 
-        onClick={() => handleTabChange("symptoms")}
+        className={`nav-item ${activeTab === "med" ? "active" : ""}`} 
+        onClick={() => handleTabChange("med")}
       >
-        <Activity size={16} /> Symptoms
-      </div>
+        <Pill size={16} /> Medications
+      </div>      
       <div 
         className={`nav-item ${activeTab === "vital-signs" ? "active" : ""}`} 
         onClick={() => handleTabChange("vital-signs")}
       >
         <Heart size={16} /> Vital Signs
+      </div>
+      <div 
+        className={`nav-item ${activeTab === "symptoms" ? "active" : ""}`} 
+        onClick={() => handleTabChange("symptoms")}
+      >
+        <Activity size={16} /> Symptoms
       </div>
       <div 
         className={`nav-item ${activeTab === "immunizations" ? "active" : ""}`} 
@@ -239,12 +245,6 @@ function PatientDashboard() {
         onClick={() => handleTabChange("charts")}
       >
         <Clipboard size={16} /> Key Lab Results
-      </div>
-      <div 
-        className={`nav-item ${activeTab === "med" ? "active" : ""}`} 
-        onClick={() => handleTabChange("med")}
-      >
-        <Pill size={16} /> Medications
       </div>
       <div 
         className={`nav-item ${activeTab === "lab-panels" ? "active" : ""}`} 
