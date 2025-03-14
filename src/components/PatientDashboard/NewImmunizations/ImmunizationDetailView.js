@@ -23,6 +23,14 @@ export function ImmunizationDetailView({ groupedImmunizations }) {
     return null;
   }
 
+  // Add debug logging
+  console.log('Selected vaccine details:', {
+    name: vaccineDetails.name,
+    common_name: vaccineDetails.immunization_common_name,
+    short_description: vaccineDetails.immunization_short_description,
+    id: vaccineDetails.id
+  });
+
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -77,11 +85,12 @@ export function ImmunizationDetailView({ groupedImmunizations }) {
       <Card className="detail-card mb-4">
         <Card.Body>
           <h3>{vaccineDetails.name}</h3>
-          {vaccineDetails.doses[0].description && (
-            <p className="vaccine-description mt-3">
-              {vaccineDetails.doses[0].description}
-            </p>
-          )}
+          <div className="text-muted mt-1 mb-2">
+            {vaccineDetails.immunization_common_name || '[Common Name Not Available]'}
+          </div>
+          <p className="vaccine-description mt-3">
+            {vaccineDetails.immunization_short_description || 'No short description available for this vaccine.'}
+          </p>
         </Card.Body>
       </Card>
 

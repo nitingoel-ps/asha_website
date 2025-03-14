@@ -12,6 +12,16 @@ export function ImmunizationsListView({ groupedImmunizations }) {
       return new Date(b.doses[0].administration_date) - new Date(a.doses[0].administration_date);
     });
 
+  // Add debug logging
+  console.log('Grouped Immunizations:', groupedImmunizations);
+  sortedVaccines.forEach(vaccine => {
+    console.log('Vaccine details:', {
+      name: vaccine.name,
+      common_name: vaccine.immunization_common_name,
+      id: vaccine.id
+    });
+  });
+
   const handleVaccineClick = (vaccineId) => {
     navigate(`${vaccineId}`);
   };
@@ -41,7 +51,10 @@ export function ImmunizationsListView({ groupedImmunizations }) {
               <Card.Body>
                 <div className="d-flex justify-content-between align-items-start">
                   <div>
-                    <h5 className="mb-2">{vaccine.name}</h5>
+                    <h5 className="mb-1">{vaccine.name}</h5>
+                    <div className="text-muted mb-2">
+                      {vaccine.immunization_common_name || '[Common Name Not Available]'}
+                    </div>
                     <div className="meta-info">
                       <div className="d-flex align-items-center gap-2 mb-1">
                         <Calendar size={16} />

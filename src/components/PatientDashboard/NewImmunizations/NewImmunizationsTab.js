@@ -16,6 +16,8 @@ export function NewImmunizationsTab({ immunizations }) {
         groups[imm.vaccine_name] = {
           id: imm.id, // Use the first occurrence's ID as the group ID
           name: imm.vaccine_name,
+          immunization_common_name: imm.immunization_common_name,
+          immunization_short_description: imm.immunization_short_description,
           doses: []
         };
       }
