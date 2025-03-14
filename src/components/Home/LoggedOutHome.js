@@ -335,7 +335,11 @@ function LoggedOutHome() {
                       <div className="step-number">2</div>
                       <Card.Title>AI-Powered Health Review</Card.Title>
                       <Card.Text>
-                        Advanced AI analyzes your health records to create easy-to-understand summaries and actionable insights. We compare your data against current medical guidelines to identify gaps in care and preventive measures.
+                        <ul>
+                            <li>Deep analysis of your health records.</li>
+                            <li>Easy-to-understand summaries and actionable insights.</li>
+                            <li>Compare your data against current guidelines.</li>
+                          </ul>
                       </Card.Text>
                     </Card.Body>
                   </Card>
@@ -346,10 +350,14 @@ function LoggedOutHome() {
                   <Card className="carousel-card" style={{ backgroundColor: '#2a2a2a' }}>
                     <Card.Body style={{ backgroundColor: '#2a2a2a' }}>
                       <div className="step-number">3</div>
-                      <Card.Title>Meet Asha, Your AI Assistant</Card.Title>
-                      <Card.Text>
-                        Simply talk to Asha to find anything in your records, get explanations of medical terms, or conduct health research. Set and track health goals with personalized guidance and support.
-                      </Card.Text>
+                      <Card.Title>Meet Asha, Your Voice Assistant</Card.Title>
+                        <Card.Text>
+                          <ul>
+                            <li>Talk to her to find or explain anything in your records.</li>
+                            <li>She can conduct health research on your behalf.</li>
+                            <li>Use voice to navigate the app!</li>
+                          </ul>                      
+                        </Card.Text>
                     </Card.Body>
                   </Card>
                 </Carousel.Item>
@@ -361,7 +369,10 @@ function LoggedOutHome() {
                       <div className="step-number">4</div>
                       <Card.Title>Log Your Health Journey</Card.Title>
                       <Card.Text>
-                        Asha can also help you keep your health data current by easily updating your medications, tracking vital signs, and recording symptoms.
+                        <ul>
+                          <li>Asha helps keep your health data current by easily updating medications, tracking vitals, and recording symptoms.</li>
+                          <li>She can help set and track health goals with personalized guidance and support.</li>
+                        </ul>
                       </Card.Text>
                     </Card.Body>
                   </Card>
@@ -374,7 +385,10 @@ function LoggedOutHome() {
                       <div className="step-number">5</div>
                       <Card.Title>Secure Data Sharing</Card.Title>
                       <Card.Text>
-                        Share your health information securely with healthcare providers for consultations or second opinions. Control what you share and maintain a complete record of all your medical interactions.
+                        <ul>
+                          <li>Share your health information securely with healthcare providers for consultations or second opinions.</li>
+                          <li>Control what you share and maintain a complete record of all your medical interactions.</li>
+                        </ul>
                       </Card.Text>
                     </Card.Body>
                   </Card>
@@ -387,7 +401,10 @@ function LoggedOutHome() {
                       <div className="step-number">6</div>
                       <Card.Title>Proactive Health Insights</Card.Title>
                       <Card.Text>
-                        Receive personalized health recommendations and preventive care reminders based on your medical history and current health status. Stay informed about your health journey.
+                        <ul>
+                          <li>Receive personalized health recommendations and preventive care reminders based on your medical history and current health status.</li>
+                          <li>Stay informed about your health journey.</li>
+                        </ul>
                       </Card.Text>
                     </Card.Body>
                   </Card>
