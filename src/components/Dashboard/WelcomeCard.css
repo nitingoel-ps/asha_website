@@ -1,0 +1,159 @@
+.welcome-card {
+  background-color: var(--bg-white);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+}
+
+.welcome-header {
+  display: flex;
+  align-items: center;
+  padding: 1.5rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.welcome-message {
+  flex: 1;
+}
+
+.welcome-message h1 {
+  font-size: 1.75rem;
+  margin-bottom: 0.5rem;
+  color: var(--text);
+}
+
+.welcome-message p {
+  color: var(--text-light);
+  margin-bottom: 0;
+}
+
+.health-score-container {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0 1rem;
+  margin-left: 1rem;
+  border-left: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.score-ring {
+  position: relative;
+  width: 80px;
+  height: 80px;
+}
+
+.score-circle {
+  fill: none;
+  stroke-width: 8;
+  stroke-linecap: round;
+  transform: rotate(-90deg);
+  transform-origin: 50% 50%;
+}
+
+.score-background {
+  stroke: rgba(0, 0, 0, 0.08);
+}
+
+.score-value-circle {
+  stroke: var(--primary);
+  stroke-dasharray: 283;
+}
+
+.score-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+
+.score-number {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: var(--primary);
+  line-height: 1;
+}
+
+.score-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.score-label {
+  font-weight: 600;
+  font-size: 1rem;
+  color: var(--text);
+}
+
+.score-description {
+  font-size: 0.85rem;
+  color: var(--text-light);
+  max-width: 180px;
+}
+
+.quick-actions {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 0.5rem;
+  padding: 1.5rem;
+}
+
+.action-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 1rem 0.5rem;
+  background-color: var(--bg-light);
+  border-radius: var(--border-radius);
+  text-decoration: none;
+  color: var(--text);
+  transition: all 0.2s;
+}
+
+.action-card:hover {
+  transform: translateY(-3px);
+  background-color: var(--primary-light);
+  color: var(--text);
+}
+
+.action-icon {
+  font-size: 1.8rem;
+  margin-bottom: 0.5rem;
+  color: var(--primary);
+}
+
+.action-title {
+  font-weight: 500;
+  font-size: 0.85rem;
+}
+
+/* Media Queries */
+@media (max-width: 992px) {
+  .welcome-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .health-score-container {
+    margin-left: 0;
+    padding: 1rem 0 0 0;
+    border-left: none;
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+    margin-top: 1rem;
+    width: 100%;
+  }
+  
+  .quick-actions {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .quick-actions {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+} 

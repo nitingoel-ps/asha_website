@@ -1,0 +1,72 @@
+.upcoming-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.appointment-card {
+  display: flex;
+  background-color: var(--bg-light);
+  border-radius: var(--border-radius);
+  overflow: hidden;
+}
+
+.appointment-date {
+  width: 70px;
+  background-color: var(--primary);
+  color: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem;
+}
+
+.appointment-day {
+  font-size: 1.5rem;
+  font-weight: bold;
+  line-height: 1;
+}
+
+.appointment-month {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+}
+
+.appointment-details {
+  flex: 1;
+  padding: 0.75rem 1rem;
+}
+
+.appointment-type {
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+  color: var(--text);
+}
+
+.appointment-info {
+  display: flex;
+  font-size: 0.85rem;
+  color: var(--text-light);
+  gap: 1rem;
+}
+
+.appointment-doctor, .appointment-time {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.no-appointments {
+  text-align: center;
+  padding: 1.5rem;
+  color: var(--text-light);
+  font-style: italic;
+}
+
+@media (max-width: 576px) {
+  .appointment-info {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+} 
