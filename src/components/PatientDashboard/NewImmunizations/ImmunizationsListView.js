@@ -45,24 +45,20 @@ export function ImmunizationsListView({ groupedImmunizations }) {
           sortedVaccines.map((vaccine) => (
             <Card 
               key={vaccine.id}
-              className="immunization-card mb-3"
+              className="immunization-card"
               onClick={() => handleVaccineClick(vaccine.id)}
             >
               <Card.Body>
                 <div className="d-flex justify-content-between align-items-start">
                   <div>
                     <h5 className="mb-1">{vaccine.name}</h5>
-                    <div className="text-muted mb-2">
+                    <div className="text-muted mb-1">
                       {vaccine.immunization_common_name || '[Common Name Not Available]'}
                     </div>
                     <div className="meta-info">
-                      <div className="d-flex align-items-center gap-2 mb-1">
+                      <div className="d-flex align-items-center gap-2">
                         <Calendar size={16} />
                         <span>Latest dose: {formatDate(vaccine.doses[0].administration_date)}</span>
-                      </div>
-                      <div className="d-flex align-items-center gap-2">
-                        <Hash size={16} />
-                        <span>{vaccine.doses.length} {vaccine.doses.length === 1 ? 'dose' : 'doses'}</span>
                       </div>
                     </div>
                   </div>
