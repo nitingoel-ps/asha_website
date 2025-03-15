@@ -116,18 +116,21 @@ function AlertsCard({ maxItemsPerCategory = 2 }) {
               </div>
               <div className="category-indicators">
                 {medicationCounts.high > 0 && (
-                  <div className="severity-indicator high-severity">
-                    <span>{medicationCounts.high}</span> High
+                  <div className="severity-indicator">
+                    <span className="count-indicator high-indicator"></span>
+                    {medicationCounts.high} High
                   </div>
                 )}
                 {medicationCounts.medium > 0 && (
-                  <div className="severity-indicator medium-severity">
-                    <span>{medicationCounts.medium}</span> Medium
+                  <div className="severity-indicator">
+                    <span className="count-indicator medium-indicator"></span>
+                    {medicationCounts.medium} Medium
                   </div>
                 )}
                 {medicationCounts.low > 0 && (
-                  <div className="severity-indicator low-severity">
-                    <span>{medicationCounts.low}</span> Low
+                  <div className="severity-indicator">
+                    <span className="count-indicator low-indicator"></span>
+                    {medicationCounts.low} Low
                   </div>
                 )}
               </div>
@@ -136,15 +139,13 @@ function AlertsCard({ maxItemsPerCategory = 2 }) {
               <ul className="alert-list">
                 {medicationInteractions.slice(0, maxItemsPerCategory).map(alert => (
                   <li key={alert.id} className="alert-item">
-                    <div className={`alert-icon ${alert.severity}-icon`}>{alert.icon}</div>
+                    <div className={`alert-priority ${alert.severity}-priority`}></div>
+                    <div className={`alert-icon ${
+                      alert.severity === "high" ? "danger-icon" : 
+                      alert.severity === "medium" ? "warning-icon" : "info-icon"
+                    }`}>{alert.icon}</div>
                     <div className="alert-content">
-                      <div className="alert-title">
-                        {alert.title}
-                        <span className={`alert-severity-badge ${alert.severity}-badge`}>
-                          {alert.severity === "high" ? "High" : 
-                           alert.severity === "medium" ? "Medium" : "Low"}
-                        </span>
-                      </div>
+                      <div className="alert-title">{alert.title}</div>
                       <div className="alert-description">{alert.description}</div>
                     </div>
                   </li>
@@ -169,18 +170,21 @@ function AlertsCard({ maxItemsPerCategory = 2 }) {
               </div>
               <div className="category-indicators">
                 {screeningCounts.overdue > 0 && (
-                  <div className="severity-indicator high-severity">
-                    <span>{screeningCounts.overdue}</span> Overdue
+                  <div className="severity-indicator">
+                    <span className="count-indicator high-indicator"></span>
+                    {screeningCounts.overdue} Overdue
                   </div>
                 )}
                 {screeningCounts["due-now"] > 0 && (
-                  <div className="severity-indicator medium-severity">
-                    <span>{screeningCounts["due-now"]}</span> Due Now
+                  <div className="severity-indicator">
+                    <span className="count-indicator medium-indicator"></span>
+                    {screeningCounts["due-now"]} Due Now
                   </div>
                 )}
                 {screeningCounts.upcoming > 0 && (
-                  <div className="severity-indicator low-severity">
-                    <span>{screeningCounts.upcoming}</span> Upcoming
+                  <div className="severity-indicator">
+                    <span className="count-indicator low-indicator"></span>
+                    {screeningCounts.upcoming} Upcoming
                   </div>
                 )}
               </div>
@@ -189,21 +193,16 @@ function AlertsCard({ maxItemsPerCategory = 2 }) {
               <ul className="alert-list">
                 {recommendedScreenings.slice(0, maxItemsPerCategory).map(alert => (
                   <li key={alert.id} className="alert-item">
+                    <div className={`alert-priority ${
+                      alert.severity === "overdue" ? "high-priority" : 
+                      alert.severity === "due-now" ? "medium-priority" : "low-priority"
+                    }`}></div>
                     <div className={`alert-icon ${
                       alert.severity === "overdue" ? "danger-icon" : 
                       alert.severity === "due-now" ? "warning-icon" : "info-icon"
                     }`}>{alert.icon}</div>
                     <div className="alert-content">
-                      <div className="alert-title">
-                        {alert.title}
-                        <span className={`alert-severity-badge ${
-                          alert.severity === "overdue" ? "high-badge" : 
-                          alert.severity === "due-now" ? "medium-badge" : "low-badge"
-                        }`}>
-                          {alert.severity === "overdue" ? "Overdue" : 
-                           alert.severity === "due-now" ? "Due Now" : "Upcoming"}
-                        </span>
-                      </div>
+                      <div className="alert-title">{alert.title}</div>
                       <div className="alert-description">{alert.description}</div>
                     </div>
                   </li>
@@ -228,13 +227,15 @@ function AlertsCard({ maxItemsPerCategory = 2 }) {
               </div>
               <div className="category-indicators">
                 {prescriptionCounts["due-soon"] > 0 && (
-                  <div className="severity-indicator medium-severity">
-                    <span>{prescriptionCounts["due-soon"]}</span> Due Soon
+                  <div className="severity-indicator">
+                    <span className="count-indicator medium-indicator"></span>
+                    {prescriptionCounts["due-soon"]} Due Soon
                   </div>
                 )}
                 {prescriptionCounts.upcoming > 0 && (
-                  <div className="severity-indicator low-severity">
-                    <span>{prescriptionCounts.upcoming}</span> Upcoming
+                  <div className="severity-indicator">
+                    <span className="count-indicator low-indicator"></span>
+                    {prescriptionCounts.upcoming} Upcoming
                   </div>
                 )}
               </div>
@@ -243,18 +244,14 @@ function AlertsCard({ maxItemsPerCategory = 2 }) {
               <ul className="alert-list">
                 {prescriptionRefills.slice(0, maxItemsPerCategory).map(alert => (
                   <li key={alert.id} className="alert-item">
+                    <div className={`alert-priority ${
+                      alert.severity === "due-soon" ? "medium-priority" : "low-priority"
+                    }`}></div>
                     <div className={`alert-icon ${
                       alert.severity === "due-soon" ? "warning-icon" : "info-icon"
                     }`}>{alert.icon}</div>
                     <div className="alert-content">
-                      <div className="alert-title">
-                        {alert.title}
-                        <span className={`alert-severity-badge ${
-                          alert.severity === "due-soon" ? "medium-badge" : "low-badge"
-                        }`}>
-                          {alert.severity === "due-soon" ? "Due Soon" : "Upcoming"}
-                        </span>
-                      </div>
+                      <div className="alert-title">{alert.title}</div>
                       <div className="alert-description">{alert.description}</div>
                     </div>
                   </li>
