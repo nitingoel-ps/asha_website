@@ -241,12 +241,6 @@ function PatientDashboard() {
         <FileText size={16} /> Medical Reports
       </div>
       <div 
-        className={`nav-item ${activeTab === "charts" ? "active" : ""}`} 
-        onClick={() => handleTabChange("charts")}
-      >
-        <Clipboard size={16} /> Key Lab Results
-      </div>
-      <div 
         className={`nav-item ${activeTab === "lab-panels" ? "active" : ""}`} 
         onClick={() => handleTabChange("lab-panels")}
       >
@@ -318,7 +312,6 @@ function PatientDashboard() {
                     <MedicalReportsTab diagnosticReports={patientData?.diagnostic_reports} />
                 } 
               />
-              <Route path="charts" element={<ChartsTab chartData={patientData?.important_charts} />} />
               <Route 
                 path="med/*" 
                 element={

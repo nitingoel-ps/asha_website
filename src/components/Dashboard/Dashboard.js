@@ -20,6 +20,9 @@ function Dashboard() {
         
         {/* Dashboard Grid */}
         <div className="dashboard-grid">
+          {/* Key Vitals Card */}
+          <VitalsCard />
+
           {/* Upcoming Appointments Card - Full Width */}
           <div className="dashboard-grid-3x1">
             <AppointmentsCard />
@@ -30,8 +33,6 @@ function Dashboard() {
             <AlertsCard />
           </div>
           
-          {/* Key Vitals Card */}
-          <VitalsCard />
           
           {/* Key Lab Results Card */}
           <LabResultsCard />

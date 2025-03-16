@@ -49,25 +49,29 @@ function AppointmentsPage() {
     })
     .sort((a, b) => new Date(b.start_time) - new Date(a.start_time)); // Most recent first
 
-  // Format date from ISO string to readable format
-  const formatDate = (dateString) => {
-    const options = { 
-      weekday: 'long', 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
-    };
-    return new Date(dateString).toLocaleDateString('en-US', options);
+  // Format date for the date box
+  const formatDateBox = (dateString) => {
+    const date = new Date(dateString);
+    const day = date.getDate();
+    const month = date.toLocaleString('default', { month: 'short' }).toUpperCase();
+    return { day, month };
   };
 
-  // Format time from ISO string to AM/PM format
-  const formatTime = (dateString) => {
+  // Format full date and time for the details
+  const formatFullDateTime = (dateString) => {
     const date = new Date(dateString);
-    return date.toLocaleString('en-US', { 
-      hour: 'numeric', 
-      minute: '2-digit', 
-      hour12: true 
+    const fullDate = date.toLocaleDateString('en-US', { 
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
     });
+    const time = date.toLocaleString('en-US', { 
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
+    return { fullDate, time };
   };
 
   // Get status badge color
@@ -120,41 +124,48 @@ function AppointmentsPage() {
           <Tab eventKey="upcoming" title={`Upcoming (${upcomingAppointments.length})`}>
             {upcomingAppointments.length > 0 ? (
               <div className="appointments-list">
-                {upcomingAppointments.map(appointment => (
-                  <div key={appointment.id} className="appointment-item" onClick={() => navigate(`/appointments/${appointment.id}`)}>
-                    <Row>
-                      <Col md={3}>
-                        <div className="appointment-date">
-                          <div className="date">{formatDate(appointment.start_time)}</div>
-                          <div className="time">{formatTime(appointment.start_time)}</div>
-                        </div>
-                      </Col>
-                      <Col md={7}>
-                        <div className="appointment-details">
-                          <h4>{appointment.title || appointment.appointment_type}</h4>
-                          <div className="provider">
-                            {appointment.participant_name || appointment.provider?.name || "Provider not specified"}
+                {upcomingAppointments.map(appointment => {
+                  const boxDate = formatDateBox(appointment.start_time);
+                  const { fullDate, time } = formatFullDateTime(appointment.start_time);
+                  return (
+                    <div key={appointment.id} className="appointment-item" onClick={() => navigate(`/appointments/${appointment.id}`)}>
+                      <Row className="align-items-center">
+                        <Col lg={2} md={3}>
+                          <div className="appointment-date">
+                            <div className="date">{boxDate.day}</div>
+                            <div className="month">{boxDate.month}</div>
                           </div>
-                          {appointment.location_name && (
-                            <div className="location">
-                              <i className="bi bi-geo-alt"></i> {appointment.location_name}
+                        </Col>
+                        <Col lg={8} md={7}>
+                          <div className="appointment-details">
+                            <h4>{appointment.title || appointment.appointment_type}</h4>
+                            <div className="provider">
+                              {appointment.participant_name || appointment.provider?.name || "Provider not specified"}
                             </div>
-                          )}
-                          {appointment.is_virtual && (
-                            <div className="virtual-badge">
-                              <i className="bi bi-camera-video"></i> Virtual Appointment
+                            <div className="datetime text-muted">
+                              {fullDate} at {time}
                             </div>
-                          )}
-                        </div>
-                      </Col>
-                      <Col md={2} className="d-flex align-items-center justify-content-end">
-                        <Badge bg={getStatusBadgeVariant(appointment.status)}>
-                          {formatStatus(appointment.status)}
-                        </Badge>
-                      </Col>
-                    </Row>
-                  </div>
-                ))}
+                            {appointment.location_name && (
+                              <div className="location">
+                                <i className="bi bi-geo-alt"></i> {appointment.location_name}
+                              </div>
+                            )}
+                            {appointment.is_virtual && (
+                              <div className="virtual-badge">
+                                <i className="bi bi-camera-video"></i> Virtual Appointment
+                              </div>
+                            )}
+                          </div>
+                        </Col>
+                        <Col lg={2} md={2} className="text-end">
+                          <Badge bg={getStatusBadgeVariant(appointment.status)} className="status-badge">
+                            {formatStatus(appointment.status)}
+                          </Badge>
+                        </Col>
+                      </Row>
+                    </div>
+                  );
+                })}
               </div>
             ) : (
               <div className="no-appointments text-center p-5">
@@ -171,36 +182,48 @@ function AppointmentsPage() {
           <Tab eventKey="past" title={`Past (${pastAppointments.length})`}>
             {pastAppointments.length > 0 ? (
               <div className="appointments-list">
-                {pastAppointments.map(appointment => (
-                  <div key={appointment.id} className="appointment-item" onClick={() => navigate(`/appointments/${appointment.id}`)}>
-                    <Row>
-                      <Col md={3}>
-                        <div className="appointment-date">
-                          <div className="date">{formatDate(appointment.start_time)}</div>
-                          <div className="time">{formatTime(appointment.start_time)}</div>
-                        </div>
-                      </Col>
-                      <Col md={7}>
-                        <div className="appointment-details">
-                          <h4>{appointment.title || appointment.appointment_type}</h4>
-                          <div className="provider">
-                            {appointment.participant_name || appointment.provider?.name || "Provider not specified"}
+                {pastAppointments.map(appointment => {
+                  const boxDate = formatDateBox(appointment.start_time);
+                  const { fullDate, time } = formatFullDateTime(appointment.start_time);
+                  return (
+                    <div key={appointment.id} className="appointment-item" onClick={() => navigate(`/appointments/${appointment.id}`)}>
+                      <Row className="align-items-center">
+                        <Col lg={2} md={3}>
+                          <div className="appointment-date">
+                            <div className="date">{boxDate.day}</div>
+                            <div className="month">{boxDate.month}</div>
                           </div>
-                          {appointment.location_name && (
-                            <div className="location">
-                              <i className="bi bi-geo-alt"></i> {appointment.location_name}
+                        </Col>
+                        <Col lg={8} md={7}>
+                          <div className="appointment-details">
+                            <h4>{appointment.title || appointment.appointment_type}</h4>
+                            <div className="provider">
+                              {appointment.participant_name || appointment.provider?.name || "Provider not specified"}
                             </div>
-                          )}
-                        </div>
-                      </Col>
-                      <Col md={2} className="d-flex align-items-center justify-content-end">
-                        <Badge bg={getStatusBadgeVariant(appointment.status)}>
-                          {formatStatus(appointment.status)}
-                        </Badge>
-                      </Col>
-                    </Row>
-                  </div>
-                ))}
+                            <div className="datetime text-muted">
+                              {fullDate} at {time}
+                            </div>
+                            {appointment.location_name && (
+                              <div className="location">
+                                <i className="bi bi-geo-alt"></i> {appointment.location_name}
+                              </div>
+                            )}
+                            {appointment.is_virtual && (
+                              <div className="virtual-badge">
+                                <i className="bi bi-camera-video"></i> Virtual Appointment
+                              </div>
+                            )}
+                          </div>
+                        </Col>
+                        <Col lg={2} md={2} className="text-end">
+                          <Badge bg={getStatusBadgeVariant(appointment.status)} className="status-badge">
+                            {formatStatus(appointment.status)}
+                          </Badge>
+                        </Col>
+                      </Row>
+                    </div>
+                  );
+                })}
               </div>
             ) : (
               <div className="no-appointments text-center p-5">

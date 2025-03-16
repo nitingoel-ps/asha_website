@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { Container, Row, Col, Card, Button, Spinner, Badge, Alert } from "react-bootstrap";
+import { Container, Row, Col, Card, Button, Spinner, Badge, Alert, Form } from "react-bootstrap";
 import { useParams, useNavigate } from "react-router-dom";
-import { fetchAppointmentById, updateAppointmentStatus } from "../../utils/appointmentsService";
+import { fetchAppointmentById, updateAppointment, updateAppointmentStatus } from "../../utils/appointmentsService";
 import "./AppointmentDetail.css";
 
 function AppointmentDetail() {
@@ -9,8 +9,10 @@ function AppointmentDetail() {
   const [appointment, setAppointment] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [statusUpdateLoading, setStatusUpdateLoading] = useState(false);
-  const [statusUpdateSuccess, setStatusUpdateSuccess] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editData, setEditData] = useState(null);
+  const [saving, setSaving] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -19,6 +21,7 @@ function AppointmentDetail() {
         setLoading(true);
         const data = await fetchAppointmentById(appointmentId);
         setAppointment(data);
+        setEditData(data);
       } catch (err) {
         console.error("Error fetching appointment details:", err);
         setError("Failed to load appointment details. Please try again later.");
@@ -30,23 +33,43 @@ function AppointmentDetail() {
     getAppointmentDetails();
   }, [appointmentId]);
 
-  const handleStatusUpdate = async (newStatus) => {
+  const handleEdit = async (e) => {
+    e.preventDefault();
     try {
-      setStatusUpdateLoading(true);
-      const updatedAppointment = await updateAppointmentStatus(appointmentId, newStatus);
-      setAppointment(updatedAppointment);
-      setStatusUpdateSuccess(true);
-      
-      // Clear success message after 3 seconds
-      setTimeout(() => {
-        setStatusUpdateSuccess(false);
-      }, 3000);
+      setSaving(true);
+      const response = await updateAppointment(appointmentId, editData);
+      if (response.appointment) {
+        setAppointment(response.appointment);
+        setEditData(response.appointment);
+        setIsEditing(false);
+        setSuccessMessage("Appointment updated successfully!");
+        
+        setTimeout(() => {
+          setSuccessMessage("");
+        }, 3000);
+      } else {
+        throw new Error("Invalid response format");
+      }
     } catch (err) {
-      console.error("Error updating appointment status:", err);
-      setError("Failed to update appointment status. Please try again later.");
+      console.error("Error updating appointment:", err);
+      setError("Failed to update appointment. Please try again.");
     } finally {
-      setStatusUpdateLoading(false);
+      setSaving(false);
     }
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setEditData(prev => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value
+    }));
+  };
+
+  const handleCancel = () => {
+    setEditData(appointment);
+    setIsEditing(false);
+    setError(null);
   };
 
   // Format date from ISO string to readable format
@@ -126,6 +149,47 @@ function AppointmentDetail() {
            appointment.status !== 'noshow';
   };
 
+  const renderField = (label, value, fieldName, type = "text", required = false) => {
+    if (isEditing || value) {
+      return (
+        <Form.Group className="mb-3">
+          <Form.Label>{label}{required && "*"}</Form.Label>
+          {isEditing ? (
+            type === "textarea" ? (
+              <Form.Control
+                as="textarea"
+                rows={4}
+                name={fieldName}
+                value={editData[fieldName] || ""}
+                onChange={handleInputChange}
+                required={required}
+              />
+            ) : type === "checkbox" ? (
+              <Form.Check
+                type="checkbox"
+                name={fieldName}
+                label={label}
+                checked={editData[fieldName] || false}
+                onChange={handleInputChange}
+              />
+            ) : (
+              <Form.Control
+                type={type}
+                name={fieldName}
+                value={editData[fieldName] || ""}
+                onChange={handleInputChange}
+                required={required}
+              />
+            )
+          ) : (
+            <p className="mb-0">{value}</p>
+          )}
+        </Form.Group>
+      );
+    }
+    return null;
+  };
+
   return (
     <Container className="appointment-detail-page py-4">
       <div className="d-flex align-items-center mb-4">
@@ -137,6 +201,39 @@ function AppointmentDetail() {
           ← Back to Appointments
         </Button>
         <h1>Appointment Details</h1>
+        {!isEditing ? (
+          <Button 
+            variant="outline-primary"
+            className="ms-auto"
+            onClick={() => setIsEditing(true)}
+          >
+            Edit Appointment
+          </Button>
+        ) : (
+          <div className="ms-auto">
+            <Button 
+              variant="outline-secondary"
+              className="me-2"
+              onClick={handleCancel}
+            >
+              Cancel
+            </Button>
+            <Button 
+              variant="primary"
+              onClick={handleEdit}
+              disabled={saving}
+            >
+              {saving ? (
+                <>
+                  <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" />
+                  <span className="ms-2">Saving...</span>
+                </>
+              ) : (
+                'Save Changes'
+              )}
+            </Button>
+          </div>
+        )}
       </div>
 
       {loading ? (
@@ -148,153 +245,104 @@ function AppointmentDetail() {
       ) : error ? (
         <Alert variant="danger">{error}</Alert>
       ) : appointment ? (
-        <>
-          {statusUpdateSuccess && (
+        <Form onSubmit={handleEdit}>
+          {successMessage && (
             <Alert variant="success" className="mb-4">
-              Appointment status updated successfully.
+              {successMessage}
             </Alert>
           )}
 
-          <Card className="appointment-card mb-4">
-            <Card.Body>
-              <Row>
-                <Col md={8}>
-                  <h2 className="appointment-title">
-                    {appointment.title || appointment.appointment_type || "Appointment"}
-                  </h2>
-                  <div className="appointment-meta">
-                    <div className="appointment-provider">
-                      <span className="label">Provider:</span> 
-                      {appointment.participant_name || appointment.provider?.name || "Not specified"}
-                    </div>
-                    <div className="appointment-datetime">
-                      <span className="label">Date & Time:</span> 
-                      {formatDate(appointment.start_time)} at {formatTime(appointment.start_time)}
-                    </div>
-                    {appointment.duration_minutes && (
-                      <div className="appointment-duration">
-                        <span className="label">Duration:</span> 
-                        {appointment.duration_minutes} minutes
-                      </div>
-                    )}
-                    {appointment.end_time && !appointment.duration_minutes && (
-                      <div className="appointment-duration">
-                        <span className="label">Duration:</span> 
-                        {calculateDuration(appointment.start_time, appointment.end_time)}
-                      </div>
-                    )}
+          <Row>
+            <Col md={8}>
+              <Card className="mb-4">
+                <Card.Header>
+                  <h5 className="mb-0">Basic Information</h5>
+                </Card.Header>
+                <Card.Body>
+                  {renderField("Title", appointment.title, "title", "text", true)}
+                  {renderField("Provider Name", appointment.participant_name, "participant_name", "text", true)}
+                  <div className="appointment-datetime">
+                    <span className="label">Date & Time:</span> 
+                    {formatDate(appointment.start_time)} at {formatTime(appointment.start_time)}
                   </div>
-                </Col>
-                <Col md={4} className="text-md-end">
-                  <Badge bg={getStatusBadgeVariant(appointment.status)} className="status-badge">
-                    {formatStatus(appointment.status)}
-                  </Badge>
-                  
-                  {canBeCancelled(appointment) && (
-                    <div className="mt-3">
-                      <Button 
-                        variant="outline-danger" 
-                        size="sm"
-                        disabled={statusUpdateLoading}
-                        onClick={() => handleStatusUpdate('cancelled')}
-                      >
-                        {statusUpdateLoading ? (
-                          <>
-                            <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" />
-                            <span className="ms-2">Cancelling...</span>
-                          </>
-                        ) : (
-                          'Cancel Appointment'
-                        )}
-                      </Button>
+                  {appointment.duration_minutes && (
+                    <div className="appointment-duration mt-2">
+                      <span className="label">Duration:</span> 
+                      {appointment.duration_minutes} minutes
                     </div>
                   )}
-                </Col>
-              </Row>
-            </Card.Body>
-          </Card>
+                  {renderField("Reason for Visit", appointment.reason, "reason")}
+                  {renderField("Virtual Appointment", appointment.is_virtual, "is_virtual", "checkbox")}
+                </Card.Body>
+              </Card>
 
-          <Row>
-            <Col md={6}>
-              <Card className="mb-4 mb-md-0">
-                <Card.Header>Location Information</Card.Header>
+              <Card className="mb-4">
+                <Card.Header>
+                  <h5 className="mb-0">Discussion Topics</h5>
+                </Card.Header>
                 <Card.Body>
-                  {appointment.is_virtual ? (
-                    <div className="virtual-appointment">
-                      <div className="virtual-badge mb-3">
-                        <i className="bi bi-camera-video"></i> Virtual Appointment
-                      </div>
-                      
-                      {appointment.virtual_meeting_url ? (
-                        <div className="meeting-link">
-                          <div className="mb-2">Meeting Link:</div>
-                          <a href={appointment.virtual_meeting_url} target="_blank" rel="noopener noreferrer" className="btn btn-primary">
-                            Join Meeting
-                          </a>
+                  {isEditing ? (
+                    <Form.Group>
+                      <Form.Control
+                        as="textarea"
+                        rows={4}
+                        name="comments"
+                        value={editData.comments || ""}
+                        onChange={handleInputChange}
+                        placeholder="List any topics, questions, or concerns you want to discuss during the appointment..."
+                      />
+                    </Form.Group>
+                  ) : appointment.comments ? (
+                    <div className="topics-list">
+                      {appointment.comments.split('\n').map((topic, index) => (
+                        <div key={index} className="topic-item">
+                          {topic}
                         </div>
-                      ) : (
-                        <p>Meeting link will be provided closer to the appointment time.</p>
-                      )}
-                    </div>
-                  ) : appointment.location_name ? (
-                    <div className="physical-location">
-                      <div className="location-name mb-2">{appointment.location_name}</div>
-                      {appointment.location_address && (
-                        <div className="location-address mb-2">{appointment.location_address}</div>
-                      )}
-                      {appointment.location_phone && (
-                        <div className="location-phone">
-                          <span className="label">Phone:</span> {appointment.location_phone}
-                        </div>
-                      )}
+                      ))}
                     </div>
                   ) : (
-                    <p className="text-muted">No location information available.</p>
+                    <p className="text-muted">No discussion topics added yet. Click 'Edit Appointment' to add topics to discuss.</p>
                   )}
                 </Card.Body>
               </Card>
             </Col>
-            
-            <Col md={6}>
-              <Card>
-                <Card.Header>Additional Information</Card.Header>
+
+            <Col md={4}>
+              <Card className="mb-4">
+                <Card.Header>
+                  <h5 className="mb-0">Status</h5>
+                </Card.Header>
                 <Card.Body>
-                  {appointment.description && (
-                    <div className="appointment-description mb-3">
-                      <div className="label mb-1">Description:</div>
-                      <p>{appointment.description}</p>
-                    </div>
-                  )}
-                  
-                  {appointment.reason && (
-                    <div className="appointment-reason mb-3">
-                      <div className="label mb-1">Reason:</div>
-                      <p>{appointment.reason}</p>
-                    </div>
-                  )}
-                  
-                  {appointment.comments && (
-                    <div className="appointment-comments mb-3">
-                      <div className="label mb-1">Comments:</div>
-                      <p>{appointment.comments}</p>
-                    </div>
-                  )}
-                  
-                  {appointment.specialty && (
-                    <div className="appointment-specialty mb-3">
-                      <div className="label mb-1">Specialty:</div>
-                      <p>{appointment.specialty}</p>
-                    </div>
-                  )}
-                  
-                  {!appointment.description && !appointment.reason && !appointment.comments && !appointment.specialty && (
-                    <p className="text-muted">No additional information available.</p>
+                  <Badge bg={getStatusBadgeVariant(appointment.status)} className="status-badge">
+                    {formatStatus(appointment.status)}
+                  </Badge>
+                </Card.Body>
+              </Card>
+
+              <Card>
+                <Card.Header>
+                  <h5 className="mb-0">Location Information</h5>
+                </Card.Header>
+                <Card.Body>
+                  {editData?.is_virtual ? (
+                    <>
+                      <div className="virtual-badge mb-3">
+                        <i className="bi bi-camera-video"></i> Virtual Appointment
+                      </div>
+                      {renderField("Meeting URL", appointment.virtual_meeting_url, "virtual_meeting_url", "url")}
+                    </>
+                  ) : (
+                    <>
+                      {renderField("Location Name", appointment.location_name, "location_name")}
+                      {renderField("Location Phone", appointment.location_phone, "location_phone", "tel")}
+                      {renderField("Address", appointment.location_address, "location_address", "textarea")}
+                    </>
                   )}
                 </Card.Body>
               </Card>
             </Col>
           </Row>
-        </>
+        </Form>
       ) : (
         <Alert variant="warning">Appointment not found.</Alert>
       )}

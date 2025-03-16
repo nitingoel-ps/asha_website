@@ -1,10 +1,46 @@
 .appointments-page h1 {
-  font-size: 1.8rem;
+  font-size: 2rem;
   font-weight: 600;
   color: var(--text);
-  margin-bottom: 0;
+  margin: 0;
 }
 
+/* Tabs styling */
+.nav-tabs {
+  border-bottom: 2px solid var(--border-color);
+  margin-bottom: 2rem;
+}
+
+.nav-tabs .nav-link {
+  color: var(--text-light);
+  border: none;
+  padding: 0.75rem 1.5rem;
+  font-weight: 500;
+  position: relative;
+}
+
+.nav-tabs .nav-link:hover {
+  border: none;
+  color: var(--primary);
+}
+
+.nav-tabs .nav-link.active {
+  color: var(--primary);
+  background: none;
+  border: none;
+}
+
+.nav-tabs .nav-link.active::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background-color: var(--primary);
+}
+
+/* Appointments list styling */
 .appointments-list {
   display: flex;
   flex-direction: column;
@@ -12,86 +48,144 @@
 }
 
 .appointment-item {
-  background-color: var(--bg-light);
+  background: white;
+  border: 1px solid var(--border-color);
   border-radius: var(--border-radius);
   padding: 1.25rem;
   transition: all 0.2s ease;
   cursor: pointer;
-  border: 1px solid var(--border-color);
 }
 
 .appointment-item:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   transform: translateY(-2px);
 }
 
+/* Date styling to match dashboard */
 .appointment-date {
+  width: 70px;
+  height: 70px;
+  background-color: var(--primary);
+  color: white;
   display: flex;
   flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  margin: 0;
 }
 
 .appointment-date .date {
-  font-weight: 500;
-  color: var(--text);
-  margin-bottom: 0.25rem;
+  font-size: 1.75rem;
+  font-weight: bold;
+  line-height: 1;
+  margin: 0;
+  color: white;
 }
 
-.appointment-date .time {
-  color: var(--primary);
-  font-weight: 600;
+.appointment-date .month {
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  margin-top: 0.25rem;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.datetime {
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+}
+
+.appointment-details {
+  padding-left: 1rem;
 }
 
 .appointment-details h4 {
-  font-size: 1.1rem;
+  font-size: 1.2rem;
   font-weight: 600;
-  margin-bottom: 0.5rem;
   color: var(--text);
+  margin-bottom: 0.5rem;
 }
 
 .appointment-details .provider {
   color: var(--text-light);
   margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
-.appointment-details .location,
-.appointment-details .virtual-badge {
-  font-size: 0.85rem;
+.appointment-details .provider::before {
+  content: '👨‍⚕️';
+}
+
+.appointment-details .location {
   color: var(--text-light);
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.virtual-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: rgba(var(--primary-rgb), 0.1);
+  color: var(--primary);
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--border-radius);
+  font-size: 0.9rem;
   margin-top: 0.5rem;
 }
 
-.appointment-details .virtual-badge {
-  color: var(--primary);
-  font-weight: 500;
+.status-badge {
+  font-size: 0.85rem;
+  padding: 0.5rem 0.75rem;
 }
 
+/* Empty state styling */
 .no-appointments {
-  background-color: var(--bg-light);
+  background: var(--bg-light);
   border-radius: var(--border-radius);
-  padding: 2rem;
-  text-align: center;
-  color: var(--text-light);
 }
 
 .no-appointments p {
+  color: var(--text-light);
+  margin: 0;
   font-size: 1.1rem;
-  margin-bottom: 1.5rem;
 }
 
 /* Responsive styles */
 @media (max-width: 768px) {
+  .appointments-page h1 {
+    font-size: 1.75rem;
+  }
+
   .appointment-item {
     padding: 1rem;
   }
-  
+
   .appointment-date {
+    width: 60px;
+    padding: 0.5rem;
     margin-bottom: 1rem;
   }
-  
-  .appointment-details h4 {
-    font-size: 1rem;
+
+  .appointment-date .date {
+    font-size: 1.25rem;
+  }
+
+  .appointment-details {
+    padding-left: 0;
+  }
+
+  .appointment-status {
+    margin-top: 1rem;
+    text-align: left !important;
+  }
+
+  .nav-tabs .nav-link {
+    padding: 0.5rem 1rem;
   }
 } 
