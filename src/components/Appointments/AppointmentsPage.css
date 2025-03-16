@@ -1,0 +1,97 @@
+.appointments-page h1 {
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 0;
+}
+
+.appointments-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.appointment-item {
+  background-color: var(--bg-light);
+  border-radius: var(--border-radius);
+  padding: 1.25rem;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  border: 1px solid var(--border-color);
+}
+
+.appointment-item:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+}
+
+.appointment-date {
+  display: flex;
+  flex-direction: column;
+}
+
+.appointment-date .date {
+  font-weight: 500;
+  color: var(--text);
+  margin-bottom: 0.25rem;
+}
+
+.appointment-date .time {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.appointment-details h4 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: var(--text);
+}
+
+.appointment-details .provider {
+  color: var(--text-light);
+  margin-bottom: 0.5rem;
+}
+
+.appointment-details .location,
+.appointment-details .virtual-badge {
+  font-size: 0.85rem;
+  color: var(--text-light);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.appointment-details .virtual-badge {
+  color: var(--primary);
+  font-weight: 500;
+}
+
+.no-appointments {
+  background-color: var(--bg-light);
+  border-radius: var(--border-radius);
+  padding: 2rem;
+  text-align: center;
+  color: var(--text-light);
+}
+
+.no-appointments p {
+  font-size: 1.1rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+  .appointment-item {
+    padding: 1rem;
+  }
+  
+  .appointment-date {
+    margin-bottom: 1rem;
+  }
+  
+  .appointment-details h4 {
+    font-size: 1rem;
+  }
+} 

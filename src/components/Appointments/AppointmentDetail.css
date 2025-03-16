@@ -1,0 +1,93 @@
+.appointment-detail-page h1 {
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 0;
+}
+
+.back-button {
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.back-button:hover {
+  text-decoration: underline;
+}
+
+.appointment-card {
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.appointment-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 1rem;
+}
+
+.appointment-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  color: var(--text-light);
+}
+
+.appointment-meta .label {
+  font-weight: 600;
+  color: var(--text);
+  margin-right: 0.5rem;
+}
+
+.status-badge {
+  font-size: 0.9rem;
+  padding: 0.5rem 0.75rem;
+}
+
+.virtual-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: rgba(var(--primary-rgb), 0.1);
+  color: var(--primary);
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--border-radius);
+  font-weight: 500;
+}
+
+.location-name {
+  font-weight: 600;
+  font-size: 1.1rem;
+  color: var(--text);
+}
+
+.location-address {
+  color: var(--text-light);
+  white-space: pre-line;
+}
+
+.location-phone {
+  color: var(--text-light);
+}
+
+.label {
+  font-weight: 600;
+  color: var(--text);
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+  .appointment-title {
+    font-size: 1.3rem;
+  }
+  
+  .appointment-meta {
+    margin-bottom: 1.5rem;
+  }
+  
+  .status-badge {
+    margin-bottom: 1rem;
+  }
+} 

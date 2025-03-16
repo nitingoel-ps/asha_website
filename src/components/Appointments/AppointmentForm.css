@@ -1,0 +1,53 @@
+.appointment-form-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem 0;
+}
+
+.appointment-form-container h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text);
+  margin: 0;
+}
+
+.form-section-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.virtual-appointment-section,
+.physical-location-section {
+  background-color: var(--bg-light);
+  padding: 1.5rem;
+  border-radius: var(--border-radius);
+  border: 1px solid var(--border-color);
+}
+
+/* Style for required field labels */
+.form-label:after {
+  content: "*";
+  color: var(--danger);
+  margin-left: 0.25rem;
+}
+
+/* Remove asterisk from non-required fields */
+.form-label:not([for="title"]):not([for="participant_name"]):not([for="start_time"]):not([for="duration_minutes"]):after {
+  content: "";
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+  .appointment-form-container {
+    padding: 1rem 0;
+  }
+  
+  .virtual-appointment-section,
+  .physical-location-section {
+    padding: 1rem;
+  }
+} 

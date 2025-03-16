@@ -21,6 +21,7 @@ import AIChat from './components/AIChat/AIChat';
 import AddHealthData from './components/Health/AddHealthData';
 import LoadingSpinner from './components/LoadingSpinner';
 import AIVoice from './components/AIVoice/AIVoice';
+import Appointments from './components/Appointments/Appointments';
 
 import './theme.css';
 
@@ -104,6 +105,14 @@ function AppContent() {
           element={
             <PrivateRoute>
               <AddHealthData />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/appointments/*"
+          element={
+            <PrivateRoute>
+              <Appointments />
             </PrivateRoute>
           }
         />
