@@ -1,39 +1,50 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import axiosInstance from "../../utils/axiosInstance";
 import "./AlertsCard.css";
 
 function AlertsCard({ maxItemsPerCategory = 2 }) {
-  // Mock data for medication interactions
-  const medicationInteractions = [
-    {
-      id: 1,
-      severity: "high",
-      icon: "⚠️",
-      title: "Lisinopril and Potassium Supplements",
-      description: "This combination may lead to high potassium levels (hyperkalemia), which can cause serious heart rhythm problems."
-    },
-    {
-      id: 2,
-      severity: "medium",
-      icon: "⚠️",
-      title: "Simvastatin and Grapefruit Juice",
-      description: "Grapefruit juice can increase the level of simvastatin in your bloodstream, potentially leading to side effects."
-    },
-    {
-      id: 3,
-      severity: "high",
-      icon: "⚠️",
-      title: "Warfarin and Aspirin",
-      description: "This combination increases your risk of bleeding. Consult your doctor immediately."
-    },
-    {
-      id: 4,
-      severity: "low",
-      icon: "⚠️",
-      title: "Metformin and Vitamin B12",
-      description: "Long-term use of metformin may reduce vitamin B12 absorption. Consider supplementation."
-    }
-  ];
+  const [medicationInteractions, setMedicationInteractions] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [showAllMedications, setShowAllMedications] = useState(false);
+
+  // Define severity order for sorting
+  const severityOrder = {
+    high: 0,
+    medium: 1,
+    low: 2
+  };
+
+  useEffect(() => {
+    const fetchMedicationInteractions = async () => {
+      try {
+        setIsLoading(true);
+        const response = await axiosInstance.get('/medication-review/');
+        const transformedData = response.data.notifications.map((item, index) => ({
+          id: index + 1,
+          severity: item.severity,
+          icon: "⚠️",
+          title: `${item.medication.charAt(0).toUpperCase() + item.medication.slice(1)} Interaction`,
+          description: `${item.notification} ${item.recommendation}`
+        }));
+        
+        // Sort the data by severity
+        const sortedData = [...transformedData].sort((a, b) => 
+          severityOrder[a.severity] - severityOrder[b.severity]
+        );
+        
+        setMedicationInteractions(sortedData);
+      } catch (err) {
+        setError('Failed to fetch medication interactions');
+        console.error('Error fetching medication interactions:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchMedicationInteractions();
+  }, []);
 
   // Mock data for recommended screenings
   const recommendedScreenings = [
@@ -62,6 +73,7 @@ function AlertsCard({ maxItemsPerCategory = 2 }) {
 
   // Mock data for prescription refills
   const prescriptionRefills = [
+  /*
     {
       id: 1,
       severity: "due-soon",
@@ -83,6 +95,7 @@ function AlertsCard({ maxItemsPerCategory = 2 }) {
       title: "Metformin 500mg",
       description: "15 days of medication remaining. Refill is due on March 29, 2025."
     }
+    */
   ];
 
   // Helper function to count severity levels
@@ -136,28 +149,42 @@ function AlertsCard({ maxItemsPerCategory = 2 }) {
               </div>
             </div>
             <div className="category-content">
-              <ul className="alert-list">
-                {medicationInteractions.slice(0, maxItemsPerCategory).map(alert => (
-                  <li key={alert.id} className="alert-item">
-                    <div className={`alert-priority ${alert.severity}-priority`}></div>
-                    <div className={`alert-icon ${
-                      alert.severity === "high" ? "danger-icon" : 
-                      alert.severity === "medium" ? "warning-icon" : "info-icon"
-                    }`}>{alert.icon}</div>
-                    <div className="alert-content">
-                      <div className="alert-title">{alert.title}</div>
-                      <div className="alert-description">{alert.description}</div>
-                    </div>
-                  </li>
-                ))}
-              </ul>
+              {isLoading ? (
+                <div className="loading-state">Loading medication interactions...</div>
+              ) : error ? (
+                <div className="error-state">{error}</div>
+              ) : (
+                <ul className="alert-list">
+                  {medicationInteractions.slice(0, showAllMedications ? undefined : maxItemsPerCategory).map(alert => (
+                    <li key={alert.id} className="alert-item">
+                      <div className={`alert-priority ${alert.severity}-priority`}></div>
+                      <div className={`alert-icon ${
+                        alert.severity === "high" ? "danger-icon" : 
+                        alert.severity === "medium" ? "warning-icon" : "info-icon"
+                      }`}>{alert.icon}</div>
+                      <div className="alert-content">
+                        <div className="alert-title">{alert.title}</div>
+                        <div className="alert-description">{alert.description}</div>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
-            {medicationInteractions.length > maxItemsPerCategory && (
+            {!isLoading && !error && medicationInteractions.length > maxItemsPerCategory && (
               <div className="category-footer">
                 <div className="more-alerts">
-                  {medicationInteractions.length - maxItemsPerCategory} more medication interactions to review
+                  {showAllMedications 
+                    ? "Showing all medication interactions"
+                    : `${medicationInteractions.length - maxItemsPerCategory} more medication interactions to review`
+                  }
                 </div>
-                <Link to="/alerts/medications" className="view-all">View All</Link>
+                <button 
+                  onClick={() => setShowAllMedications(!showAllMedications)}
+                  className="view-all-button"
+                >
+                  {showAllMedications ? "Show Less" : "View All"}
+                </button>
               </div>
             )}
           </div>
@@ -220,53 +247,47 @@ function AlertsCard({ maxItemsPerCategory = 2 }) {
           </div>
 
           {/* Prescription Refills Category */}
-          <div className="alert-category">
-            <div className="category-header">
-              <div className="category-name">
-                <span>💊</span> Prescription Refills
-              </div>
-              <div className="category-indicators">
-                {prescriptionCounts["due-soon"] > 0 && (
-                  <div className="severity-indicator">
-                    <span className="count-indicator medium-indicator"></span>
-                    {prescriptionCounts["due-soon"]} Due Soon
-                  </div>
-                )}
-                {prescriptionCounts.upcoming > 0 && (
-                  <div className="severity-indicator">
-                    <span className="count-indicator low-indicator"></span>
-                    {prescriptionCounts.upcoming} Upcoming
-                  </div>
-                )}
-              </div>
-            </div>
-            <div className="category-content">
-              <ul className="alert-list">
-                {prescriptionRefills.slice(0, maxItemsPerCategory).map(alert => (
-                  <li key={alert.id} className="alert-item">
-                    <div className={`alert-priority ${
-                      alert.severity === "due-soon" ? "medium-priority" : "low-priority"
-                    }`}></div>
-                    <div className={`alert-icon ${
-                      alert.severity === "due-soon" ? "warning-icon" : "info-icon"
-                    }`}>{alert.icon}</div>
-                    <div className="alert-content">
-                      <div className="alert-title">{alert.title}</div>
-                      <div className="alert-description">{alert.description}</div>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </div>
-            {prescriptionRefills.length > maxItemsPerCategory && (
-              <div className="category-footer">
-                <div className="more-alerts">
-                  {prescriptionRefills.length - maxItemsPerCategory} more refill{prescriptionRefills.length - maxItemsPerCategory !== 1 ? 's' : ''} to review
+          {prescriptionRefills.length > 0 && (
+            <div className="alert-category">
+              <div className="category-header">
+                <div className="category-name">
+                  <span>💊</span> Prescription Refills
                 </div>
-                <Link to="/alerts/prescriptions" className="view-all">View All</Link>
+                <div className="category-indicators">
+                  {prescriptionCounts["due-soon"] > 0 && (
+                    <div className="severity-indicator">
+                      <span className="count-indicator medium-indicator"></span>
+                      {prescriptionCounts["due-soon"]} Due Soon
+                    </div>
+                  )}
+                  {prescriptionCounts.upcoming > 0 && (
+                    <div className="severity-indicator">
+                      <span className="count-indicator low-indicator"></span>
+                      {prescriptionCounts.upcoming} Upcoming
+                    </div>
+                  )}
+                </div>
               </div>
-            )}
-          </div>
+              <div className="category-content">
+                <ul className="alert-list">
+                  {prescriptionRefills.map(alert => (
+                    <li key={alert.id} className="alert-item">
+                      <div className={`alert-priority ${
+                        alert.severity === "due-soon" ? "medium-priority" : "low-priority"
+                      }`}></div>
+                      <div className={`alert-icon ${
+                        alert.severity === "due-soon" ? "warning-icon" : "info-icon"
+                      }`}>{alert.icon}</div>
+                      <div className="alert-content">
+                        <div className="alert-title">{alert.title}</div>
+                        <div className="alert-description">{alert.description}</div>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

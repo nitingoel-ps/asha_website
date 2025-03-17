@@ -226,6 +226,22 @@
   font-weight: 500;
 }
 
+.view-all-button {
+  background: none;
+  border: none;
+  color: var(--primary);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.view-all-button:hover {
+  background-color: var(--primary-light);
+}
+
 @media (max-width: 768px) {
   .category-header {
     flex-direction: column;
@@ -236,4 +252,16 @@
   .category-indicators {
     width: 100%;
   }
+}
+
+.loading-state,
+.error-state {
+  padding: 1rem;
+  text-align: center;
+  color: var(--text-light);
+}
+
+.error-state {
+  color: var(--danger);
+  font-weight: 500;
 } 
