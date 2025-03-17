@@ -15,10 +15,17 @@ function LabResultsCard() {
     const fetchLabResults = async () => {
       try {
         const response = await axiosInstance.get('/important-charts/');
-        setLabResults(response.data.important_charts);
-        setLastUpdated(response.data.last_updated);
+        // Ensure we have valid data structure
+        if (response.data && Array.isArray(response.data.important_charts)) {
+          setLabResults(response.data.important_charts);
+          setLastUpdated(response.data.last_updated);
+        } else {
+          setLabResults([]);
+          setError('Invalid data format received from server');
+        }
       } catch (err) {
         setError(err.message || 'Failed to fetch lab results');
+        setLabResults([]); // Ensure we set empty array on error
       } finally {
         setLoading(false);
       }
