@@ -1,29 +1,35 @@
-import React from "react";
-import { Link } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import axiosInstance from "../../utils/axiosInstance";
 import "./InsightsCard.css";
 
 function InsightsCard() {
-  // Mock data for insights
-  const insights = [
-    {
-      id: 1,
-      title: "Blood Pressure Improvement",
-      content: "Your blood pressure has shown consistent improvement over the past 3 months. Continue with your current medication and exercise routine.",
-      icon: "💡"
-    },
-    {
-      id: 2,
-      title: "Pre-Diabetic Risk",
-      content: "Your borderline glucose and A1C levels suggest pre-diabetic risk. Consider reducing refined carbohydrates and scheduling a follow-up with your provider.",
-      icon: "💡"
-    },
-    {
-      id: 3,
-      title: "Weight Management",
-      content: "Your BMI of 28.82 indicates being overweight. A 5-10% weight reduction could significantly improve your overall health metrics and reduce pre-diabetic risk.",
-      icon: "💡"
-    }
-  ];
+  const [insights, setInsights] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [showAllInsights, setShowAllInsights] = useState(false);
+  const maxItemsToShow = 3;
+
+  useEffect(() => {
+    const fetchInsights = async () => {
+      try {
+        const response = await axiosInstance.get('/key-insights/');
+        const formattedInsights = response.data.insights.map((insight, index) => ({
+          id: index + 1,
+          title: insight.heading,
+          content: insight.narration,
+          icon: "💡"
+        }));
+        setInsights(formattedInsights);
+      } catch (err) {
+        setError('Failed to load insights. Please try again later.');
+        console.error('Error fetching insights:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchInsights();
+  }, []);
 
   return (
     <div className="card dashboard-grid-3x1">
@@ -31,22 +37,45 @@ function InsightsCard() {
         <div className="card-title">
           <span>💡</span> AI Health Insights
         </div>
-        <Link to="/insights" className="card-action">View All Insights</Link>
       </div>
       <div className="card-body">
         <div className="insights-list">
-          {insights.map(insight => (
-            <div key={insight.id} className="insight-item">
-              <div className="insight-header">
-                <div className="insight-icon">{insight.icon}</div>
-                <div className="insight-title">{insight.title}</div>
-              </div>
-              <div className="insight-content">
-                {insight.content}
-              </div>
+          {loading ? (
+            <div className="loading-insights">
+              Loading insights...
             </div>
-          ))}
-          {insights.length === 0 && (
+          ) : error ? (
+            <div className="error-insights">
+              {error}
+            </div>
+          ) : insights.length > 0 ? (
+            <>
+              {insights.slice(0, showAllInsights ? undefined : maxItemsToShow).map(insight => (
+                <div key={insight.id} className="insight-item">
+                  <div className="insight-header">
+                    <div className="insight-icon">{insight.icon}</div>
+                    <div className="insight-title">{insight.title}</div>
+                  </div>
+                  <div className="insight-content">
+                    {insight.content}
+                  </div>
+                </div>
+              ))}
+              {insights.length > maxItemsToShow && (
+                <div className="category-footer">
+                  <div className="more-alerts">
+                    {insights.length - maxItemsToShow} more insight{insights.length - maxItemsToShow !== 1 ? 's' : ''} to review
+                  </div>
+                  <button 
+                    className="view-all-button"
+                    onClick={() => setShowAllInsights(!showAllInsights)}
+                  >
+                    {showAllInsights ? 'Show Less' : 'View All'}
+                  </button>
+                </div>
+              )}
+            </>
+          ) : (
             <div className="no-insights">
               No AI insights available at this time.
             </div>

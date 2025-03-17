@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
 import axiosInstance from "../../utils/axiosInstance";
 import "./AlertsCard.css";
 
@@ -8,6 +7,8 @@ function AlertsCard({ maxItemsPerCategory = 2 }) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showAllMedications, setShowAllMedications] = useState(false);
+  const [showAllScreenings, setShowAllScreenings] = useState(false);
+  const [showAllRefills, setShowAllRefills] = useState(false);
 
   // Define severity order for sorting
   const severityOrder = {
@@ -117,7 +118,6 @@ function AlertsCard({ maxItemsPerCategory = 2 }) {
         <div className="card-title">
           <span>🔔</span> Important Alerts
         </div>
-        <Link to="/alerts" className="card-action">View All Alerts</Link>
       </div>
       <div className="card-body">
         <div className="alerts-container">
@@ -174,14 +174,11 @@ function AlertsCard({ maxItemsPerCategory = 2 }) {
             {!isLoading && !error && medicationInteractions.length > maxItemsPerCategory && (
               <div className="category-footer">
                 <div className="more-alerts">
-                  {showAllMedications 
-                    ? "Showing all medication interactions"
-                    : `${medicationInteractions.length - maxItemsPerCategory} more medication interactions to review`
-                  }
+                  {medicationInteractions.length - maxItemsPerCategory} more medication interaction{medicationInteractions.length - maxItemsPerCategory !== 1 ? 's' : ''} to review
                 </div>
                 <button 
-                  onClick={() => setShowAllMedications(!showAllMedications)}
                   className="view-all-button"
+                  onClick={() => setShowAllMedications(!showAllMedications)}
                 >
                   {showAllMedications ? "Show Less" : "View All"}
                 </button>
@@ -218,7 +215,7 @@ function AlertsCard({ maxItemsPerCategory = 2 }) {
             </div>
             <div className="category-content">
               <ul className="alert-list">
-                {recommendedScreenings.slice(0, maxItemsPerCategory).map(alert => (
+                {recommendedScreenings.slice(0, showAllScreenings ? undefined : maxItemsPerCategory).map(alert => (
                   <li key={alert.id} className="alert-item">
                     <div className={`alert-priority ${
                       alert.severity === "overdue" ? "high-priority" : 
@@ -241,7 +238,12 @@ function AlertsCard({ maxItemsPerCategory = 2 }) {
                 <div className="more-alerts">
                   {recommendedScreenings.length - maxItemsPerCategory} more screening recommendation{recommendedScreenings.length - maxItemsPerCategory !== 1 ? 's' : ''}
                 </div>
-                <Link to="/alerts/screenings" className="view-all">View All</Link>
+                <button 
+                  className="view-all-button"
+                  onClick={() => setShowAllScreenings(!showAllScreenings)}
+                >
+                  {showAllScreenings ? "Show Less" : "View All"}
+                </button>
               </div>
             )}
           </div>
@@ -270,7 +272,7 @@ function AlertsCard({ maxItemsPerCategory = 2 }) {
               </div>
               <div className="category-content">
                 <ul className="alert-list">
-                  {prescriptionRefills.map(alert => (
+                  {prescriptionRefills.slice(0, showAllRefills ? undefined : maxItemsPerCategory).map(alert => (
                     <li key={alert.id} className="alert-item">
                       <div className={`alert-priority ${
                         alert.severity === "due-soon" ? "medium-priority" : "low-priority"
@@ -286,6 +288,19 @@ function AlertsCard({ maxItemsPerCategory = 2 }) {
                   ))}
                 </ul>
               </div>
+              {prescriptionRefills.length > maxItemsPerCategory && (
+                <div className="category-footer">
+                  <div className="more-alerts">
+                    {prescriptionRefills.length - maxItemsPerCategory} more prescription refill{prescriptionRefills.length - maxItemsPerCategory !== 1 ? 's' : ''} to review
+                  </div>
+                  <button 
+                    className="view-all-button"
+                    onClick={() => setShowAllRefills(!showAllRefills)}
+                  >
+                    {showAllRefills ? "Show Less" : "View All"}
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>
