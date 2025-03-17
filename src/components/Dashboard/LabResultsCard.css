@@ -158,4 +158,151 @@
     margin-left: calc(36px + 0.75rem);
     margin-top: 0.5rem;
   }
+}
+
+/* View Toggle Styles */
+.view-toggle {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-left: auto;
+}
+
+.view-toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-light);
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 48px;
+  height: 24px;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: .4s;
+  border-radius: 24px;
+}
+
+.toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: .4s;
+  border-radius: 50%;
+}
+
+input:checked + .toggle-slider {
+  background-color: var(--primary);
+}
+
+input:checked + .toggle-slider:before {
+  transform: translateX(24px);
+}
+
+/* Compact View Styles */
+.lab-kpi-compact-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.lab-kpi-compact {
+  flex: 1 0 200px;
+  background-color: var(--bg-light);
+  border-radius: var(--border-radius);
+  padding: 0.75rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  position: relative;
+  transition: transform 0.2s ease;
+}
+
+.lab-kpi-compact:hover {
+  transform: translateY(-2px);
+}
+
+.compact-status {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.compact-normal {
+  background-color: var(--success);
+}
+
+.compact-warning {
+  background-color: var(--warning);
+}
+
+.compact-danger {
+  background-color: var(--danger);
+}
+
+.compact-info {
+  flex: 1;
+}
+
+.compact-name {
+  font-size: 0.8rem;
+  color: var(--text-light);
+  margin-bottom: 0.1rem;
+}
+
+.compact-value {
+  font-size: 1.1rem;
+  font-weight: 600;
+  display: flex;
+  align-items: baseline;
+  gap: 0.25rem;
+}
+
+.compact-unit {
+  font-size: 0.75rem;
+  font-weight: normal;
+  color: var(--text-light);
+}
+
+.compact-range {
+  font-size: 0.7rem;
+  color: var(--text-light);
+}
+
+.compact-date {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.75rem;
+  font-size: 0.7rem;
+  color: var(--text-light);
+}
+
+@media (max-width: 768px) {
+  .lab-kpi-compact {
+    flex: 0 0 100%;
+  }
 } 

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faFlask } from "@fortawesome/free-solid-svg-icons";
+import { faFlask, faList, faGrip } from "@fortawesome/free-solid-svg-icons";
 import axiosInstance from "../../utils/axiosInstance";
 import "./LabResultsCard.css";
 
@@ -10,6 +10,7 @@ function LabResultsCard() {
   const [lastUpdated, setLastUpdated] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isDetailedView, setIsDetailedView] = useState(false);
 
   useEffect(() => {
     const fetchLabResults = async () => {
@@ -114,6 +115,46 @@ function LabResultsCard() {
     }
   };
 
+  // Function to get compact status class
+  const getCompactStatusClass = (result) => {
+    const status = getBadgeStatus(result);
+    switch (status) {
+      case "High":
+      case "Low":
+        return "compact-danger";
+      case "Borderline High":
+      case "Borderline Low":
+        return "compact-warning";
+      case "Normal":
+        return "compact-normal";
+      default:
+        return "compact-normal";
+    }
+  };
+
+  // Function to format reference range text
+  const formatReferenceRange = (result) => {
+    if (result.ref_low !== null && result.ref_high !== null) {
+      return `${result.ref_low}-${result.ref_high}`;
+    } else if (result.ref_low !== null) {
+      return `>${result.ref_low}`;
+    } else if (result.ref_high !== null) {
+      return `<${result.ref_high}`;
+    }
+    return "No range";
+  };
+
+  // Function to format date
+  const formatDate = (dateString) => {
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { 
+      month: 'short', 
+      day: 'numeric', 
+      year: 'numeric' 
+    });
+  };
+
   if (loading) {
     return (
       <div className="card dashboard-grid-3x1">
@@ -150,36 +191,74 @@ function LabResultsCard() {
         <div className="card-title">
           <FontAwesomeIcon icon={faFlask} /> Key Lab Results
         </div>
-        <Link to="/lab-results" className="card-action">View All Labs</Link>
+        <div className="view-toggle">
+          <label className="view-toggle-label">
+            Detailed View
+            <div className="toggle-switch">
+              <input
+                type="checkbox"
+                checked={isDetailedView}
+                onChange={(e) => setIsDetailedView(e.target.checked)}
+              />
+              <span className="toggle-slider"></span>
+            </div>
+          </label>
+          <Link to="/lab-results" className="card-action">View All Labs</Link>
+        </div>
       </div>
       <div className="card-body">
-        {labResults.map(lab => (
-          <Link 
-            to={`/patient-dashboard/observation/${lab.id}`} 
-            key={lab.id} 
-            className="lab-item"
-            style={{ textDecoration: 'none', color: 'inherit' }}
-          >
-            <div className="lab-icon">
-              <FontAwesomeIcon icon={faFlask} />
-            </div>
-            <div className="lab-info">
-              <div className="lab-name">{lab.name}</div>
-              <div className="lab-result">
-                {lab.most_recent_value} {lab.uom}
-                <span className={`badge ${getBadgeColorClass(getBadgeStatus(lab))}`}>
-                  {getBadgeStatus(lab)}
-                </span>
+        {!isDetailedView ? (
+          <div className="lab-kpi-compact-grid">
+            {labResults.map(lab => (
+              <Link 
+                to={`/patient-dashboard/observation/${lab.id}`} 
+                key={lab.id} 
+                className="lab-kpi-compact"
+                style={{ textDecoration: 'none', color: 'inherit' }}
+              >
+                <div className={`compact-status ${getCompactStatusClass(lab)}`}></div>
+                <div className="compact-info">
+                  <div className="compact-name">{lab.name}</div>
+                  <div className="compact-value">
+                    {lab.most_recent_value} <span className="compact-unit">{lab.uom}</span>
+                  </div>
+                  <div className="compact-range">
+                    {getBadgeStatus(lab)} (Ref: {formatReferenceRange(lab)})
+                  </div>
+                  <div className="compact-date">{formatDate(lab.most_recent_date)}</div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        ) : (
+          labResults.map(lab => (
+            <Link 
+              to={`/patient-dashboard/observation/${lab.id}`} 
+              key={lab.id} 
+              className="lab-item"
+              style={{ textDecoration: 'none', color: 'inherit' }}
+            >
+              <div className="lab-icon">
+                <FontAwesomeIcon icon={faFlask} />
               </div>
-              <div className="lab-reason">
-                {lab.reason}
+              <div className="lab-info">
+                <div className="lab-name">{lab.name}</div>
+                <div className="lab-result">
+                  {lab.most_recent_value} {lab.uom}
+                  <span className={`badge ${getBadgeColorClass(getBadgeStatus(lab))}`}>
+                    {getBadgeStatus(lab)}
+                  </span>
+                </div>
+                <div className="lab-reason">
+                  {lab.reason}
+                </div>
               </div>
-            </div>
-            <div className="lab-status">
-              <div className={`status-indicator status-${getStatus(lab)}`}></div>
-            </div>
-          </Link>
-        ))}
+              <div className="lab-status">
+                <div className={`status-indicator status-${getStatus(lab)}`}></div>
+              </div>
+            </Link>
+          ))
+        )}
         {labResults.length === 0 && (
           <div className="no-labs">
             No lab results available.
