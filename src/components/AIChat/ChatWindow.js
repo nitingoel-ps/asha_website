@@ -394,7 +394,12 @@ function ChatWindow({ session, onSessionCreated, sessions = [], onSelectSession,
 
   // Function to handle navigation to voice streaming page
   const handleMicrophoneClick = () => {
-    navigate('/ai-voice');
+    // If we have a current session, pass its ID to the voice chat page
+    if (session?.id) {
+      navigate(`/ai-voice?session_id=${session.id}`);
+    } else {
+      navigate('/ai-voice');
+    }
   };
 
   return (

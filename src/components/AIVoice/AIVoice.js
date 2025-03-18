@@ -1,12 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Button, Card, Spinner, Alert } from 'react-bootstrap';
 import { Mic, Square, X, Pause, Play, Keyboard } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import './AIVoice.css';
 import { fetchWithAuth } from "../../utils/fetchWithAuth";
 
 const AIVoice = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const sessionId = searchParams.get('session_id');
   const [isRecording, setIsRecording] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -465,7 +467,8 @@ const AIVoice = () => {
         body: JSON.stringify({ 
           audio: base64Audio.split(',')[1],
           stream: true,
-          audio_format: actualType // Send the format info to the server
+          audio_format: actualType, // Send the format info to the server
+          session_id: sessionId // Include session_id if it exists
         }),
         signal: controller.signal
       });
@@ -808,7 +811,12 @@ const AIVoice = () => {
   };
 
   const handleNavigateToTextChat = () => {
-    navigate('/ai-chat');
+    // If we have a session ID, navigate to that specific chat
+    if (sessionId) {
+      navigate(`/ai-chat/${sessionId}`);
+    } else {
+      navigate('/ai-chat');
+    }
   };
 
   // Component cleanup
