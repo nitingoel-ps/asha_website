@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card } from 'react-bootstrap';
-import { Calendar, MapPin, User, FileText, Activity, Pill } from 'lucide-react';
+import { Calendar, MapPin, User, FileText, Activity, Pill, FlaskConical } from 'lucide-react';
 import './VisitCard.css';
 
 function VisitCard({ visit, onClick }) {
@@ -39,7 +39,7 @@ function VisitCard({ visit, onClick }) {
             )}
             {reportCount > 0 && (
               <div className="visit-icon-badge" title={`${reportCount} lab report${reportCount !== 1 ? 's' : ''}`}>
-                <Activity size={14} />
+                <FlaskConical size={14} />
                 <span className="icon-count">{reportCount}</span>
               </div>
             )}

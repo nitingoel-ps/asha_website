@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { Button } from 'react-bootstrap';
-import { FileText, ExternalLink, ChevronRight, Activity, Pill } from 'lucide-react';
+import { FileText, ExternalLink, ChevronRight, Activity, Pill, FlaskConical } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import axiosInstance from '../../../utils/axiosInstance';
 import './VisitDetail.css';
@@ -178,7 +178,7 @@ function VisitDetail({ visit }) {
                   className="list-item"
                   onClick={() => handleLabReportClick(report.id)}
                 >
-                  <Activity className="item-icon" />
+                  <FlaskConical className="item-icon" />
                   <span className="item-text">{report.report_name}</span>
                   <ChevronRight className="item-arrow" />
                 </button>
