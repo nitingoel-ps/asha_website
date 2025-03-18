@@ -125,7 +125,7 @@ function AlertsCard({ maxItemsPerCategory = 2 }) {
     <>
       {/* Medication Interactions Card */}
       <div className="card">
-        <div className="card-header">
+        <div className="card-header alerts-header">
           <div className="card-title">
             <span>💊</span> Medication Interactions
           </div>
@@ -196,7 +196,7 @@ function AlertsCard({ maxItemsPerCategory = 2 }) {
 
       {/* Screenings Card */}
       <div className="card">
-        <div className="card-header">
+        <div className="card-header alerts-header">
           <div className="card-title">
             <span>🔍</span> Recommended Screenings
           </div>
@@ -282,7 +282,7 @@ function AlertsCard({ maxItemsPerCategory = 2 }) {
       {/* Prescription Refills Card */}
       {prescriptionRefills.length > 0 && (
         <div className="card">
-          <div className="card-header">
+          <div className="card-header alerts-header">
             <div className="card-title">
               <span>💊</span> Prescription Refills
             </div>

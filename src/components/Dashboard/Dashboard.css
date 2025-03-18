@@ -118,6 +118,31 @@
   }
 }
 
+/* Special class for fixing card headers on mobile */
+.card-header-single-line {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  width: 100% !important;
+}
+
+.card-header-single-line .card-title {
+  flex: 0 1 auto !important;
+  margin-bottom: 0 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.card-header-single-line .card-action {
+  flex: 0 0 auto !important;
+  margin-left: auto !important;
+  margin-top: 0 !important;
+  white-space: nowrap !important;
+}
+
 /* Media Queries */
 @media (max-width: 992px) {
   .dashboard-grid {
@@ -136,6 +161,36 @@
   
   .dashboard-grid-2x1, .dashboard-grid-3x1 {
     grid-column: span 1;
+  }
+  
+  /* Fix card header on mobile - ONLY for non-alerts cards */
+  .card .card-header:not(.alerts-header) {
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    justify-content: space-between !important;
+    overflow: visible !important;
+    align-items: center !important;
+    width: 100% !important;
+  }
+  
+  .card .card-header:not(.alerts-header) .card-title {
+    font-size: 1rem;
+    flex: 0 1 auto !important;
+    width: auto !important;
+    text-align: left !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  .card .card-header:not(.alerts-header) .card-action {
+    flex: 0 0 auto !important;
+    width: auto !important;
+    white-space: nowrap;
+    font-size: 0.85rem;
+    text-align: right !important;
+    margin-left: auto !important;
+    margin-top: 0 !important;
   }
 }
 

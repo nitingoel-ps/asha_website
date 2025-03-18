@@ -64,7 +64,7 @@ function AppointmentsCard() {
 
   return (
     <div className="card">
-      <div className="card-header">
+      <div className="card-header card-header-single-line">
         <div className="card-title">
           <span>📅</span> Appointments
         </div>

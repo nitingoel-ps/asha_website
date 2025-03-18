@@ -101,7 +101,7 @@ function VitalsCard() {
   if (loading) {
     return (
       <div className="card dashboard-grid-3x1">
-        <div className="card-header">
+        <div className="card-header card-header-single-line">
           <div className="card-title">
             <span>❤️</span> Key Vitals
           </div>
@@ -117,7 +117,7 @@ function VitalsCard() {
   if (error) {
     return (
       <div className="card dashboard-grid-3x1">
-        <div className="card-header">
+        <div className="card-header card-header-single-line">
           <div className="card-title">
             <span>❤️</span> Key Vitals
           </div>
@@ -132,7 +132,7 @@ function VitalsCard() {
 
   return (
     <div className="card dashboard-grid-3x1">
-      <div className="card-header">
+      <div className="card-header card-header-single-line">
         <div className="card-title">
           <span>❤️</span> Key Vitals
         </div>

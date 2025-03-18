@@ -274,15 +274,15 @@
     gap: 0.5rem;
   }
   
-  .card-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.5rem;
+  .card-header:not(.card-header-single-line) {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 0.5rem !important;
   }
   
-  .card-title {
-    margin-bottom: 0.25rem;
-    width: 100%;
+  .card-header:not(.card-header-single-line) .card-title {
+    margin-bottom: 0.25rem !important;
+    width: 100% !important;
   }
   
   .severity-indicator {
@@ -342,4 +342,24 @@
 .empty-state-icon {
   font-size: 2rem;
   margin-bottom: 0.5rem;
+}
+
+/* Specific overrides for AlertsCard to ensure the multi-line layout */
+.alerts-container .card .card-header,
+.card .card-header.alerts-header {
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  gap: 0.5rem !important;
+}
+
+.alerts-container .card .card-header .card-title,
+.card .card-header.alerts-header .card-title {
+  margin-bottom: 0.25rem !important;
+  width: 100% !important;
+}
+
+.alerts-container .card .card-header .category-indicators,
+.card .card-header.alerts-header .category-indicators {
+  width: 100% !important;
+  margin-top: 0.25rem !important;
 } 
