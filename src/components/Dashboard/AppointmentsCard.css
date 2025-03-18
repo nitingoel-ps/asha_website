@@ -4,14 +4,15 @@
   gap: 1rem;
 }
 
-.appointment-card {
+.dashboard-grid .appointment-card {
   display: flex;
   background-color: var(--bg-light);
   border-radius: var(--border-radius);
   overflow: hidden;
+  height: 100%;
 }
 
-.appointment-date {
+.dashboard-grid .appointment-date {
   width: 70px;
   background-color: var(--primary);
   color: white;
@@ -20,44 +21,50 @@
   align-items: center;
   justify-content: center;
   padding: 0.75rem;
+  height: 100%;
+  align-self: stretch;
 }
 
-.appointment-day {
+.dashboard-grid .appointment-day {
   font-size: 1.5rem;
   font-weight: bold;
   line-height: 1;
 }
 
-.appointment-month {
+.dashboard-grid .appointment-month {
   font-size: 0.8rem;
   text-transform: uppercase;
 }
 
-.appointment-details {
+.dashboard-grid .appointment-details {
   flex: 1;
   padding: 0.75rem 1rem;
+  padding-left: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
-.appointment-type {
+.dashboard-grid .appointment-type {
   font-weight: 500;
   margin-bottom: 0.25rem;
   color: var(--text);
 }
 
-.appointment-info {
+.dashboard-grid .appointment-info {
   display: flex;
   font-size: 0.85rem;
   color: var(--text-light);
   gap: 1rem;
 }
 
-.appointment-doctor, .appointment-time {
+.dashboard-grid .appointment-doctor, .dashboard-grid .appointment-time {
   display: flex;
   align-items: center;
   gap: 0.25rem;
 }
 
-.no-appointments {
+.dashboard-grid .no-appointments {
   text-align: center;
   padding: 1.5rem;
   color: var(--text-light);
@@ -65,8 +72,19 @@
 }
 
 @media (max-width: 576px) {
-  .appointment-info {
+  .dashboard-grid .appointment-info {
     flex-direction: column;
     gap: 0.5rem;
+  }
+  
+  .dashboard-grid .appointment-card {
+    min-height: 120px;
+  }
+  
+  .dashboard-grid .appointment-date {
+    min-height: 120px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
   }
 } 
