@@ -74,7 +74,7 @@ function VitalsCard() {
               id: vital.id,
               name: vitalName,
               value: vital.reading,
-              unit: vital.units_of_measure.replace('[', '').replace(']', ''),
+              unit: vital.units_of_measure ? vital.units_of_measure.replace('[', '').replace(']', '') : '',
               icon: vitalName === "Blood Pressure" ? "❤️" :
                     vitalName === "Pulse" ? "📈" :
                     vitalName === "Oxygen Saturation" ? "🫁" :
@@ -89,7 +89,7 @@ function VitalsCard() {
         setError(null);
       } catch (err) {
         console.error('Error fetching vital signs:', err);
-        setError('Failed to load vital signs');
+        setError('No Vital Signs Available');
       } finally {
         setLoading(false);
       }
@@ -154,7 +154,7 @@ function VitalsCard() {
           ))}
           {vitals.length === 0 && (
             <div className="no-vitals">
-              No vital signs recorded yet.
+              No vital signs available in the records yet.
             </div>
           )}
         </div>

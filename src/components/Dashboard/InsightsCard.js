@@ -42,11 +42,14 @@ function InsightsCard() {
         <div className="insights-list">
           {loading ? (
             <div className="loading-insights">
-              Loading insights...
+              <div className="loading-spinner"></div>
+              <p>Analyzing your health data...</p>
             </div>
           ) : error ? (
-            <div className="error-insights">
-              {error}
+            <div className="empty-state-container">
+              <span className="empty-state-icon">💡</span>
+              <h3>Unable to Load Insights</h3>
+              <p>There are no insights available at this time. Once Asha is done reviewing your records, you will see them here.</p>
             </div>
           ) : insights.length > 0 ? (
             <>
@@ -76,8 +79,10 @@ function InsightsCard() {
               )}
             </>
           ) : (
-            <div className="no-insights">
-              No AI insights available at this time.
+            <div className="empty-state-container">
+              <span className="empty-state-icon">💡</span>
+              <h3>No Insights Available</h3>
+              <p>We'll analyze your health data and provide personalized insights as more information becomes available.</p>
             </div>
           )}
         </div>

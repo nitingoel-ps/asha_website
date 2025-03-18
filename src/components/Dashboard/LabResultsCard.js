@@ -190,7 +190,10 @@ function LabResultsCard() {
           </div>
         </div>
         <div className="card-body">
-          Error loading lab results: {error}
+          <div className="empty-state-container">
+            <FontAwesomeIcon icon={faFlask} className="empty-state-icon" />
+            <p>There are no key lab results to share yet. Once Asha is done reviewing your records, you will see them here.</p>
+          </div>
         </div>
       </div>
     );
@@ -273,8 +276,10 @@ function LabResultsCard() {
           ))
         )}
         {labResults.length === 0 && (
-          <div className="no-labs">
-            No lab results available.
+          <div className="empty-state-container">
+            <FontAwesomeIcon icon={faFlask} className="empty-state-icon" />
+            <h3>No Lab Results Yet</h3>
+            <p>Your lab results will appear here once they're available.</p>
           </div>
         )}
       </div>

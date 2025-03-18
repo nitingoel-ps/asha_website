@@ -228,9 +228,22 @@ function AlertsCard({ maxItemsPerCategory = 2 }) {
             </div>
             <div className="category-content">
               {screeningsLoading ? (
-                <div className="loading-state">Loading screening recommendations...</div>
+                <div className="loading-state">
+                  <div className="loading-spinner"></div>
+                  <p>Loading screening recommendations...</p>
+                </div>
               ) : screeningsError ? (
-                <div className="error-state">{screeningsError}</div>
+                <div className="empty-state-container">
+                  <span className="empty-state-icon">🔍</span>
+                  <h3>Unable to Load Screenings</h3>
+                  <p>We don't have any screening recommendations for you right now. Once Asha is done reviewing your records, you will see them here.</p>
+                </div>
+              ) : recommendedScreenings.length === 0 ? (
+                <div className="empty-state-container">
+                  <span className="empty-state-icon">🔍</span>
+                  <h3>No Screenings Due</h3>
+                  <p>You're up to date with your recommended health screenings.</p>
+                </div>
               ) : (
                 <ul className="alert-list">
                   {recommendedScreenings.slice(0, showAllScreenings ? undefined : maxItemsPerCategory).map(alert => (
