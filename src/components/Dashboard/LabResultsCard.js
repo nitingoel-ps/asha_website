@@ -203,7 +203,7 @@ function LabResultsCard() {
               <span className="toggle-slider"></span>
             </div>
           </label>
-          <Link to="/lab-results" className="card-action">View All Labs</Link>
+          <Link to="/patient-dashboard/lab-panels" className="card-action">View All Labs</Link>
         </div>
       </div>
       <div className="card-body">
