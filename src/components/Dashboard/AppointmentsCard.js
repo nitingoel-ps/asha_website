@@ -66,7 +66,7 @@ function AppointmentsCard() {
     <div className="card">
       <div className="card-header">
         <div className="card-title">
-          <span>📅</span> Upcoming Appointments
+          <span>📅</span> Appointments
         </div>
         <Link to="/appointments" className="card-action">View All</Link>
       </div>

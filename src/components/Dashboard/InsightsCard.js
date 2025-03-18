@@ -65,7 +65,7 @@ function InsightsCard() {
                 </div>
               ))}
               {insights.length > maxItemsToShow && (
-                <div className="category-footer">
+                <div className="card-footer">
                   <div className="more-alerts">
                     {insights.length - maxItemsToShow} more insight{insights.length - maxItemsToShow !== 1 ? 's' : ''} to review
                   </div>

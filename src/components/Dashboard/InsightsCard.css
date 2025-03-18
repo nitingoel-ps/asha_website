@@ -75,6 +75,15 @@
   background-color: var(--bg-light);
 }
 
+.card-footer {
+  padding: 0.75rem 1rem;
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: var(--bg-light);
+}
+
 .more-alerts {
   font-size: 0.85rem;
   color: var(--text-light);
