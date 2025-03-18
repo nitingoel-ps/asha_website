@@ -18,7 +18,31 @@ function LabResultsCard() {
         const response = await axiosInstance.get('/important-charts/');
         // Ensure we have valid data structure
         if (response.data && Array.isArray(response.data.important_charts)) {
-          setLabResults(response.data.important_charts);
+          // Sort the lab results by severity
+          const sortedResults = response.data.important_charts.sort((a, b) => {
+            const statusA = getBadgeStatus(a);
+            const statusB = getBadgeStatus(b);
+            
+            // Define priority order: High/Low -> Borderline -> Normal -> No Range
+            const getPriority = (status) => {
+              switch (status) {
+                case "High":
+                case "Low":
+                  return 0;
+                case "Borderline High":
+                case "Borderline Low":
+                  return 1;
+                case "Normal":
+                  return 2;
+                default:
+                  return 3;
+              }
+            };
+            
+            return getPriority(statusA) - getPriority(statusB);
+          });
+          
+          setLabResults(sortedResults);
           setLastUpdated(response.data.last_updated);
         } else {
           setLabResults([]);
@@ -34,19 +58,6 @@ function LabResultsCard() {
 
     fetchLabResults();
   }, []);
-
-  // Function to determine status based on values and reference ranges
-  const getStatus = (result) => {
-    const value = parseFloat(result.most_recent_value);
-    
-    if (result.ref_low !== null && value < result.ref_low) {
-      return "abnormal";
-    }
-    if (result.ref_high !== null && value > result.ref_high) {
-      return "abnormal";
-    }
-    return "normal";
-  };
 
   // Function to determine badge status based on values and reference ranges
   const getBadgeStatus = (result) => {
@@ -254,7 +265,9 @@ function LabResultsCard() {
                 </div>
               </div>
               <div className="lab-status">
-                <div className={`status-indicator status-${getStatus(lab)}`}></div>
+                <span className={`badge ${getBadgeColorClass(getBadgeStatus(lab))}`}>
+                  {getBadgeStatus(lab)}
+                </span>
               </div>
             </Link>
           ))

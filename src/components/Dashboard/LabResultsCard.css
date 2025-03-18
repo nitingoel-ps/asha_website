@@ -71,40 +71,12 @@
   margin-left: 0.5rem;
 }
 
-.dashboard-grid-3x1 .status-indicator {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-.dashboard-grid-3x1 .status-normal {
-  background-color: var(--success);
-}
-
-.dashboard-grid-3x1 .status-abnormal {
-  background-color: var(--danger);
-}
-
-.dashboard-grid-3x1 .status-borderline {
-  background-color: var(--warning);
-}
-
-.dashboard-grid-3x1 .status-text {
-  font-size: 0.8rem;
+.dashboard-grid-3x1 .lab-status .badge {
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.75rem;
   font-weight: 500;
-}
-
-.dashboard-grid-3x1 .status-text.normal {
-  color: var(--success);
-}
-
-.dashboard-grid-3x1 .status-text.abnormal {
-  color: var(--danger);
-}
-
-.dashboard-grid-3x1 .status-text.borderline {
-  color: var(--warning);
+  white-space: nowrap;
 }
 
 .dashboard-grid-3x1 .no-labs {
