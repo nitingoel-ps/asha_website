@@ -132,6 +132,25 @@
   }
 }
 
+/* Special LabResultsCard Layout */
+.lab-results-header {
+  border-bottom: none !important;
+  padding-bottom: 0.5rem !important;
+}
+
+.lab-view-toggle {
+  padding: 0 1.5rem 0.75rem 1.5rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  display: flex;
+  justify-content: flex-start;
+  background-color: var(--bg-white);
+}
+
+/* Adjust card body padding for labs card */
+.lab-results-header + .lab-view-toggle + .card-body {
+  padding-top: 1rem;
+}
+
 /* View Toggle Styles */
 .view-toggle {
   display: flex;
@@ -192,6 +211,17 @@ input:checked + .toggle-slider {
 
 input:checked + .toggle-slider:before {
   transform: translateX(24px);
+}
+
+/* Disabled toggle styles */
+.view-toggle-label.disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.toggle-switch.disabled .toggle-slider {
+  background-color: #e0e0e0;
+  cursor: default;
 }
 
 /* Compact View Styles */
@@ -312,5 +342,20 @@ input:checked + .toggle-slider:before {
   
   .compact-info {
     padding-right: 65px;
+  }
+  
+  /* Ensure lab view toggle looks good on mobile */
+  .lab-view-toggle {
+    padding: 0.5rem 1.25rem 0.75rem 1.25rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .lab-view-toggle {
+    padding: 0.5rem 1rem 0.75rem 1rem;
+  }
+  
+  .view-toggle-label {
+    font-size: 0.8rem;
   }
 } 

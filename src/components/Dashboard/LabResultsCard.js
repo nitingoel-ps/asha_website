@@ -169,10 +169,20 @@ function LabResultsCard() {
   if (loading) {
     return (
       <div className="card dashboard-grid-3x1">
-        <div className="card-header">
+        <div className="card-header lab-results-header card-header-single-line">
           <div className="card-title">
             <FontAwesomeIcon icon={faFlask} /> Key Lab Results
           </div>
+          <Link to="/patient-dashboard/lab-panels" className="card-action">View All Labs</Link>
+        </div>
+        <div className="lab-view-toggle">
+          <label className="view-toggle-label disabled">
+            Detailed View
+            <div className="toggle-switch disabled">
+              <input type="checkbox" disabled />
+              <span className="toggle-slider"></span>
+            </div>
+          </label>
         </div>
         <div className="card-body">
           Loading lab results...
@@ -184,10 +194,20 @@ function LabResultsCard() {
   if (error) {
     return (
       <div className="card dashboard-grid-3x1">
-        <div className="card-header">
+        <div className="card-header lab-results-header card-header-single-line">
           <div className="card-title">
             <FontAwesomeIcon icon={faFlask} /> Key Lab Results
           </div>
+          <Link to="/patient-dashboard/lab-panels" className="card-action">View All Labs</Link>
+        </div>
+        <div className="lab-view-toggle">
+          <label className="view-toggle-label disabled">
+            Detailed View
+            <div className="toggle-switch disabled">
+              <input type="checkbox" disabled />
+              <span className="toggle-slider"></span>
+            </div>
+          </label>
         </div>
         <div className="card-body">
           <div className="empty-state-container">
@@ -201,24 +221,24 @@ function LabResultsCard() {
 
   return (
     <div className="card dashboard-grid-3x1">
-      <div className="card-header">
+      <div className="card-header lab-results-header card-header-single-line">
         <div className="card-title">
           <FontAwesomeIcon icon={faFlask} /> Key Lab Results
         </div>
-        <div className="view-toggle">
-          <label className="view-toggle-label">
-            Detailed View
-            <div className="toggle-switch">
-              <input
-                type="checkbox"
-                checked={isDetailedView}
-                onChange={(e) => setIsDetailedView(e.target.checked)}
-              />
-              <span className="toggle-slider"></span>
-            </div>
-          </label>
-          <Link to="/patient-dashboard/lab-panels" className="card-action">View All Labs</Link>
-        </div>
+        <Link to="/patient-dashboard/lab-panels" className="card-action">View All Labs</Link>
+      </div>
+      <div className="lab-view-toggle">
+        <label className="view-toggle-label">
+          Detailed View
+          <div className="toggle-switch">
+            <input
+              type="checkbox"
+              checked={isDetailedView}
+              onChange={(e) => setIsDetailedView(e.target.checked)}
+            />
+            <span className="toggle-slider"></span>
+          </div>
+        </label>
       </div>
       <div className="card-body">
         {!isDetailedView ? (
