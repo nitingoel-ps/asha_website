@@ -4,11 +4,14 @@ import "./AlertsCard.css";
 
 function AlertsCard({ maxItemsPerCategory = 2 }) {
   const [medicationInteractions, setMedicationInteractions] = useState([]);
+  const [recommendedScreenings, setRecommendedScreenings] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showAllMedications, setShowAllMedications] = useState(false);
   const [showAllScreenings, setShowAllScreenings] = useState(false);
   const [showAllRefills, setShowAllRefills] = useState(false);
+  const [screeningsLoading, setScreeningsLoading] = useState(true);
+  const [screeningsError, setScreeningsError] = useState(null);
 
   // Define severity order for sorting
   const severityOrder = {
@@ -47,30 +50,36 @@ function AlertsCard({ maxItemsPerCategory = 2 }) {
     fetchMedicationInteractions();
   }, []);
 
-  // Mock data for recommended screenings
-  const recommendedScreenings = [
-    {
-      id: 1,
-      severity: "overdue",
-      icon: "📅",
-      title: "Cholesterol Screening",
-      description: "Your last cholesterol screening was more than 14 months ago. Based on your health profile, annual testing is recommended."
-    },
-    {
-      id: 2,
-      severity: "due-now",
-      icon: "📅",
-      title: "Colorectal Cancer Screening",
-      description: "Based on your age and family history, it's time for your colorectal cancer screening."
-    },
-    {
-      id: 3,
-      severity: "upcoming",
-      icon: "📅",
-      title: "Annual Physical Exam",
-      description: "Your annual physical exam is coming up in 30 days."
-    }
-  ];
+  // Fetch recommended screenings
+  useEffect(() => {
+    const fetchRecommendedScreenings = async () => {
+      try {
+        setScreeningsLoading(true);
+        const response = await axiosInstance.get('/screening-review/');
+        const transformedData = response.data.screening_recommendations.map((item, index) => ({
+          id: index + 1,
+          severity: item.priority,
+          icon: "📅",
+          title: item.screening_name,
+          description: `${item.rationale} ${item.timeframe}${item.special_instructions ? ` ${item.special_instructions}` : ''}${item.last_done !== 'unknown' ? ` Last done: ${item.last_done}` : ''}`
+        }));
+
+        // Sort the data by priority
+        const sortedData = [...transformedData].sort((a, b) => 
+          severityOrder[a.severity] - severityOrder[b.severity]
+        );
+
+        setRecommendedScreenings(sortedData);
+      } catch (err) {
+        setScreeningsError('Failed to fetch screening recommendations');
+        console.error('Error fetching screening recommendations:', err);
+      } finally {
+        setScreeningsLoading(false);
+      }
+    };
+
+    fetchRecommendedScreenings();
+  }, []);
 
   // Mock data for prescription refills
   const prescriptionRefills = [
@@ -193,47 +202,57 @@ function AlertsCard({ maxItemsPerCategory = 2 }) {
                 <span>🔍</span> Recommended Screenings
               </div>
               <div className="category-indicators">
-                {screeningCounts.overdue > 0 && (
-                  <div className="severity-indicator">
-                    <span className="count-indicator high-indicator"></span>
-                    {screeningCounts.overdue} Overdue
-                  </div>
-                )}
-                {screeningCounts["due-now"] > 0 && (
-                  <div className="severity-indicator">
-                    <span className="count-indicator medium-indicator"></span>
-                    {screeningCounts["due-now"]} Due Now
-                  </div>
-                )}
-                {screeningCounts.upcoming > 0 && (
-                  <div className="severity-indicator">
-                    <span className="count-indicator low-indicator"></span>
-                    {screeningCounts.upcoming} Upcoming
-                  </div>
+                {!screeningsLoading && !screeningsError && (
+                  <>
+                    {screeningCounts.high > 0 && (
+                      <div className="severity-indicator">
+                        <span className="count-indicator high-indicator"></span>
+                        {screeningCounts.high} High
+                      </div>
+                    )}
+                    {screeningCounts.medium > 0 && (
+                      <div className="severity-indicator">
+                        <span className="count-indicator medium-indicator"></span>
+                        {screeningCounts.medium} Medium
+                      </div>
+                    )}
+                    {screeningCounts.low > 0 && (
+                      <div className="severity-indicator">
+                        <span className="count-indicator low-indicator"></span>
+                        {screeningCounts.low} Low
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
             </div>
             <div className="category-content">
-              <ul className="alert-list">
-                {recommendedScreenings.slice(0, showAllScreenings ? undefined : maxItemsPerCategory).map(alert => (
-                  <li key={alert.id} className="alert-item">
-                    <div className={`alert-priority ${
-                      alert.severity === "overdue" ? "high-priority" : 
-                      alert.severity === "due-now" ? "medium-priority" : "low-priority"
-                    }`}></div>
-                    <div className={`alert-icon ${
-                      alert.severity === "overdue" ? "danger-icon" : 
-                      alert.severity === "due-now" ? "warning-icon" : "info-icon"
-                    }`}>{alert.icon}</div>
-                    <div className="alert-content">
-                      <div className="alert-title">{alert.title}</div>
-                      <div className="alert-description">{alert.description}</div>
-                    </div>
-                  </li>
-                ))}
-              </ul>
+              {screeningsLoading ? (
+                <div className="loading-state">Loading screening recommendations...</div>
+              ) : screeningsError ? (
+                <div className="error-state">{screeningsError}</div>
+              ) : (
+                <ul className="alert-list">
+                  {recommendedScreenings.slice(0, showAllScreenings ? undefined : maxItemsPerCategory).map(alert => (
+                    <li key={alert.id} className="alert-item">
+                      <div className={`alert-priority ${
+                        alert.severity === "high" ? "high-priority" : 
+                        alert.severity === "medium" ? "medium-priority" : "low-priority"
+                      }`}></div>
+                      <div className={`alert-icon ${
+                        alert.severity === "high" ? "danger-icon" : 
+                        alert.severity === "medium" ? "warning-icon" : "info-icon"
+                      }`}>{alert.icon}</div>
+                      <div className="alert-content">
+                        <div className="alert-title">{alert.title}</div>
+                        <div className="alert-description">{alert.description}</div>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
-            {recommendedScreenings.length > maxItemsPerCategory && (
+            {!screeningsLoading && !screeningsError && recommendedScreenings.length > maxItemsPerCategory && (
               <div className="category-footer">
                 <div className="more-alerts">
                   {recommendedScreenings.length - maxItemsPerCategory} more screening recommendation{recommendedScreenings.length - maxItemsPerCategory !== 1 ? 's' : ''}
