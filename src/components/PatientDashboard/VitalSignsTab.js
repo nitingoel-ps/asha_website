@@ -168,6 +168,48 @@ const extractPrimaryUnit = (unitString) => {
   return unitString.toLowerCase();
 };
 
+// Update the calculate trend function to format the text differently
+const calculateTrend = (currentReading, previousReading, vitalType) => {
+  if (!previousReading) return { type: 'stable', text: 'No change' };
+  
+  let current = parseFloat(currentReading);
+  let previous = parseFloat(previousReading);
+  
+  // Special handling for blood pressure
+  if (vitalType === "Blood Pressure") {
+    const [currentSystolic] = currentReading.split('/').map(Number);
+    const [previousSystolic] = previousReading.split('/').map(Number);
+    
+    current = currentSystolic;
+    previous = previousSystolic;
+  }
+  
+  if (isNaN(current) || isNaN(previous)) return { type: 'stable', text: 'No change' };
+  
+  const diff = current - previous;
+  const unit = getUnit(vitalType);
+  
+  if (Math.abs(diff) < 0.1) return { type: 'stable', text: 'No change' };
+  
+  // Format more like "-16.0 mmHg" instead of just the raw number
+  return {
+    type: diff > 0 ? 'up' : 'down',
+    text: `${diff > 0 ? '+' : ''}${Math.abs(diff).toFixed(1)} ${unit}`.trim()
+  };
+};
+
+const getUnit = (vitalType) => {
+  switch (vitalType) {
+    case "Blood Pressure": return "mmHg";
+    case "Pulse": return "bpm";
+    case "Oxygen Saturation": return "%";
+    case "Height": return "in";
+    case "Weight": return "lb";
+    case "Body Mass Index": return "";
+    default: return "";
+  }
+};
+
 function VitalSignsTab() {
   const [vitals, setVitals] = useState([]);
   const [selectedVital, setSelectedVital] = useState(null);
@@ -296,27 +338,27 @@ function VitalSignsTab() {
   const keyVitals = {
     "Blood Pressure": {
       data: vitals.filter(v => v.vital_sign === "Blood Pressure"),
-      icon: <FaHeart className="vital-icon" />
+      icon: "❤️"
     },
     "Pulse": {
       data: vitals.filter(v => v.vital_sign === "Pulse"),
-      icon: <FaWaveSquare className="vital-icon" />
+      icon: "📈"
     },
     "Oxygen Saturation": {
       data: vitals.filter(v => v.vital_sign === "Oxygen Saturation"),
-      icon: <FaLungsVirus className="vital-icon" />
+      icon: "🫁"
     },
     "Height": {
       data: vitals.filter(v => v.vital_sign === "Height"),
-      icon: <FaRuler className="vital-icon" />
+      icon: "📏"
     },
     "Weight": {
       data: vitals.filter(v => v.vital_sign === "Weight"),
-      icon: <FaWeight className="vital-icon" />
+      icon: "⚖️"
     },
     "Body Mass Index": {
       data: vitals.filter(v => v.vital_sign === "Body Mass Index"),
-      icon: <FaChartLine className="vital-icon" />
+      icon: "📊"
     }
   };
 
@@ -537,7 +579,7 @@ function VitalSignsTab() {
   return (
     <div className="vital-signs-tab">
       <div className="vital-signs-header">
-        <h3>Vital Signs</h3>
+        <h3>❤️ Vital Signs</h3>
         <Button 
           variant="primary" 
           className="add-vital-btn"
@@ -562,38 +604,50 @@ function VitalSignsTab() {
       <div className="row">
         {Object.entries(keyVitals).map(([vitalSign, { data = [], icon }]) => {
           const latestVital = data[0];
+          const previousVital = data[1];
           const displayValue = latestVital ? getLatestValue(vitalSign, data) : "No data";
           const unit = latestVital ? getDisplayUnit(vitalSign) : "";
-          
+          const trend = latestVital && previousVital ? 
+            calculateTrend(displayValue, getLatestValue(vitalSign, [previousVital]), vitalSign) : 
+            { type: 'stable', text: 'No change' };
+
           return (
             <Card 
               key={vitalSign}
               className="vital-signs-card"
               onClick={() => handleCardClick(vitalSign)}
-              style={{ cursor: "pointer" }}
             >
-              <Card.Body>
-                <div className="vital-card-header">
-                  <Card.Title>{vitalSign}</Card.Title>
-                  <span className="vital-date">
-                    {latestVital ? formatDate(latestVital.date_taken) : "No date"}
-                  </span>
+              <div className="vital-card-content">
+                <div className="vital-icon">
+                  {icon}
                 </div>
-                {latestVital && (
-                  <div className="vital-reading-container">
-                    {icon}
-                    <Card.Text>
+                <div className="vital-reading-container">
+                  <div className="vital-measurement">
+                    <div className="card-text">
                       {displayValue}
-                    </Card.Text>
-                    <div className="vital-unit">
-                      {unit}
                     </div>
                   </div>
+                  <div className="vital-unit">
+                    {unit}
+                  </div>
+                  <div className="card-title">
+                    {vitalSign}
+                  </div>
+                  <div className={`trend-container trend-${trend.type}`}>
+                    <span className="trend-icon">
+                      {trend.type === 'up' ? '▲' : trend.type === 'down' ? '▼' : '●'}
+                    </span>
+                    <span className="trend-text">
+                      {trend.text}
+                    </span>
+                  </div>
+                </div>
+                {latestVital && (
+                  <div className="vital-date">
+                    {formatDate(latestVital.date_taken)}
+                  </div>
                 )}
-                {!latestVital && (
-                  <Card.Text>No data</Card.Text>
-                )}
-              </Card.Body>
+              </div>
             </Card>
           );
         })}
