@@ -636,12 +636,21 @@ const WebSocketVoice = () => {
         }
       }
       
-      // Create and configure media recorder
+      // Create and configure media recorder with appropriate MIME type
       debugLog('Creating MediaRecorder');
-      const options = { mimeType: 'audio/webm' };
+      
+      // Get supported MIME type for this browser
+      const mimeType = getSupportedMimeType();
+      debugLog(`Using MIME type: ${mimeType || 'browser default'}`);
+      
+      // Create recorder with supported options
+      const options = mimeType ? { mimeType } : {};
       const recorder = new MediaRecorder(stream, options);
       recorderRef.current = recorder;
       mediaRecorderRef.current = recorder;
+      
+      // Log format that will be used
+      debugLog(`MediaRecorder created with format: ${recorder.mimeType}`);
       
       // Clear previous data
       recordedChunksRef.current = [];
@@ -662,7 +671,7 @@ const WebSocketVoice = () => {
         const chunkTime = new Date().toISOString();
         const chunkSize = event.data.size;
         
-        debugLog(`[CHUNK ${chunkNum}] Received audio data at ${chunkTime}, size: ${chunkSize} bytes`);
+        debugLog(`[CHUNK ${chunkNum}] Received audio data at ${chunkTime}, size: ${chunkSize} bytes, type: ${event.data.type}`);
         
         // Store a copy of the chunk for local validation
         localRecordingChunksRef.current.push(event.data);
@@ -686,7 +695,7 @@ const WebSocketVoice = () => {
           socketRef.current.send(JSON.stringify({
             type: 'audio_data',
             audio: base64data,
-            format: 'audio/webm',
+            format: event.data.type || recorder.mimeType, // Send the actual format being used
             timestamp: chunkTime
           }));
           const sendTime = Math.round(performance.now() - sendStart);
