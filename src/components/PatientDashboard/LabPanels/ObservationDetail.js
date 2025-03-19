@@ -190,14 +190,24 @@ const HistoryItem = ({ value }) => (
 return (
     <div className="observation-detail-container">
         <Card className="observation-card">
-            <Card.Header className="py-2">
-                <div className="d-flex align-items-center">
-                    <FlaskConical size={24} className="me-2" color="#667EEA"/>
-                    <h5 className="mb-0">{observation.observation_name || observation.name}</h5>
+            <Card.Header className="py-3 d-flex flex-column">
+                <div className="observation-header-row mb-2 w-100">
+                    <div className="observation-title-container d-flex align-items-center">
+                        <FlaskConical size={24} className="me-2" color="#667EEA"/>
+                        <h5 className="observation-title mb-0 me-2">{observation.observation_name || observation.name}</h5>
+                    </div>
+                    <div className="observation-panel-name text-muted">
+                        <small>{panel.long_name}</small>
+                    </div>
                 </div>
-                <div className="text-muted">
-                    <small>{panel.long_name}</small>
-                </div>
+                
+                {observation.narrative && (
+                    <div className="observation-narrative-container w-100">
+                        <div className="observation-narrative-text">
+                            {observation.narrative}
+                        </div>
+                    </div>
+                )}
             </Card.Header>
             <Card.Body className="p-0">
                 <div className="graph-container">

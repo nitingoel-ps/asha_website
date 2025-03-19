@@ -15,6 +15,51 @@
   background-color: #fff;
 }
 
+/* Force Card.Header to use column layout for vertical stacking */
+.observation-card .card-header {
+  display: flex;
+  flex-direction: column;
+}
+
+.observation-header-row {
+  display: flex;
+  width: 100%;
+}
+
+.observation-title-container {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.observation-title {
+  font-weight: 600;
+  color: #2d3748;
+}
+
+.observation-panel-name {
+  color: #718096;
+  font-size: 0.875rem;
+}
+
+.observation-narrative-container {
+  width: 100%;
+  margin-top: 12px;
+}
+
+.observation-narrative-wrapper {
+  width: 100%;
+}
+
+.observation-narrative-text {
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: #2c3e50;
+  padding: 10px 0;
+  width: 100%;
+  display: block;
+}
+
 .graph-container {
   height: 400px;
   width: 100%;
@@ -276,6 +321,42 @@
     padding: 10px;
     padding-bottom: 40px;
     height: 100%;
+  }
+
+  .py-3.flex-column.card-header {
+    flex-direction: column !important;
+  }
+  
+  /* Force stacking in mobile view */
+  .observation-card .card-header {
+    display: flex;
+    flex-direction: column !important;
+  }
+
+  .observation-header-row {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .observation-title-container {
+    width: 100%;
+    margin-bottom: 5px;
+  }
+
+  .observation-panel-name {
+    display: block;
+    width: 100%;
+    margin-top: 4px;
+    margin-left: 26px; /* Align with the observation name */
+  }
+
+  .observation-narrative-container {
+    width: 100%;
+    margin-top: 15px;
+  }
+
+  .observation-narrative-text {
+    padding: 8px 0;
   }
 
   .graph-container {
