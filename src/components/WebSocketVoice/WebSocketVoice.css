@@ -1,0 +1,844 @@
+.streaming-voice-interface-container {
+  height: 100vh;
+  width: 100%;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+}
+
+.streaming-voice-interface {
+  height: 100vh;
+  width: 100%;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+  max-height: 100vh;
+  min-height: 100%;
+}
+
+.streaming-voice-interface {
+  width: 100%;
+  height: 100vh !important;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Ensure the Card component doesn't take up unnecessary space */
+.streaming-voice-interface.card {
+  box-shadow: none;
+  border: none;
+  background: transparent;
+  height: 100% !important;
+  width: 100% !important;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Ensure the Card.Body component doesn't add unnecessary padding */
+.streaming-voice-interface .card-body {
+  padding: 10px;
+  height: 100%;
+  width: 100% !important;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+  flex: 1;
+}
+
+/* Style for the keyboard icon at the bottom */
+.streaming-voice-interface .top-icon {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  background-color: rgba(255, 255, 255, 0.8);
+  border-radius: 50%;
+  padding: 5px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.top-icon button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border-radius: 50%;
+}
+
+.top-icon button:hover {
+  opacity: 0.8;
+  transform: scale(1.1);
+}
+
+.voice-controls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  padding: 15px;
+  width: 100%;
+  height: 100%;
+  overflow-y: visible;
+  max-height: none;
+  flex: 1;
+  position: relative;
+}
+
+.record-button {
+  font-size: 1.2em;
+  padding: 12px 24px;
+  border-radius: 50px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: auto !important;
+  min-width: 180px !important;
+  text-align: center;
+}
+
+.recording-controls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: auto !important;
+  min-width: 200px !important;
+}
+
+.recording-buttons {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 8px;
+  width: 100%;
+  justify-content: center;
+}
+
+.send-button,
+.cancel-button {
+  min-width: 90px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
+
+.recording-indicator {
+  color: #dc3545;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  justify-content: center;
+}
+
+.streaming-indicator {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #0d6efd;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: auto !important;
+  min-width: 150px !important;
+  justify-content: center;
+}
+
+.pulse {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: #dc3545;
+  animation: pulse 1s infinite;
+}
+
+/* Transcription container styles */
+.transcription-container {
+  width: 90%;
+  max-width: 600px;
+  position: absolute;
+  top: 10%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(255, 255, 255, 0.9);
+  border-radius: 8px;
+  padding: 15px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+  max-height: 40%;
+  overflow-y: auto;
+}
+
+.transcription-text {
+  font-size: 1.1rem;
+  line-height: 1.5;
+  color: #333;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.transcription-text.final {
+  font-weight: 500;
+}
+
+/* Error message styling to minimize space usage */
+.error-message {
+  width: 100%;
+  max-width: 500px;
+  margin-bottom: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 1rem;
+  padding: 10px 15px;
+  border-radius: 4px;
+  word-break: break-word;
+  max-height: none;
+  overflow-y: visible;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.error-message button {
+  padding: 0 6px;
+  flex-shrink: 0;
+  margin-left: 8px;
+}
+
+.autoplay-warning {
+  width: 100%;
+  max-width: 500px;
+  font-size: 1rem;
+  padding: 10px 15px;
+  margin-bottom: 15px;
+  word-break: break-word;
+  max-height: none;
+  overflow-y: visible;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.4; }
+  100% { opacity: 1; }
+}
+
+@media (max-width: 768px) {
+  .streaming-voice-interface {
+    margin: 0;
+    height: 100vh;
+    width: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .streaming-voice-interface.card {
+    position: static;
+    flex: 1 1 auto;
+    box-shadow: none;
+    border: none;
+    height: 100% !important;
+    width: 100% !important;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .streaming-voice-interface .card-body {
+    padding: 10px;
+    height: 100%;
+    width: 100% !important;
+    overflow: visible;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+  }
+  
+  .voice-controls {
+    padding: 10px;
+    gap: 10px;
+    height: 100%;
+    min-height: auto;
+    width: 100%;
+    max-width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    flex: 1;
+    position: relative;
+  }
+  
+  .transcription-container {
+    width: 95%;
+    top: 5%;
+    max-height: 35%;
+    padding: 12px;
+    font-size: 0.95rem;
+  }
+  
+  .streaming-voice-interface .top-icon {
+    position: fixed;
+    bottom: 25px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    background-color: white;
+    border-radius: 50%;
+    padding: 8px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+  }
+  
+  .top-icon button {
+    width: 45px;
+    height: 45px;
+  }
+  
+  .record-button {
+    font-size: 1em;
+    padding: 10px 20px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: auto !important;
+    min-width: 180px !important;
+  }
+  
+  .error-message, 
+  .autoplay-warning {
+    font-size: 1rem;
+    padding: 12px 15px;
+    margin-bottom: 15px;
+    border-radius: 6px;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+    width: 100%;
+    max-width: 90%;
+  }
+  
+  .error-message button {
+    padding: 4px 8px;
+    margin-left: 10px;
+    font-size: 1rem;
+  }
+  
+  .send-button,
+  .cancel-button {
+    min-width: 80px;
+    padding: 8px 15px;
+    font-size: 1rem;
+  }
+  
+  .main-content-container {
+    padding-bottom: 90px;
+    justify-content: center;
+    width: 100%;
+  }
+  
+  .error-container {
+    position: absolute;
+    top: 20px;
+    left: 0;
+    right: 0;
+    padding: 0 10px;
+    max-height: none;
+    margin-bottom: 20px;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .streaming-indicator {
+    width: auto !important;
+    min-width: 150px !important;
+  }
+  
+  .recording-controls {
+    width: auto !important;
+    min-width: 200px !important;
+  }
+  
+  .playback-controls {
+    padding: 12px;
+    gap: 10px;
+  }
+}
+
+/* Fix for Bootstrap Card component */
+.card.streaming-voice-interface {
+  height: 100vh !important;
+  min-height: 100% !important;
+  max-height: none !important;
+  width: 100% !important;
+  overflow: visible !important;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+/* Ensure the component fits within the tab-content-wrapper */
+.tab-content-wrapper .streaming-voice-interface {
+  position: relative;
+  height: 100% !important;
+  max-height: none !important;
+  width: 100% !important;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Ensure the component doesn't force the parent to scroll */
+.content-area .streaming-voice-interface {
+  flex: 1 1 auto;
+  height: 100%;
+  width: 100% !important;
+  position: relative;
+}
+
+.play-button {
+  margin-top: 8px;
+  min-width: 140px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
+
+.playback-controls {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: auto !important;
+  min-width: 100px !important;
+  padding: 16px;
+  background: transparent;
+}
+
+/* Add a container for the main content to ensure vertical centering */
+.main-content-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  padding-bottom: 70px;
+  position: relative;
+}
+
+/* Add specific styles for error messages to ensure they don't push content */
+.error-container {
+  position: absolute;
+  top: 20px;
+  left: 0;
+  right: 0;
+  width: 100%;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-height: none;
+  overflow-y: visible;
+  padding: 0 15px;
+  margin-bottom: 15px;
+}
+
+/* Add margin to voice controls when error container is present */
+.error-container + .voice-controls {
+  margin-top: 10px;
+}
+
+.voice-playback {
+  position: relative;
+  width: 100%;
+}
+
+.voice-playback__controls {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: auto !important;
+  min-width: 100px !important;
+  padding: 16px;
+  background: transparent;
+  z-index: 10;
+}
+
+/* Highly specific selector to override any Bootstrap styles */
+.streaming-voice-interface .voice-playback__button.btn {
+  width: 48px !important;
+  height: 48px !important;
+  min-width: 48px !important;
+  min-height: 48px !important;
+  padding: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 9999px !important;
+  border: none !important;
+  background: #bfdbef !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12) !important;
+  transition: all 0.2s ease !important;
+  color: #073c72 !important;
+  position: relative !important;
+  overflow: hidden !important;
+  margin: 0 !important;
+  line-height: 1 !important;
+}
+
+.streaming-voice-interface .voice-playback__button.btn:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(25, 118, 210, 0.15) !important;
+  background: #BBDEFB !important;
+}
+
+.streaming-voice-interface .voice-playback__button.btn:active {
+  transform: translateY(1px) !important;
+  box-shadow: 0 1px 4px rgba(25, 118, 210, 0.1) !important;
+  background: #90CAF9 !important;
+}
+
+.streaming-voice-interface .voice-playback__button.btn svg {
+  width: 20px !important;
+  height: 20px !important;
+  position: absolute !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  transition: all 0.2s ease !important;
+  opacity: 0.9 !important;
+}
+
+.streaming-voice-interface .voice-playback__button.btn:hover svg {
+  opacity: 1 !important;
+}
+
+/* Stop button specific styles */
+.streaming-voice-interface .voice-playback__button--stop.btn {
+  background: #f6bac3 !important;
+  color: #D32F2F !important;
+}
+
+.streaming-voice-interface .voice-playback__button--stop.btn:hover {
+  background: #f67683 !important;
+}
+
+.streaming-voice-interface .voice-playback__button--stop.btn:active {
+  background: #EF9A9A !important;
+}
+
+/* Connection status indicator */
+.connection-status {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+  font-size: 0.85rem;
+  color: #555;
+}
+
+.status-indicator {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 5px;
+}
+
+.status-indicator.connected {
+  background-color: #4CAF50;
+}
+
+.status-indicator.connecting {
+  background-color: #FFC107;
+  animation: blink 1s infinite;
+}
+
+.status-indicator.disconnected {
+  background-color: #F44336;
+}
+
+.status-text {
+  margin-right: 10px;
+}
+
+.network-status {
+  margin-left: auto;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+}
+
+.network-status.online {
+  color: #4CAF50;
+}
+
+.network-status.offline {
+  color: #F44336;
+  font-weight: bold;
+}
+
+@keyframes blink {
+  0% { opacity: 0.4; }
+  50% { opacity: 1; }
+  100% { opacity: 0.4; }
+}
+
+/* Disconnected controls */
+.disconnected-controls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: auto !important;
+  min-width: 200px !important;
+  text-align: center;
+}
+
+.disconnected-controls .connection-message {
+  color: #dc3545;
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+
+.retry-button {
+  font-size: 1em;
+  padding: 10px 20px;
+  border-radius: 50px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+/* Mobile adjustments with maintained specificity */
+@media (max-width: 768px) {
+  .voice-playback__controls {
+    padding: 12px;
+    gap: 12px;
+  }
+
+  .streaming-voice-interface .voice-playback__button.btn {
+    width: 48px !important;
+    height: 48px !important;
+    min-width: 48px !important;
+    min-height: 48px !important;
+  }
+
+  .streaming-voice-interface .voice-playback__button.btn svg {
+    width: 20px !important;
+    height: 20px !important;
+  }
+  
+  .connection-status {
+    top: 10px;
+    right: 10px;
+    font-size: 0.75rem;
+    padding: 3px 8px;
+  }
+  
+  .disconnected-controls {
+    min-width: 180px !important;
+  }
+  
+  .retry-button {
+    font-size: 0.9em;
+    padding: 8px 16px;
+  }
+}
+
+/* Browser compatibility warning */
+.browser-warning {
+  width: 100%;
+  max-width: 500px;
+  font-size: 1rem;
+  padding: 15px;
+  margin-bottom: 15px;
+  word-break: break-word;
+  max-height: none;
+  overflow-y: visible;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.browser-not-supported {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: auto !important;
+  min-width: 200px !important;
+  text-align: center;
+}
+
+.fallback-button {
+  font-size: 1em;
+  padding: 10px 20px;
+  border-radius: 50px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background-color: #6c757d;
+  color: white;
+}
+
+.fallback-button:hover {
+  background-color: #5a6268;
+}
+
+@media (max-width: 768px) {
+  .browser-warning {
+    font-size: 0.9rem;
+    padding: 12px;
+  }
+  
+  .browser-not-supported {
+    min-width: 180px !important;
+  }
+  
+  .fallback-button {
+    font-size: 0.9em;
+    padding: 8px 16px;
+  }
+}
+
+/* Debug button */
+.debug-info-button {
+  position: absolute;
+  top: 15px;
+  left: 15px;
+  z-index: 20;
+}
+
+.debug-info-button button {
+  font-size: 0.75rem;
+  padding: 2px 8px;
+  opacity: 0.7;
+}
+
+.debug-info-button button:hover {
+  opacity: 1;
+}
+
+@media (max-width: 768px) {
+  .debug-info-button {
+    top: 10px;
+    left: 10px;
+  }
+  
+  .debug-info-button button {
+    font-size: 0.7rem;
+    padding: 1px 6px;
+  }
+}
+
+/* Validation controls */
+.validation-controls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: auto !important;
+  min-width: 180px !important;
+  text-align: center;
+  z-index: 10;
+}
+
+.validation-button {
+  width: 100%;
+  padding: 8px 16px;
+  border-radius: 20px;
+  background-color: #f5f9ff;
+  border-color: #17a2b8;
+  color: #17a2b8;
+  transition: all 0.2s;
+}
+
+.validation-button:hover:not(:disabled) {
+  background-color: #e1f0f5;
+  border-color: #138496;
+  color: #138496;
+  transform: translateY(-2px);
+}
+
+.validation-button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.validation-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.validation-hint {
+  font-size: 0.8rem;
+  color: #6c757d;
+}
+
+@media (max-width: 768px) {
+  .validation-controls {
+    bottom: 15px;
+  }
+  
+  .validation-button {
+    padding: 6px 12px;
+    font-size: 0.9rem;
+  }
+  
+  .validation-hint {
+    font-size: 0.75rem;
+  }
+} 

@@ -21,6 +21,7 @@ import AIChat from './components/AIChat/AIChat';
 import AddHealthData from './components/Health/AddHealthData';
 import LoadingSpinner from './components/LoadingSpinner';
 import AIVoice from './components/AIVoice/AIVoice';
+import WebSocketVoice from './components/WebSocketVoice/WebSocketVoice';
 import Appointments from './components/Appointments/Appointments';
 
 import './theme.css';
@@ -97,6 +98,22 @@ function AppContent() {
           element={
             <PrivateRoute>
               <AIVoice />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/websocket-voice"
+          element={
+            <PrivateRoute>
+              <WebSocketVoice />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/websocket-voice/:sessionId"
+          element={
+            <PrivateRoute>
+              <WebSocketVoice />
             </PrivateRoute>
           }
         />
