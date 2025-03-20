@@ -17,6 +17,7 @@ const debugLog = (...args) => {
 // Default setting for silence detection
 const DEFAULT_AUTO_SEND_ENABLED = true;
 const DEFAULT_SILENCE_THRESHOLD = 5000; // 5 seconds
+const DEFAULT_SEND_DELAY = 500; // 500ms delay after manual send button press
 
 // Get the API base URL from environment
 const apiBaseURL = process.env.REACT_APP_API_BASE_URL || '';
@@ -127,7 +128,14 @@ const WebSocketVoice = () => {
       ? parseInt(localStorage.getItem('silenceThreshold'), 10)
       : DEFAULT_SILENCE_THRESHOLD
   );
+  const [sendDelay, setSendDelay] = useState(
+    localStorage.getItem('sendDelay') !== null
+      ? parseInt(localStorage.getItem('sendDelay'), 10)
+      : DEFAULT_SEND_DELAY
+  );
   const [showSettings, setShowSettings] = useState(false);
+  const [isSending, setIsSending] = useState(false);
+  const sendDelayTimeoutRef = useRef(null);
 
   
   // Check browser compatibility on initial load
@@ -1358,21 +1366,76 @@ const WebSocketVoice = () => {
     isRecordingRef.current = false;
     mediaRecorderRef.current = null;
     
-    // Send end_stream message if required
+    // Send end_stream message if required - with delay if needed
     if (sendEndStream && socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
-      debugLog('Sending end_stream message to server');
-      socketRef.current.send(JSON.stringify({
-        type: 'end_stream'
-      }));
-      
-      // Update UI to show processing state
-      updateIsProcessing(true);
+      if (sendDelay > 0 && !isSending) {
+        debugLog(`Delaying end_stream message by ${sendDelay}ms to capture remaining audio`);
+        setIsSending(true);
+        
+        // Clear any existing timeout
+        if (sendDelayTimeoutRef.current) {
+          clearTimeout(sendDelayTimeoutRef.current);
+        }
+        
+        // Set new timeout
+        sendDelayTimeoutRef.current = setTimeout(() => {
+          if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
+            debugLog('Sending delayed end_stream message to server');
+            socketRef.current.send(JSON.stringify({
+              type: 'end_stream'
+            }));
+            
+            // Update UI to show processing state
+            updateIsProcessing(true);
+            setIsSending(false);
+          } else {
+            debugLog('WebSocket not open, cannot send end_stream');
+            setIsSending(false);
+          }
+        }, sendDelay);
+      } else {
+        // Send immediately if no delay or already in sending state
+        debugLog('Sending end_stream message to server immediately');
+        socketRef.current.send(JSON.stringify({
+          type: 'end_stream'
+        }));
+        
+        // Update UI to show processing state
+        updateIsProcessing(true);
+      }
     }
+  };
+  
+  // Clear any pending send delays
+  const clearSendDelays = () => {
+    if (sendDelayTimeoutRef.current) {
+      clearTimeout(sendDelayTimeoutRef.current);
+      sendDelayTimeoutRef.current = null;
+    }
+    setIsSending(false);
+  };
+  
+  // Update send delay with validation
+  const updateSendDelay = (value) => {
+    const newValue = parseInt(value, 10);
+    
+    // Validate the delay is within reasonable bounds
+    if (isNaN(newValue) || newValue < 0 || newValue > 2000) {
+      debugLog(`Invalid send delay value: ${value}, ignoring`);
+      return;
+    }
+    
+    debugLog(`Setting send delay to ${newValue}ms`);
+    setSendDelay(newValue);
+    localStorage.setItem('sendDelay', newValue.toString());
   };
   
   // Cancel recording
   const handleCancel = () => {
     debugLog('User clicked Cancel button');
+    
+    // Clear any pending send delays
+    clearSendDelays();
     
     // Send cancel message to server
     if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
@@ -1409,9 +1472,15 @@ const WebSocketVoice = () => {
   const handleSend = () => {
     if (isRecording) {
       debugLog('User clicked Send button - ending recording and stream');
+      
+      // Visual feedback during the send delay
+      if (sendDelay > 0) {
+        setIsSending(true);
+      }
+      
       // Use the stopRecording function to ensure consistent behavior
       stopRecording(true);
-      debugLog('Handled send button - recording stopped and end_stream sent');
+      debugLog(`Handled send button - recording stopped, end_stream will be sent ${sendDelay > 0 ? `after ${sendDelay}ms delay` : 'immediately'}`);
     } else {
       debugLog('Send button clicked but not recording - ignoring');
     }
@@ -1506,6 +1575,12 @@ const WebSocketVoice = () => {
           debugLog(`Auto-send setting updated from another tab: ${newValue}`);
           setAutoSendEnabled(newValue);
         }
+      } else if (e.key === 'sendDelay') {
+        const newValue = parseInt(e.newValue, 10);
+        if (!isNaN(newValue) && newValue !== sendDelay) {
+          debugLog(`Send delay updated from another tab: ${newValue}ms`);
+          setSendDelay(newValue);
+        }
       }
     };
 
@@ -1514,7 +1589,7 @@ const WebSocketVoice = () => {
     return () => {
       window.removeEventListener('storage', handleStorageChange);
     };
-  }, [silenceThreshold, autoSendEnabled]);
+  }, [silenceThreshold, autoSendEnabled, sendDelay]);
   
   // Add an effect that synchronizes connectionStatus with isConnected and isConnecting
   useEffect(() => {
@@ -1542,7 +1617,7 @@ const WebSocketVoice = () => {
     } else {
       debugLog('socketRef.current is null');
     }
-  }, [connectionStatus, isConnected, isConnecting]);
+  }, [connectionStatus]);
   
   // Update the retry connection button click handler
   const handleRetryConnection = () => {
@@ -1639,6 +1714,13 @@ const WebSocketVoice = () => {
     return (milliseconds / 1000).toFixed(1);
   };
   
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      clearSendDelays();
+    };
+  }, []);
+  
   return (
     <div className="streaming-voice-interface-container">
       <Card className="streaming-voice-interface">
@@ -1661,6 +1743,7 @@ Audio Info:
 - Threshold: 5 (activity if above)
 - Silence Timer: ${silenceThreshold}ms
 - Auto-Send: ${autoSendEnabled ? 'Enabled' : 'Disabled'}
+- Send Delay: ${sendDelay}ms
 - Last Activity: ${lastAudioActivityRef.current ? new Date(lastAudioActivityRef.current).toISOString().split('T')[1].split('.')[0] : 'N/A'}
 
 Options:
@@ -1713,7 +1796,7 @@ Options:
         {showSettings && (
           <div className="auto-send-settings-panel">
             <div className="settings-header">
-              <h5>Auto-Send Settings</h5>
+              <h5>Voice Settings</h5>
               <Button 
                 variant="link" 
                 className="close-button" 
@@ -1754,6 +1837,28 @@ Options:
                   <small className="range-label">10s</small>
                 </div>
               </Form.Group>
+              
+              <hr className="settings-divider" />
+              
+              <Form.Group className="mb-3">
+                <Form.Label className="fw-medium">
+                  Send Delay: <strong>{sendDelay}ms</strong>
+                </Form.Label>
+                <Form.Range 
+                  min="0" 
+                  max="2000" 
+                  step="100"
+                  value={sendDelay}
+                  onChange={(e) => updateSendDelay(e.target.value)}
+                />
+                <Form.Text className="text-muted">
+                  Delay before sending after pressing Send button
+                </Form.Text>
+                <div className="d-flex justify-content-between">
+                  <small className="range-label">0ms</small>
+                  <small className="range-label">2000ms</small>
+                </div>
+              </Form.Group>
             </Form>
           </div>
         )}
@@ -1767,7 +1872,13 @@ Options:
           {autoSendEnabled && (
             <span className="auto-send-indicator ml-2">
               <span className="indicator-dot"></span>
-              Auto-Send: {formatSeconds(silenceThreshold)}s
+              Auto: {formatSeconds(silenceThreshold)}s
+            </span>
+          )}
+          {sendDelay > 0 && (
+            <span className="send-delay-indicator">
+              <span className="indicator-dot delay-dot"></span>
+              Delay: {sendDelay}ms
             </span>
           )}
         </div>
@@ -1847,14 +1958,16 @@ Options:
                       className="send-button"
                       variant="primary"
                       onClick={handleSend}
+                      disabled={isSending}
                     >
                       <Send size={16} />
-                      Send
+                      {isSending ? `Sending...` : `Send`}
                     </Button>
                     <Button
                       className="cancel-button"
                       variant="outline-secondary"
                       onClick={handleCancel}
+                      disabled={isSending}
                     >
                       <X size={16} />
                       Cancel
