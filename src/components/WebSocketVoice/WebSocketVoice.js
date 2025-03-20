@@ -58,6 +58,7 @@ const WebSocketVoice = () => {
   // Recording states
   const [isRecording, setIsRecording] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const isProcessingRef = useRef(false); // Add ref for processing state
   const [error, setError] = useState(null);
   const [isConnected, setIsConnected] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
@@ -70,9 +71,8 @@ const WebSocketVoice = () => {
   const [isPaused, setIsPaused] = useState(false);
   const [autoplayFailed, setAutoplayFailed] = useState(false);
   
-  // Validation states
-  const [showValidation, setShowValidation] = useState(false);
-  const [validationPlaying, setValidationPlaying] = useState(false);
+  // AI response state
+  const [aiResponse, setAiResponse] = useState('');
   
   // WebSocket and MediaRecorder refs
   const socketRef = useRef(null);
@@ -87,7 +87,6 @@ const WebSocketVoice = () => {
   const recorderRef = useRef(null);
   const recordedChunksRef = useRef([]);
   const isRecordingRef = useRef(false);
-  const localRecordingChunksRef = useRef([]);
   
   // Audio processing refs
   const audioBuffersRef = useRef({});
@@ -268,7 +267,9 @@ const WebSocketVoice = () => {
       switch (message.type) {
         case 'stream_started':
           debugLog('Server acknowledged stream start');
-          setIsProcessing(true);
+          if (isRecordingRef.current) { // Only update if still recording
+            updateIsProcessing(true);
+          }
           break;
           
         case 'transcript_update':
@@ -286,26 +287,64 @@ const WebSocketVoice = () => {
         case 'audio_chunk':
           const audioLength = message.audio ? message.audio.length : 0;
           debugLog(`Received audio chunk from server: ${audioLength} chars, text: "${message.text || 'none'}"`);
+          
+          // If we're receiving a new audio chunk after processing was complete,
+          // we need to reset our playback state for the new response
+          if (!isProcessing && isPlaybackCompleteRef.current) {
+            debugLog('Received new audio after previous playback completed, resetting playback state');
+            pendingChunksRef.current = [];
+            allAudioChunksUrlsRef.current = [];
+            isPlayingRef.current = false;
+            isPlaybackCompleteRef.current = false;
+            setIsPlaying(false);
+          }
+          
+          // Update AI's response text separately from user transcript
+          if (message.text) {
+            setAiResponse(prevResponse => prevResponse + " " + message.text);
+            debugLog(`Updated AI response with: "${message.text}"`);
+          }
+          
           handleAudioChunk(message);
           break;
           
         case 'processing_complete':
           debugLog('Server signaled processing complete');
-          setIsProcessing(false);
-          handlePlaybackComplete();
+          
+          // There may be a race condition where we receive processing_complete
+          // after we've already stopped recording but before we've received any audio
+          // Only reset processing state if we're not playing audio
+          if (!isPlayingRef.current) {
+            debugLog('No active playback, resetting processing state immediately');
+            updateIsProcessing(false);
+          } else {
+            debugLog('Audio is currently playing, will reset processing state after playback');
+            // We'll let handlePlaybackComplete reset the processing state when audio finishes
+          }
+          
+          setIsRecording(false); // Ensure recording state is reset
+          isRecordingRef.current = false; // Reset recording ref
+          
+          // If audio is done playing, clean up
+          if (!isPlayingRef.current) {
+            handlePlaybackComplete();
+          }
           break;
           
         case 'error':
           debugLog(`Server error: ${message.message}`);
           setError(message.message);
-          setIsProcessing(false);
-          stopRecording();
+          updateIsProcessing(false);
+          setIsRecording(false);
+          isRecordingRef.current = false;
+          stopRecording(false); // Don't send another end_stream
           break;
           
         case 'cancelled':
-          debugLog('Server cancelled processing');
-          setIsProcessing(false);
-          stopRecording();
+          debugLog('Server acknowledged cancellation');
+          updateIsProcessing(false);
+          setIsRecording(false);
+          isRecordingRef.current = false;
           break;
           
         default:
@@ -333,14 +372,12 @@ const WebSocketVoice = () => {
     try {
       // If this is the first audio chunk received during processing,
       // update the UI state to indicate we're now playing audio
-      if (isProcessing && !isPlaying) {
+      if (isProcessingRef.current && !isPlaying) {
         debugLog('First audio chunk received, transitioning from processing to playback');
-      }
-      
-      // Update text transcription
-      if (message.text) {
-        debugLog(`Updating transcription with: "${message.text}"`);
-        setTranscription(prev => prev + " " + message.text);
+      } else if (!isProcessingRef.current && !isPlaying) {
+        // We're receiving audio but not in processing state, this could happen if we 
+        // already received processing_complete before the first audio chunk
+        debugLog('Receiving audio while not in processing state - likely processing_complete arrived early');
       }
       
       // Process audio data
@@ -364,90 +401,160 @@ const WebSocketVoice = () => {
     }
   };
   
-  // Play audio chunks as they arrive
+  // Play audio chunks as they arrive - ensuring sequential playback
   const queueAndPlayAudio = async (arrayBuffer) => {
     try {
       if (!audioContextRef.current) {
         await initializeAudioContext();
       }
       
-      // Create an audio element to play the chunk directly
-      const audioBlob = new Blob([arrayBuffer], { type: 'audio/mpeg' });
+      // Create audio blob with the correct MIME type
+      const audioBlob = new Blob([arrayBuffer], { type: 'audio/mp3' }); // Consistent MIME type for playback
       const audioUrl = URL.createObjectURL(audioBlob);
       
-      // Store this URL in our complete list for potential replay from beginning
+      debugLog(`Created audio blob URL: ${audioUrl}, size: ${arrayBuffer.byteLength} bytes`);
+      
+      // Store this URL in our complete list for potential replay
       allAudioChunksUrlsRef.current.push(audioUrl);
       
+      // Ensure we have an audio element
       if (!audioBuffersRef.current.audio) {
+        debugLog('Creating new Audio element for playback');
         const audio = new Audio();
+        
+        // Set up comprehensive event handlers for the audio element
         audio.onended = () => {
-          // Clean up the URL when done
-          URL.revokeObjectURL(audioUrl);
-          
-          // Play next chunk if available
-          if (pendingChunksRef.current.length > 0) {
-            const nextChunkUrl = pendingChunksRef.current.shift();
-            audioBuffersRef.current.audio.src = nextChunkUrl;
-            audioBuffersRef.current.audio.play().catch(e => debugLog('Error playing next chunk:', e));
-          } else {
-            isPlayingRef.current = false;
-            if (pendingChunksRef.current.length === 0 && !isProcessing) {
-              handlePlaybackComplete();
-            }
-          }
+          debugLog('Audio playback ended naturally');
+          handleNextChunk(audio);
+        };
+        
+        audio.onpause = () => {
+          debugLog('Audio playback paused');
+        };
+        
+        audio.onplay = () => {
+          debugLog('Audio playback started');
         };
         
         audio.onerror = (e) => {
-          debugLog('Audio playback error:', e);
-          URL.revokeObjectURL(audioUrl);
+          const error = e.target.error;
+          debugLog(`Audio playback error: ${error ? error.code : 'unknown'}`);
           
-          // Try next chunk
-          if (pendingChunksRef.current.length > 0) {
-            const nextChunkUrl = pendingChunksRef.current.shift();
-            audio.src = nextChunkUrl;
-            audio.play().catch(e => debugLog('Error playing next chunk:', e));
-          } else {
-            isPlayingRef.current = false;
+          // Prevent infinite loops - don't try to handle next chunk on playback errors
+          // if we're in the middle of cleanup or already finished
+          if (!isProcessing && !isPlayingRef.current) {
+            debugLog('Not handling next chunk due to error during inactive state');
+            return;
+          }
+          
+          if (audio.src) {
+            try {
+              URL.revokeObjectURL(audio.src);
+            } catch (e) {
+              debugLog('Error revoking URL:', e);
+            }
+          }
+          
+          // Only proceed to next chunk if we're still actively playing
+          if (isPlayingRef.current) {
+            handleNextChunk(audio);
           }
         };
         
         audioBuffersRef.current.audio = audio;
       }
       
-      // If we're currently playing, queue this chunk
-      if (isPlayingRef.current) {
-        pendingChunksRef.current.push(audioUrl);
-      } else {
-        // Otherwise play it immediately
-        isPlayingRef.current = true;
-        audioBuffersRef.current.audio.src = audioUrl;
+      // Handle playing the next chunk from the queue
+      const handleNextChunk = (audioElement) => {
+        // Guard against infinite loops: ensure we're still in an active state
+        if (!isPlayingRef.current && !isProcessing) {
+          debugLog('Skipping handleNextChunk since playback is no longer active');
+          return;
+        }
         
-        // Use the same user interaction context for playback
+        // Clean up the current URL
+        if (audioElement.src) {
+          try {
+            URL.revokeObjectURL(audioElement.src);
+            audioElement.removeAttribute('src'); // Clear source
+            audioElement.load(); // Reset the audio element
+          } catch (e) {
+            debugLog('Error cleaning up audio source:', e);
+          }
+        }
+        
+        // Play next chunk if available
+        if (pendingChunksRef.current.length > 0) {
+          const nextChunkUrl = pendingChunksRef.current.shift();
+          debugLog(`Playing next chunk in queue (${pendingChunksRef.current.length} remaining)`);
+          
+          audioElement.src = nextChunkUrl;
+          audioElement.load(); // Important: reload after changing source
+          
+          audioElement.play().catch(e => {
+            debugLog('Error playing next chunk:', e);
+            // Only try the next chunk if we're still in an active playback state
+            if (isPlayingRef.current) {
+              setTimeout(() => handleNextChunk(audioElement), 100);
+            } else {
+              debugLog('Not proceeding to next chunk due to inactive playback state');
+            }
+          });
+        } else {
+          debugLog('No more chunks in queue');
+          isPlayingRef.current = false;
+          setIsPlaying(false);
+          
+          if (!isProcessing) {
+            handlePlaybackComplete();
+          }
+        }
+      };
+      
+      // Add this chunk to the pending chunks queue
+      debugLog(`Adding chunk to queue (${pendingChunksRef.current.length} already in queue)`);
+      pendingChunksRef.current.push(audioUrl);
+      
+      // If not currently playing, start playing the first chunk
+      if (!isPlayingRef.current) {
+        debugLog('Starting initial playback');
+        isPlayingRef.current = true;
+        
+        const firstChunkUrl = pendingChunksRef.current.shift();
+        const audio = audioBuffersRef.current.audio;
+        
+        audio.src = firstChunkUrl;
+        audio.load(); // Important: reload after changing source
+        
+        // Make sure we have user interaction context for autoplay
         if (userInteractionContextRef.current) {
-          await audioBuffersRef.current.audio.play().catch(e => {
-            debugLog('Error starting audio playback:', e);
+          try {
+            await audio.play();
+            debugLog('Started playing first audio chunk');
+            setIsPlaying(true);
+          } catch (e) {
+            debugLog('Error starting initial audio playback:', e);
             // Set autoplay failed flags
             autoplayFailedRef.current = true;
             setAutoplayFailed(true);
             isPlayingRef.current = false;
-          });
+            
+            // Put the URL back in the queue for later manual playback
+            pendingChunksRef.current.unshift(firstChunkUrl);
+          }
         } else {
-          // If we don't have user interaction context, mark as failed
+          debugLog('No user interaction context for autoplay');
           autoplayFailedRef.current = true;
           setAutoplayFailed(true);
           isPlayingRef.current = false;
+          pendingChunksRef.current.unshift(firstChunkUrl);
         }
+      } else {
+        debugLog('Already playing, chunk queued for later');
       }
-      
-      // Update UI state only if autoplay hasn't failed
-      if (!autoplayFailedRef.current) {
-        if (!isPlaying) {
-          setIsPlaying(true);
-        }
-      }
-      
     } catch (error) {
-      debugLog('Error queuing audio:', error);
+      debugLog('Error in queueAndPlayAudio:', error);
+      setError(`Audio playback error: ${error.message}`);
     }
   };
   
@@ -487,9 +594,35 @@ const WebSocketVoice = () => {
   };
   
   const stopPlayback = () => {
+    // Guard against calling when already stopped
+    if (!isPlayingRef.current && !isPaused) {
+      debugLog('Playback already stopped, ignoring redundant stop call');
+      return;
+    }
+    
+    debugLog('Stopping audio playback');
     if (audioBuffersRef.current.audio) {
+      // First pause the audio
       audioBuffersRef.current.audio.pause();
+      
+      // Remove event handlers to prevent callbacks during cleanup
+      if (audioBuffersRef.current.audio.onended) {
+        audioBuffersRef.current.audio.onended = null;
+      }
+      
+      if (audioBuffersRef.current.audio.onerror) {
+        audioBuffersRef.current.audio.onerror = null;
+      }
+      
+      // Clear the source
       audioBuffersRef.current.audio.src = '';
+      
+      try {
+        // Force reload to clear any buffered data
+        audioBuffersRef.current.audio.load();
+      } catch (e) {
+        debugLog('Error reloading audio element:', e);
+      }
     }
     
     // Clean up any pending URLs
@@ -497,14 +630,23 @@ const WebSocketVoice = () => {
       try {
         URL.revokeObjectURL(url);
       } catch (e) {
-        // Ignore cleanup errors
+        debugLog('Error revoking object URL:', e);
       }
     });
     
+    // Reset all playback state
     pendingChunksRef.current = [];
     isPlayingRef.current = false;
     setIsPlaying(false);
     setIsPaused(false);
+    
+    // If processing state is still active, reset it to ensure controls are available
+    if (isProcessingRef.current) {
+      debugLog('Resetting processing state after stopping playback');
+      updateIsProcessing(false);
+    }
+    
+    debugLog('Playback stopped, showing recording controls');
   };
   
   // Play all audio chunks from beginning (when autoplay failed)
@@ -551,19 +693,45 @@ const WebSocketVoice = () => {
   };
   
   const handlePlaybackComplete = () => {
+    // Guard against repeated calls
+    if (isPlaybackCompleteRef.current) {
+      debugLog('Playback already marked as complete, ignoring redundant call');
+      return;
+    }
+    
     debugLog('Playback completed');
     isPlaybackCompleteRef.current = true;
     
-    // Don't auto cleanup if we're in autoplay failed state
+    // Update UI state
+    setIsPlaying(false);
+    isPlayingRef.current = false;
+    
+    // Ensure processing state is reset
+    if (isProcessingRef.current) {
+      debugLog('Resetting processing state after playback completed');
+      updateIsProcessing(false);
+    }
+    
+    // Reset audio playback resources
     if (!autoplayFailedRef.current) {
+      // Only clean up if autoplay didn't fail (otherwise we need to keep the audio for manual play)
       setTimeout(() => cleanupAudio(false), 100);
     }
+    
+    debugLog('Processing and playback both complete, resetting UI state');
   };
   
   const cleanupAudio = (preserveForReplay = false) => {
     try {
       // Don't cleanup if we're in autoplay failed state unless explicitly stopping
       if (autoplayFailedRef.current && preserveForReplay) {
+        return;
+      }
+      
+      // Only cleanup once
+      if (!isPlayingRef.current && pendingChunksRef.current.length === 0 && 
+          allAudioChunksUrlsRef.current.length === 0 && !preserveForReplay) {
+        debugLog('Audio already cleaned up, skipping redundant cleanup');
         return;
       }
       
@@ -576,7 +744,7 @@ const WebSocketVoice = () => {
           try {
             URL.revokeObjectURL(url);
           } catch (e) {
-            // Ignore cleanup errors
+            debugLog('Error revoking URL during cleanup:', e);
           }
         });
         allAudioChunksUrlsRef.current = [];
@@ -585,6 +753,8 @@ const WebSocketVoice = () => {
         isPlaybackCompleteRef.current = false;
         setAutoplayFailed(false);
         autoplayFailedRef.current = false;
+        
+        debugLog('Audio cleanup completed');
       }
     } catch (error) {
       debugLog('Non-critical cleanup error:', error);
@@ -599,6 +769,24 @@ const WebSocketVoice = () => {
     }
     
     try {
+      // Clean up any previous recording/playback state
+      cleanupAudio(false);
+      
+      // Clear all audio resources and reset playback state
+      pendingChunksRef.current = [];
+      allAudioChunksUrlsRef.current = [];
+      isPlayingRef.current = false;
+      isPlaybackCompleteRef.current = false;
+      autoplayFailedRef.current = false;
+      setIsPlaying(false);
+      setIsPaused(false);
+      setAutoplayFailed(false);
+      
+      // Clear previous transcript and response
+      setTranscription('');
+      setAiResponse('');
+      setIsFinalTranscript(false);
+      
       // Setup WebSocket connection
       if (!socketRef.current || socketRef.current.readyState !== WebSocket.OPEN) {
         debugLog('Setting up WebSocket before recording');
@@ -654,7 +842,6 @@ const WebSocketVoice = () => {
       
       // Clear previous data
       recordedChunksRef.current = [];
-      localRecordingChunksRef.current = [];
       chunkCounterRef.current = 0;
       
       // Set up a user interaction context for audio playback
@@ -673,10 +860,13 @@ const WebSocketVoice = () => {
         
         debugLog(`[CHUNK ${chunkNum}] Received audio data at ${chunkTime}, size: ${chunkSize} bytes, type: ${event.data.type}`);
         
-        // Store a copy of the chunk for local validation
-        localRecordingChunksRef.current.push(event.data);
-        
         try {
+          // Check if recording is still active and we haven't sent end_stream yet
+          if (!isRecordingRef.current) {
+            debugLog(`[CHUNK ${chunkNum}] Recording no longer active, not sending chunk to server`);
+            return;
+          }
+          
           if (socketRef.current?.readyState !== WebSocket.OPEN) {
             debugLog(`[CHUNK ${chunkNum}] WebSocket not open, cannot send chunk`);
             return;
@@ -825,6 +1015,12 @@ const WebSocketVoice = () => {
   
   // Stop recording
   const stopRecording = (sendEndStream = true) => {
+    // Prevent double sending of end_stream
+    if (!isRecordingRef.current && sendEndStream) {
+      debugLog('Not sending end_stream because recording already stopped');
+      return;
+    }
+    
     debugLog(`Stopping recording, sendEndStream=${sendEndStream}`);
     
     // Stop silence detection
@@ -863,6 +1059,12 @@ const WebSocketVoice = () => {
       streamRef.current = null;
     }
     
+    // Update recording state first - before sending end_stream
+    // This helps prevent double sending of end_stream
+    setIsRecording(false);
+    isRecordingRef.current = false;
+    mediaRecorderRef.current = null;
+    
     // Send end_stream message if required
     if (sendEndStream && socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
       debugLog('Sending end_stream message to server');
@@ -871,13 +1073,8 @@ const WebSocketVoice = () => {
       }));
       
       // Update UI to show processing state
-      setIsProcessing(true);
+      updateIsProcessing(true);
     }
-    
-    // Update recording state
-    setIsRecording(false);
-    isRecordingRef.current = false;
-    mediaRecorderRef.current = null;
   };
   
   // Cancel recording
@@ -895,73 +1092,35 @@ const WebSocketVoice = () => {
     // Stop recording without sending end_stream
     stopRecording(false);
     
-    // Reset all states
-    setIsProcessing(false);
+    // Reset all states - make sure processing is turned off immediately
+    updateIsProcessing(false);
+    setIsRecording(false);
+    isRecordingRef.current = false;
     setTranscription('');
     setIsFinalTranscript(false);
+    setAiResponse(''); // Clear AI response
+    
+    // Reset playback states too to ensure clean state
+    setIsPlaying(false);
+    isPlayingRef.current = false;
+    setIsPaused(false);
+    isPlaybackCompleteRef.current = false;
     
     // Clean up any audio playback
     cleanupAudio();
     
-    // Clear local recording chunks
-    localRecordingChunksRef.current = [];
-    
-    debugLog('Recording cancelled');
+    debugLog('Recording cancelled, all states reset');
   };
   
   // Explicit send function
   const handleSend = () => {
     if (isRecording) {
       debugLog('User clicked Send button - ending recording and stream');
-      
-      // First stop the recorder
-      if (recorderRef.current && recorderRef.current.state !== 'inactive') {
-        debugLog('Stopping MediaRecorder');
-        recorderRef.current.stop();
-      }
-      
-      // Stop all tracks in the stream
-      if (streamRef.current) {
-        debugLog('Stopping media stream tracks');
-        streamRef.current.getTracks().forEach(track => {
-          try {
-            track.stop();
-          } catch (e) {
-            debugLog('Error stopping track:', e);
-          }
-        });
-        streamRef.current = null;
-      }
-      
-      // Send end_stream message to server
-      if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
-        debugLog('Sending end_stream message to server');
-        socketRef.current.send(JSON.stringify({
-          type: 'end_stream'
-        }));
-        
-        // Update UI to show processing state
-        setIsProcessing(true);
-        setIsRecording(false);
-        isRecordingRef.current = false;
-        
-        // Show validation option if we have local chunks
-        if (localRecordingChunksRef.current.length > 0) {
-          setShowValidation(true);
-        }
-        
-        debugLog('Entered processing state, awaiting server response');
-      } else {
-        debugLog('WebSocket not connected, cannot send end_stream message');
-        setError('Connection lost. Could not send message to server.');
-        setIsRecording(false);
-        isRecordingRef.current = false;
-        
-        // Still allow validation even if we couldn't send
-        if (localRecordingChunksRef.current.length > 0) {
-          setShowValidation(true);
-        }
-      }
+      // Use the stopRecording function to ensure consistent behavior
+      stopRecording(true);
+      debugLog('Handled send button - recording stopped and end_stream sent');
+    } else {
+      debugLog('Send button clicked but not recording - ignoring');
     }
   };
   
@@ -1110,51 +1269,11 @@ const WebSocketVoice = () => {
     };
   }, [connectionStatus]);
   
-  // Function to play back recorded audio locally
-  const playLocalRecording = () => {
-    if (localRecordingChunksRef.current.length === 0) {
-      debugLog('No local recording chunks available');
-      return;
-    }
-    
-    try {
-      // Create a combined blob from all chunks
-      const recordedBlob = new Blob(localRecordingChunksRef.current, { type: 'audio/webm' });
-      debugLog(`Local recording size: ${recordedBlob.size} bytes`);
-      
-      if (recordedBlob.size === 0) {
-        setError('No audio recorded. The microphone might not be working properly.');
-        return;
-      }
-      
-      // Create audio element for playback
-      const audioURL = URL.createObjectURL(recordedBlob);
-      const audio = new Audio(audioURL);
-      
-      audio.onended = () => {
-        debugLog('Local recording playback ended');
-        setValidationPlaying(false);
-        URL.revokeObjectURL(audioURL);
-      };
-      
-      audio.onerror = (e) => {
-        debugLog('Error playing local recording:', e);
-        setValidationPlaying(false);
-        URL.revokeObjectURL(audioURL);
-        setError('Could not play back recorded audio for validation.');
-      };
-      
-      audio.play().then(() => {
-        debugLog('Playing local recording for validation');
-        setValidationPlaying(true);
-      }).catch(e => {
-        debugLog('Failed to play local recording:', e);
-        setError('Could not play back recorded audio. Browser may have autoplay restrictions.');
-      });
-    } catch (error) {
-      debugLog('Error creating playback for local recording:', error);
-      setError(`Playback error: ${error.message}`);
-    }
+  // Custom setIsProcessing to keep ref and state in sync
+  const updateIsProcessing = (value) => {
+    debugLog(`Setting isProcessing ${isProcessingRef.current} -> ${value}`);
+    isProcessingRef.current = value;
+    setIsProcessing(value);
   };
   
   return (
@@ -1171,7 +1290,6 @@ WebSocket Info:
 - URL: ${wsUrl.current || 'Not set'}
 - State: ${socketRef.current ? getWebSocketStateString(socketRef.current.readyState) : 'No socket'}
 - Chunks Sent: ${chunkCounterRef.current}
-- Local Chunks: ${localRecordingChunksRef.current.length}
 - Network: ${networkStatus}
 - Auth Token: ${localStorage.getItem('access_token') ? 'Present' : 'Missing'}
               `;
@@ -1223,136 +1341,170 @@ WebSocket Info:
         {/* Main content */}
         {browserSupported && (
           <div className="main-content-container">
-            {/* Transcription display */}
-            {transcription && (
-              <div className="transcription-container">
-                <div className={`transcription-text ${isFinalTranscript ? 'final' : ''}`}>
-                  {transcription}
-                </div>
-              </div>
-            )}
-
-            {/* Controls based on state */}
-            {!isConnected && !isConnecting && (
-              <div className="disconnected-controls">
-                <div className="connection-message">Not connected to server</div>
-                <Button 
-                  className="retry-button" 
-                  variant="primary"
-                  onClick={handleRetryConnection}
-                >
-                  Retry Connection
-                </Button>
-              </div>
-            )}
-
-            {/* Voice controls */}
-            {isConnected && !isRecording && !isProcessing && !isPlaying && !isPaused && !autoplayFailed && (
-              <div className="voice-controls">
-                <Button
-                  className="record-button"
-                  variant="primary"
-                  onClick={startRecording}
-                  disabled={!isConnected || isRecording}
-                >
-                  <Mic size={20} />
-                  Click to speak
-                </Button>
-              </div>
-            )}
-
-            {/* Recording controls */}
-            {isRecording && (
-              <div className="recording-controls">
-                <div className="recording-indicator">
-                  <span className="pulse"></span>
-                  Recording...
-                </div>
-                <div className="recording-buttons">
-                  <Button
-                    className="send-button"
+            {/* Controls based on state - moved to the top */}
+            <div className="controls-area">
+              {!isConnected && !isConnecting && (
+                <div className="disconnected-controls">
+                  <div className="connection-message">Not connected to server</div>
+                  <Button 
+                    className="retry-button" 
                     variant="primary"
-                    onClick={handleSend}
+                    onClick={handleRetryConnection}
                   >
-                    <Send size={16} />
-                    Send
+                    Retry Connection
+                  </Button>
+                </div>
+              )}
+
+              {/* Voice controls */}
+              {isConnected && !isRecording && !isProcessingRef.current && !isPlaying && !isPaused && !autoplayFailed && (
+                <div className="voice-controls">
+                  <Button
+                    className="record-button"
+                    variant="primary"
+                    onClick={startRecording}
+                    disabled={!isConnected || isRecording}
+                  >
+                    <Mic size={20} />
+                    Click to speak
+                  </Button>
+                </div>
+              )}
+
+              {/* Recording controls */}
+              {isRecording && (
+                <div className="recording-controls">
+                  <div className="recording-indicator">
+                    <span className="pulse"></span>
+                    Recording...
+                  </div>
+                  <div className="recording-buttons">
+                    <Button
+                      className="send-button"
+                      variant="primary"
+                      onClick={handleSend}
+                    >
+                      <Send size={16} />
+                      Send
+                    </Button>
+                    <Button
+                      className="cancel-button"
+                      variant="outline-secondary"
+                      onClick={handleCancel}
+                    >
+                      <X size={16} />
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {/* Processing indicator - only show when not recording and no playback is happening */}
+              {isProcessingRef.current && !isRecording && !isPlaying && !isPaused && !autoplayFailed && (
+                <div className="streaming-indicator">
+                  <Spinner animation="border" size="sm" />
+                  Processing...
+                </div>
+              )}
+
+              {/* Playback controls */}
+              {isPlaying && (
+                <div className="playback-controls">
+                  <Button
+                    variant="outline-primary"
+                    onClick={pausePlayback}
+                    className="me-2"
+                  >
+                    <Pause size={20} />
+                    Pause
                   </Button>
                   <Button
-                    className="cancel-button"
-                    variant="outline-secondary"
-                    onClick={handleCancel}
+                    variant="outline-danger"
+                    onClick={stopPlayback}
                   >
-                    <X size={16} />
-                    Cancel
+                    <Square size={20} />
+                    Stop
                   </Button>
                 </div>
-              </div>
-            )}
+              )}
 
-            {/* Processing indicator */}
-            {isProcessing && !isPlaying && !isPaused && !autoplayFailed && (
-              <div className="streaming-indicator">
-                <Spinner animation="border" size="sm" />
-                Processing...
-              </div>
-            )}
-
-            {/* Playback controls */}
-            {isPlaying && (
-              <div className="playback-controls">
-                <Button
-                  variant="outline-primary"
-                  onClick={pausePlayback}
-                >
-                  <Pause size={20} />
-                  Pause
-                </Button>
-              </div>
-            )}
-
-            {isPaused && (
-              <div className="playback-controls">
-                <Button
-                  variant="outline-primary"
-                  onClick={resumePlayback}
-                >
-                  <Play size={20} />
-                  Resume
-                </Button>
-              </div>
-            )}
-
-            {/* Autoplay failed message */}
-            {autoplayFailed && (
-              <Alert variant="info" className="autoplay-warning">
-                <p>Autoplay was blocked by your browser.</p>
-                <Button
-                  className="play-button"
-                  variant="primary"
-                  onClick={startManualPlayback}
-                >
-                  <Play size={16} />
-                  Play Response
-                </Button>
-              </Alert>
-            )}
-
-            {/* Validation controls */}
-            {isProcessing && showValidation && !isPlaying && !isPaused && !autoplayFailed && (
-              <div className="validation-controls">
-                <Button 
-                  variant="outline-info" 
-                  className="validation-button"
-                  onClick={playLocalRecording}
-                  disabled={validationPlaying}
-                >
-                  {validationPlaying ? 'Playing...' : 'Validate Recording'}
-                </Button>
-                <div className="validation-hint">
-                  Click to hear what was recorded
+              {isPaused && (
+                <div className="playback-controls">
+                  <Button
+                    variant="outline-primary"
+                    onClick={resumePlayback}
+                    className="me-2"
+                  >
+                    <Play size={20} />
+                    Resume
+                  </Button>
+                  <Button
+                    variant="outline-danger"
+                    onClick={stopPlayback}
+                  >
+                    <Square size={20} />
+                    Stop
+                  </Button>
                 </div>
+              )}
+
+              {/* Autoplay failed message */}
+              {autoplayFailed && (
+                <Alert variant="info" className="autoplay-warning">
+                  <p>Autoplay was blocked by your browser.</p>
+                  <div className="d-flex gap-2 mt-2">
+                    <Button
+                      className="play-button"
+                      variant="primary"
+                      onClick={startManualPlayback}
+                    >
+                      <Play size={16} />
+                      Play Response
+                    </Button>
+                    {pendingChunksRef.current.length > 0 && (
+                      <Button
+                        className="stop-button"
+                        variant="outline-danger"
+                        onClick={stopPlayback}
+                      >
+                        <Square size={16} />
+                        Stop
+                      </Button>
+                    )}
+                  </div>
+                </Alert>
+              )}
+            </div>
+            
+            {/* Messages display area with fixed heights and scrolling */}
+            <div className="messages-area">
+              {/* Transcription display - always visible */}
+              <div className="transcription-container">
+                {transcription ? (
+                  <div className={`transcription-text ${isFinalTranscript ? 'final' : ''}`}>
+                    {transcription}
+                  </div>
+                ) : (
+                  <div className="transcription-empty">
+                    Your speech will appear here...
+                  </div>
+                )}
               </div>
-            )}
+              
+              {/* AI Response display - always visible */}
+              <div className="ai-response-container">
+                <div className="ai-response-label">AI Response:</div>
+                {aiResponse ? (
+                  <div className="ai-response-text">
+                    {aiResponse}
+                  </div>
+                ) : (
+                  <div className="ai-response-empty">
+                    AI response will appear here...
+                  </div>
+                )}
+              </div>
+            </div>
 
             {/* Text chat button */}
             <div className="top-icon">

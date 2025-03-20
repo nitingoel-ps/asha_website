@@ -175,12 +175,96 @@
   animation: pulse 1s infinite;
 }
 
+/* Reorganize the layout to have controls at the top and fixed scroll areas */
+.main-content-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  position: relative;
+  padding-bottom: 20px;
+}
+
+/* Control areas at the top */
+.controls-area {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-top: 60px;
+  margin-bottom: 30px;
+  padding: 15px;
+  position: relative;
+  z-index: 20;
+}
+
+/* Increase spacing between controls */
+.voice-controls,
+.recording-controls,
+.playback-controls,
+.streaming-indicator,
+.disconnected-controls {
+  margin: 15px 0;
+  min-height: 50px;
+  display: flex;
+  align-items: center;
+}
+
+/* Make autoplay warning more compact */
+.autoplay-warning {
+  max-width: 400px;
+  padding: 10px 15px;
+  margin: 15px 0;
+  font-size: 1rem;
+  word-break: break-word;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* Messages display area */
+.messages-area {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  padding: 0 15px;
+  margin-top: 30px;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Scrollbar styling for containers */
+.transcription-container,
+.ai-response-container {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+}
+
+.transcription-container::-webkit-scrollbar,
+.ai-response-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.transcription-container::-webkit-scrollbar-track,
+.ai-response-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.transcription-container::-webkit-scrollbar-thumb,
+.ai-response-container::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 6px;
+}
+
+.ai-response-container::-webkit-scrollbar-thumb {
+  background-color: rgba(13, 110, 253, 0.2);
+}
+
 /* Transcription container styles */
 .transcription-container {
   width: 90%;
   max-width: 600px;
-  position: absolute;
-  top: 10%;
+  position: relative;
+  top: 0;
   left: 50%;
   transform: translateX(-50%);
   background-color: rgba(255, 255, 255, 0.9);
@@ -188,8 +272,10 @@
   padding: 15px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   z-index: 10;
-  max-height: 40%;
+  max-height: 150px;
+  min-height: 60px;
   overflow-y: auto;
+  margin-bottom: 20px;
 }
 
 .transcription-text {
@@ -202,6 +288,54 @@
 
 .transcription-text.final {
   font-weight: 500;
+}
+
+.transcription-empty {
+  color: #999;
+  font-style: italic;
+  font-size: 0.9rem;
+}
+
+/* AI Response container styles */
+.ai-response-container {
+  width: 90%;
+  max-width: 600px;
+  position: relative;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(240, 249, 255, 0.95);
+  border-radius: 8px;
+  padding: 15px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+  z-index: 10;
+  max-height: 200px;
+  min-height: 80px;
+  overflow-y: auto;
+  border-left: 4px solid #0d6efd;
+}
+
+.ai-response-text {
+  font-size: 1.1rem;
+  line-height: 1.5;
+  color: #0d6efd;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.ai-response-empty {
+  color: #8eb8ff;
+  font-style: italic;
+  font-size: 0.9rem;
+}
+
+.ai-response-label {
+  font-size: 0.8rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  color: #0d6efd;
+  margin-bottom: 5px;
+  letter-spacing: 0.5px;
 }
 
 /* Error message styling to minimize space usage */
@@ -225,18 +359,6 @@
   padding: 0 6px;
   flex-shrink: 0;
   margin-left: 8px;
-}
-
-.autoplay-warning {
-  width: 100%;
-  max-width: 500px;
-  font-size: 1rem;
-  padding: 10px 15px;
-  margin-bottom: 15px;
-  word-break: break-word;
-  max-height: none;
-  overflow-y: visible;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 @keyframes pulse {
@@ -297,12 +419,28 @@
     position: relative;
   }
   
-  .transcription-container {
+  .transcription-container,
+  .ai-response-container {
     width: 95%;
-    top: 5%;
-    max-height: 35%;
     padding: 12px;
-    font-size: 0.95rem;
+  }
+  
+  .controls-area {
+    margin-top: 40px;
+  }
+  
+  .transcription-container {
+    max-height: 120px;
+    margin-bottom: 15px;
+  }
+  
+  .ai-response-container {
+    max-height: 150px;
+  }
+  
+  .transcription-text,
+  .ai-response-text {
+    font-size: 1rem;
   }
   
   .streaming-voice-interface .top-icon {
@@ -778,67 +916,5 @@
   .debug-info-button button {
     font-size: 0.7rem;
     padding: 1px 6px;
-  }
-}
-
-/* Validation controls */
-.validation-controls {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  position: absolute;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: auto !important;
-  min-width: 180px !important;
-  text-align: center;
-  z-index: 10;
-}
-
-.validation-button {
-  width: 100%;
-  padding: 8px 16px;
-  border-radius: 20px;
-  background-color: #f5f9ff;
-  border-color: #17a2b8;
-  color: #17a2b8;
-  transition: all 0.2s;
-}
-
-.validation-button:hover:not(:disabled) {
-  background-color: #e1f0f5;
-  border-color: #138496;
-  color: #138496;
-  transform: translateY(-2px);
-}
-
-.validation-button:active:not(:disabled) {
-  transform: translateY(0);
-}
-
-.validation-button:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
-}
-
-.validation-hint {
-  font-size: 0.8rem;
-  color: #6c757d;
-}
-
-@media (max-width: 768px) {
-  .validation-controls {
-    bottom: 15px;
-  }
-  
-  .validation-button {
-    padding: 6px 12px;
-    font-size: 0.9rem;
-  }
-  
-  .validation-hint {
-    font-size: 0.75rem;
   }
 } 
