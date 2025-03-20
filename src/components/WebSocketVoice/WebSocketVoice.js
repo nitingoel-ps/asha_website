@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Button, Card, Spinner, Alert } from 'react-bootstrap';
-import { Mic, Square, X, Pause, Play, Keyboard, Send } from 'lucide-react';
+import { Button, Card, Spinner, Alert, Form } from 'react-bootstrap';
+import { Mic, Square, X, Pause, Play, Keyboard, Send, Settings } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import './WebSocketVoice.css';
 
@@ -13,6 +13,10 @@ const debugLog = (...args) => {
     console.log('[WebSocketVoice]', ...args);
   }
 };
+
+// Default setting for silence detection
+const DEFAULT_AUTO_SEND_ENABLED = true;
+const DEFAULT_SILENCE_THRESHOLD = 5000; // 5 seconds
 
 // Get the API base URL from environment
 const apiBaseURL = process.env.REACT_APP_API_BASE_URL || '';
@@ -100,7 +104,6 @@ const WebSocketVoice = () => {
   const audioDataRef = useRef(null);
   
   // Silence detection constants
-  const SILENCE_THRESHOLD = 3000; // 3 seconds
   const MAX_RECORDING_DURATION = 30000; // 30 seconds
   const silenceDetectionIntervalRef = useRef(null);
   const recordingStartTimeRef = useRef(null);
@@ -111,6 +114,20 @@ const WebSocketVoice = () => {
   // Connection status
   const [connectionStatus, setConnectionStatus] = useState('disconnected');
   const [networkStatus, setNetworkStatus] = useState(navigator.onLine ? 'online' : 'offline');
+  const [currentAudioLevel, setCurrentAudioLevel] = useState(0);
+  
+  // AutoSend feature states
+  const [autoSendEnabled, setAutoSendEnabled] = useState(
+    localStorage.getItem('autoSendEnabled') !== null 
+      ? localStorage.getItem('autoSendEnabled') === 'true'
+      : DEFAULT_AUTO_SEND_ENABLED
+  );
+  const [silenceThreshold, setSilenceThreshold] = useState(
+    localStorage.getItem('silenceThreshold') !== null
+      ? parseInt(localStorage.getItem('silenceThreshold'), 10)
+      : DEFAULT_SILENCE_THRESHOLD
+  );
+  const [showSettings, setShowSettings] = useState(false);
 
   
   // Check browser compatibility on initial load
@@ -1196,6 +1213,12 @@ const WebSocketVoice = () => {
   
   // Improved silence detection with audio analysis
   const startSilenceDetection = () => {
+    // Only set up silence detection if auto-send is enabled
+    if (!autoSendEnabled) {
+      debugLog('Auto-send is disabled, not starting silence detection');
+      return;
+    }
+    
     // Clear any existing detection
     clearSilenceDetection();
     
@@ -1217,8 +1240,12 @@ const WebSocketVoice = () => {
           }
           const average = sum / values.length;
           
+          // Update current audio level for debugging
+          setCurrentAudioLevel(average);
+          
           // If average volume is above threshold, update last activity time
-          if (average > 10) {  // Threshold for silence (adjust as needed)
+          // Lowered threshold from 10 to 5 for better detection on mobile
+          if (average > 5) {  
             lastAudioActivityRef.current = Date.now();
             debugLog(`Audio activity detected: ${average.toFixed(2)} (above threshold)`);
           } else {
@@ -1233,9 +1260,9 @@ const WebSocketVoice = () => {
       const now = Date.now();
       const timeSinceLastActivity = now - lastAudioActivityRef.current;
       
-      // Send the stream if silence threshold is reached
-      if (timeSinceLastActivity >= SILENCE_THRESHOLD) {
-        debugLog(`Silence detected for ${timeSinceLastActivity}ms - stopping recording`);
+      // Send the stream if silence threshold is reached - using the state variable
+      if (timeSinceLastActivity >= silenceThreshold) {
+        debugLog(`Silence detected for ${timeSinceLastActivity}ms (threshold: ${silenceThreshold}ms) - stopping recording`);
         stopRecording(true);
       }
       
@@ -1245,7 +1272,7 @@ const WebSocketVoice = () => {
         debugLog(`Maximum recording duration reached (${MAX_RECORDING_DURATION}ms)`);
         stopRecording(true);
       }
-    }, 500);
+    }, 1000); // Increased from 500ms to 1000ms for less aggressive silence detection
   };
   
   // Clear silence detection
@@ -1463,6 +1490,32 @@ const WebSocketVoice = () => {
     };
   }, []);
   
+  // Add an effect to persist and load silence threshold settings
+  useEffect(() => {
+    // Setup event listener for storage changes from other tabs/windows
+    const handleStorageChange = (e) => {
+      if (e.key === 'silenceThreshold') {
+        const newValue = parseInt(e.newValue, 10);
+        if (!isNaN(newValue) && newValue !== silenceThreshold) {
+          debugLog(`Silence threshold updated from another tab: ${newValue}ms`);
+          setSilenceThreshold(newValue);
+        }
+      } else if (e.key === 'autoSendEnabled') {
+        const newValue = e.newValue === 'true';
+        if (newValue !== autoSendEnabled) {
+          debugLog(`Auto-send setting updated from another tab: ${newValue}`);
+          setAutoSendEnabled(newValue);
+        }
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, [silenceThreshold, autoSendEnabled]);
+  
   // Add an effect that synchronizes connectionStatus with isConnected and isConnecting
   useEffect(() => {
     // Update isConnected and isConnecting based on connectionStatus
@@ -1542,6 +1595,50 @@ const WebSocketVoice = () => {
     setIsProcessing(value);
   };
   
+  // Toggle auto-send feature
+  const toggleAutoSend = (value) => {
+    const newValue = value !== undefined ? value : !autoSendEnabled;
+    setAutoSendEnabled(newValue);
+    localStorage.setItem('autoSendEnabled', newValue.toString());
+    
+    // Clear current detection if disabling
+    if (!newValue && silenceDetectionIntervalRef.current) {
+      clearSilenceDetection();
+    }
+    // Start detection if enabling and currently recording
+    else if (newValue && isRecordingRef.current) {
+      startSilenceDetection();
+    }
+    
+    return newValue;
+  };
+  
+  // Update silence threshold with validation
+  const updateSilenceThreshold = (value) => {
+    const newValue = parseInt(value, 10);
+    
+    // Validate the threshold is within reasonable bounds
+    if (isNaN(newValue) || newValue < 1000 || newValue > 10000) {
+      debugLog(`Invalid silence threshold value: ${value}, ignoring`);
+      return;
+    }
+    
+    debugLog(`Setting silence threshold to ${newValue}ms`);
+    setSilenceThreshold(newValue);
+    localStorage.setItem('silenceThreshold', newValue.toString());
+    
+    // Restart silence detection if it's active and auto-send is enabled
+    if (autoSendEnabled && silenceDetectionIntervalRef.current) {
+      clearSilenceDetection();
+      startSilenceDetection();
+    }
+  };
+
+  // Format seconds for display
+  const formatSeconds = (milliseconds) => {
+    return (milliseconds / 1000).toFixed(1);
+  };
+  
   return (
     <div className="streaming-voice-interface-container">
       <Card className="streaming-voice-interface">
@@ -1558,13 +1655,108 @@ WebSocket Info:
 - Chunks Sent: ${chunkCounterRef.current}
 - Network: ${networkStatus}
 - Auth Token: ${localStorage.getItem('access_token') ? 'Present' : 'Missing'}
+
+Audio Info:
+- Current Level: ${currentAudioLevel.toFixed(2)}
+- Threshold: 5 (activity if above)
+- Silence Timer: ${silenceThreshold}ms
+- Auto-Send: ${autoSendEnabled ? 'Enabled' : 'Disabled'}
+- Last Activity: ${lastAudioActivityRef.current ? new Date(lastAudioActivityRef.current).toISOString().split('T')[1].split('.')[0] : 'N/A'}
+
+Options:
+1. Toggle auto-send (currently ${autoSendEnabled ? 'ON' : 'OFF'})
               `;
-              alert(connectionDetails);
+              
+              const option = prompt(connectionDetails, "Enter 1 to toggle auto-send");
+              
+              if (option === "1") {
+                const newState = toggleAutoSend();
+                alert(`Auto-send is now ${newState ? 'enabled' : 'disabled'}`);
+              }
             }}
           >
             Debug
           </Button>
         </div>
+        
+        {/* Small indicator for auto-send status when recording */}
+        {DEBUG && isRecording && (
+          <div style={{ 
+            position: 'absolute', 
+            top: '10px', 
+            right: '50px', 
+            fontSize: '10px',
+            color: autoSendEnabled ? 'green' : 'red',
+            backgroundColor: 'rgba(255,255,255,0.7)',
+            padding: '2px 4px',
+            borderRadius: '3px'
+          }}>
+            Auto-Send: {autoSendEnabled ? `ON (${formatSeconds(silenceThreshold)}s)` : 'OFF'}
+          </div>
+        )}
+
+        {/* Auto-Send Settings Button - in top right corner */}
+        <div className="auto-send-settings-button">
+          <Button
+            variant="outline-secondary"
+            size="sm"
+            onClick={() => setShowSettings(!showSettings)}
+            title="Auto-Send Settings"
+            className={autoSendEnabled ? "active-setting" : ""}
+          >
+            <Settings size={16} />
+            {autoSendEnabled && <span className="setting-indicator"></span>}
+          </Button>
+        </div>
+        
+        {/* Auto-Send Settings Panel */}
+        {showSettings && (
+          <div className="auto-send-settings-panel">
+            <div className="settings-header">
+              <h5>Auto-Send Settings</h5>
+              <Button 
+                variant="link" 
+                className="close-button" 
+                onClick={() => setShowSettings(false)}
+              >
+                <X size={18} />
+              </Button>
+            </div>
+            
+            <Form>
+              <Form.Group className="mb-3">
+                <Form.Check 
+                  type="switch"
+                  id="auto-send-switch"
+                  label={<strong>Auto-Send</strong>}
+                  checked={autoSendEnabled}
+                  onChange={(e) => toggleAutoSend(e.target.checked)}
+                />
+                <Form.Text className="text-muted">
+                  Automatically send after silence is detected
+                </Form.Text>
+              </Form.Group>
+              
+              <Form.Group className="mb-3">
+                <Form.Label className={autoSendEnabled ? "text-primary fw-medium" : "text-muted"}>
+                  Silence Threshold: <strong>{formatSeconds(silenceThreshold)} seconds</strong>
+                </Form.Label>
+                <Form.Range 
+                  min="1000" 
+                  max="10000" 
+                  step="500"
+                  value={silenceThreshold}
+                  onChange={(e) => updateSilenceThreshold(e.target.value)}
+                  disabled={!autoSendEnabled}
+                />
+                <div className="d-flex justify-content-between">
+                  <small className="range-label">1s</small>
+                  <small className="range-label">10s</small>
+                </div>
+              </Form.Group>
+            </Form>
+          </div>
+        )}
 
         {/* Connection status indicator */}
         <div className="connection-status">
@@ -1572,6 +1764,12 @@ WebSocket Info:
           <span className="status-text">
             {isWebSocketConnected() ? 'Connected' : (socketRef.current && socketRef.current.readyState === WebSocket.CONNECTING ? 'Connecting...' : 'Disconnected')}
           </span>
+          {autoSendEnabled && (
+            <span className="auto-send-indicator ml-2">
+              <span className="indicator-dot"></span>
+              Auto-Send: {formatSeconds(silenceThreshold)}s
+            </span>
+          )}
         </div>
 
         {/* Error display */}
