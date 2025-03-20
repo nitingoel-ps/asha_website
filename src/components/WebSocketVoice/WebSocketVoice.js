@@ -1140,6 +1140,12 @@ const WebSocketVoice = () => {
       
       // Handle data available from recorder
       recorder.ondataavailable = async (event) => {
+        // First check if this recorder is still active before processing data
+        if (!recorderRef.current || recorderRef.current !== recorder) {
+          debugLog('Ignoring data from inactive recorder');
+          return;
+        }
+        
         if (!event.data || event.data.size === 0) {
           debugLog('No audio data received');
           return;
@@ -1328,20 +1334,36 @@ const WebSocketVoice = () => {
     clearSilenceDetection();
     
     // Stop the MediaRecorder if it exists and is recording
-    if (recorderRef.current && recorderRef.current.state !== 'inactive') {
+    if (recorderRef.current) {
       try {
-        debugLog('Stopping MediaRecorder');
-        recorderRef.current.stop();
+        debugLog('Stopping recorderRef');
+        // Remove the ondataavailable event handler before stopping
+        recorderRef.current.ondataavailable = null;
+        
+        // Only call stop() if the recorder is actually recording
+        if (recorderRef.current.state === 'recording') {
+          recorderRef.current.stop();
+        } else {
+          debugLog(`recorderRef is in state ${recorderRef.current.state}, not calling stop()`);
+        }
         recorderRef.current = null;
       } catch (e) {
         debugLog('Error stopping recorderRef:', e);
       }
     }
     
-    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+    if (mediaRecorderRef.current) {
       try {
         debugLog('Stopping mediaRecorderRef');
-        mediaRecorderRef.current.stop();
+        // Remove the ondataavailable event handler before stopping
+        mediaRecorderRef.current.ondataavailable = null;
+        
+        // Only call stop() if the recorder is actually recording
+        if (mediaRecorderRef.current.state === 'recording') {
+          mediaRecorderRef.current.stop();
+        } else {
+          debugLog(`mediaRecorderRef is in state ${mediaRecorderRef.current.state}, not calling stop()`);
+        }
       } catch (e) {
         debugLog('Error stopping mediaRecorderRef:', e);
       }
@@ -1939,9 +1961,9 @@ Options:
                     variant="primary"
                     onClick={startRecording}
                     disabled={!isConnected || isRecording}
+                    style={{ width: '80px', height: '80px', borderRadius: '50%' }}
                   >
-                    <Mic size={20} />
-                    Click to speak
+                    <Mic size={28} color="white" />
                   </Button>
                 </div>
               )}
@@ -1956,21 +1978,19 @@ Options:
                   <div className="recording-buttons">
                     <Button
                       className="send-button"
-                      variant="primary"
+                      variant="success"
                       onClick={handleSend}
                       disabled={isSending}
                     >
-                      <Send size={16} />
-                      {isSending ? `Sending...` : `Send`}
+                      <Send size={20} />
                     </Button>
                     <Button
                       className="cancel-button"
-                      variant="outline-secondary"
+                      variant="danger"
                       onClick={handleCancel}
                       disabled={isSending}
                     >
-                      <X size={16} />
-                      Cancel
+                      <X size={20} />
                     </Button>
                   </div>
                 </div>
@@ -1986,42 +2006,40 @@ Options:
 
               {/* Playback controls */}
               {isPlaying && (
-                <div className="playback-controls">
-                  <Button
-                    variant="outline-primary"
-                    onClick={pausePlayback}
-                    className="me-2"
-                  >
-                    <Pause size={20} />
-                    Pause
-                  </Button>
-                  <Button
-                    variant="outline-danger"
-                    onClick={stopPlayback}
-                  >
-                    <Square size={20} />
-                    Stop
-                  </Button>
+                <div className="voice-playback">
+                  <div className="voice-playback__controls">
+                    <Button
+                      className="voice-playback__button"
+                      onClick={pausePlayback}
+                    >
+                      <Pause size={20} />
+                    </Button>
+                    <Button
+                      className="voice-playback__button voice-playback__button--stop"
+                      onClick={stopPlayback}
+                    >
+                      <Square size={20} />
+                    </Button>
+                  </div>
                 </div>
               )}
 
               {isPaused && (
-                <div className="playback-controls">
-                  <Button
-                    variant="outline-primary"
-                    onClick={resumePlayback}
-                    className="me-2"
-                  >
-                    <Play size={20} />
-                    Resume
-                  </Button>
-                  <Button
-                    variant="outline-danger"
-                    onClick={stopPlayback}
-                  >
-                    <Square size={20} />
-                    Stop
-                  </Button>
+                <div className="voice-playback">
+                  <div className="voice-playback__controls">
+                    <Button
+                      className="voice-playback__button"
+                      onClick={resumePlayback}
+                    >
+                      <Play size={20} />
+                    </Button>
+                    <Button
+                      className="voice-playback__button voice-playback__button--stop"
+                      onClick={stopPlayback}
+                    >
+                      <Square size={20} />
+                    </Button>
+                  </div>
                 </div>
               )}
 
@@ -2031,21 +2049,17 @@ Options:
                   <p>Autoplay was blocked by your browser.</p>
                   <div className="d-flex gap-2 mt-2">
                     <Button
-                      className="play-button"
-                      variant="primary"
+                      className="voice-playback__button"
                       onClick={startManualPlayback}
                     >
-                      <Play size={16} />
-                      Play Response
+                      <Play size={20} />
                     </Button>
                     {pendingChunksRef.current.length > 0 && (
                       <Button
-                        className="stop-button"
-                        variant="outline-danger"
+                        className="voice-playback__button voice-playback__button--stop"
                         onClick={stopPlayback}
                       >
-                        <Square size={16} />
-                        Stop
+                        <Square size={20} />
                       </Button>
                     )}
                   </div>

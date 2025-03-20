@@ -35,10 +35,13 @@
   box-shadow: none;
   border: none;
   background: transparent;
-  height: 100% !important;
+  height: 100vh !important;
+  min-height: 100% !important;
   width: 100% !important;
   display: flex;
   flex-direction: column;
+  position: relative;
+  overflow: visible !important;
 }
 
 /* Ensure the Card.Body component doesn't add unnecessary padding */
@@ -90,34 +93,65 @@
   gap: 15px;
   padding: 15px;
   width: 100%;
-  height: 100%;
-  overflow-y: visible;
-  max-height: none;
+  height: 200px !important;
+  min-height: 200px !important;
+  overflow: visible;
   flex: 1;
   position: relative;
+  z-index: 30;
 }
 
-.record-button {
-  font-size: 1.2em;
-  padding: 12px 24px;
-  border-radius: 50px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: auto !important;
-  min-width: 180px !important;
-  text-align: center;
+/* Force a perfectly circular button with important rules */
+.record-button.btn {
+  width: 80px !important;
+  height: 80px !important;
+  min-width: 80px !important;
+  min-height: 80px !important;
+  max-width: 80px !important;
+  max-height: 80px !important;
+  padding: 0 !important;
+  border-radius: 50% !important;
+  aspect-ratio: 1 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  position: absolute !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  background-color: #0d6efd !important;
+  border-color: #0d6efd !important;
+  border: none !important;
+  box-shadow: 0 4px 10px rgba(13, 110, 253, 0.3) !important;
+  z-index: 50 !important;
+  overflow: hidden !important;
+}
+
+.record-button.btn:hover {
+  transform: translate(-50%, -50%) scale(1.05) !important;
+  background-color: #0b5ed7 !important;
+  border-color: #0b5ed7 !important;
+  box-shadow: 0 6px 15px rgba(13, 110, 253, 0.4) !important;
+}
+
+.record-button.btn:active {
+  transform: translate(-50%, -50%) scale(0.98) !important;
+  background-color: #0a58ca !important;
+  border-color: #0a58ca !important;
+}
+
+/* Add styles for the microphone icon inside the button */
+.record-button.btn svg {
+  width: 32px !important;
+  height: 32px !important;
+  color: white !important;
 }
 
 .recording-controls {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
   position: absolute;
   top: 50%;
   left: 50%;
@@ -128,19 +162,84 @@
 
 .recording-buttons {
   display: flex;
-  gap: 10px;
-  margin-bottom: 8px;
+  gap: 16px;
   width: 100%;
   justify-content: center;
 }
 
-.send-button,
-.cancel-button {
-  min-width: 90px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 5px;
+/* Send/Cancel buttons - match voice playback button styling */
+.streaming-voice-interface .send-button.btn,
+.streaming-voice-interface .cancel-button.btn {
+  width: 48px !important;
+  height: 48px !important;
+  min-width: 48px !important;
+  min-height: 48px !important;
+  padding: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 9999px !important;
+  border: none !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12) !important;
+  transition: all 0.2s ease !important;
+  position: relative !important;
+  overflow: hidden !important;
+  margin: 0 !important;
+  line-height: 1 !important;
+}
+
+/* Send button specific styling */
+.streaming-voice-interface .send-button.btn {
+  background: #28a745 !important; /* Green background */
+  color: white !important;
+}
+
+.streaming-voice-interface .send-button.btn:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.2) !important;
+  background: #218838 !important;
+}
+
+.streaming-voice-interface .send-button.btn:active {
+  transform: translateY(1px) !important;
+  box-shadow: 0 1px 4px rgba(40, 167, 69, 0.1) !important;
+  background: #1e7e34 !important;
+}
+
+/* Cancel button specific styling */
+.streaming-voice-interface .cancel-button.btn {
+  background: #dc3545 !important; /* Red background */
+  color: white !important;
+}
+
+.streaming-voice-interface .cancel-button.btn:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.2) !important;
+  background: #c82333 !important;
+}
+
+.streaming-voice-interface .cancel-button.btn:active {
+  transform: translateY(1px) !important;
+  box-shadow: 0 1px 4px rgba(220, 53, 69, 0.1) !important;
+  background: #bd2130 !important;
+}
+
+/* Icon styling inside send/cancel buttons */
+.streaming-voice-interface .send-button.btn svg,
+.streaming-voice-interface .cancel-button.btn svg {
+  width: 20px !important;
+  height: 20px !important;
+  position: absolute !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  transition: all 0.2s ease !important;
+  opacity: 0.9 !important;
+}
+
+.streaming-voice-interface .send-button.btn:hover svg,
+.streaming-voice-interface .cancel-button.btn:hover svg {
+  opacity: 1 !important;
 }
 
 .recording-indicator {
@@ -179,10 +278,14 @@
 .main-content-container {
   display: flex;
   flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  flex: 1;
   width: 100%;
-  height: 100%;
+  min-height: 60vh; /* Ensure minimum height */
+  padding-bottom: 70px;
   position: relative;
-  padding-bottom: 20px;
+  z-index: 10;
 }
 
 /* Control areas at the top */
@@ -197,6 +300,7 @@
   padding: 15px;
   position: relative;
   z-index: 20;
+  min-height: 250px;
 }
 
 /* Increase spacing between controls */
@@ -407,8 +511,8 @@
   .voice-controls {
     padding: 10px;
     gap: 10px;
-    height: 100%;
-    min-height: auto;
+    height: 180px !important;
+    min-height: 180px !important;
     width: 100%;
     max-width: 100%;
     display: flex;
@@ -427,6 +531,7 @@
   
   .controls-area {
     margin-top: 40px;
+    min-height: 200px;
   }
   
   .transcription-container {
@@ -460,15 +565,18 @@
     height: 45px;
   }
   
-  .record-button {
-    font-size: 1em;
-    padding: 10px 20px;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: auto !important;
-    min-width: 180px !important;
+  .record-button.btn {
+    width: 64px !important;
+    height: 64px !important;
+    min-width: 64px !important;
+    min-height: 64px !important;
+    max-width: 64px !important;
+    max-height: 64px !important;
+  }
+  
+  .record-button.btn svg {
+    width: 32px !important;
+    height: 32px !important;
   }
   
   .error-message, 
@@ -593,7 +701,7 @@
   align-items: center;
   flex: 1;
   width: 100%;
-  height: 100%;
+  min-height: 60vh; /* Ensure minimum height */
   padding-bottom: 70px;
   position: relative;
 }
@@ -800,10 +908,10 @@
   }
 
   .streaming-voice-interface .voice-playback__button.btn {
-    width: 48px !important;
-    height: 48px !important;
-    min-width: 48px !important;
-    min-height: 48px !important;
+    width: 44px !important;
+    height: 44px !important;
+    min-width: 44px !important;
+    min-height: 44px !important;
   }
 
   .streaming-voice-interface .voice-playback__button.btn svg {
@@ -1048,15 +1156,14 @@
 }
 
 /* Sending state styles */
-.send-button:disabled {
-  background-color: #2080f7 !important;
-  border-color: #0b5ed7 !important;
+.streaming-voice-interface .send-button.btn:disabled {
+  background-color: #28a745 !important;
   opacity: 0.8;
   position: relative;
   overflow: hidden;
 }
 
-.send-button:disabled::after {
+.streaming-voice-interface .send-button.btn:disabled::after {
   content: '';
   position: absolute;
   top: 0;
