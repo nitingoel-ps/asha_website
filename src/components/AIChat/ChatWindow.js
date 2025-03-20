@@ -396,9 +396,9 @@ function ChatWindow({ session, onSessionCreated, sessions = [], onSelectSession,
   const handleMicrophoneClick = () => {
     // If we have a current session, pass its ID to the voice chat page
     if (session?.id) {
-      navigate(`/ai-voice?session_id=${session.id}`);
+      navigate(`/websocket-voice?session_id=${session.id}`);
     } else {
-      navigate('/ai-voice');
+      navigate('/websocket-voice');
     }
   };
 
