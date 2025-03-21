@@ -1343,4 +1343,32 @@
 /* Fix small overlap with connection status when settings panel is open */
 .auto-send-settings-panel + .connection-status {
   margin-top: 40px;
+}
+
+/* Add styles for the current transcription */
+.transcription-text .current {
+  color: #666;
+  font-style: italic;
+}
+
+.transcription-text .final {
+  color: #000;
+  font-weight: 500;
+}
+
+/* Ensure the transcription container has enough space */
+.transcription-container {
+  min-height: 100px;
+  max-height: 150px;
+  overflow-y: auto;
+  margin-bottom: 15px;
+  padding: 10px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+}
+
+.transcription-text {
+  font-size: 1rem;
+  line-height: 1.5;
 } 

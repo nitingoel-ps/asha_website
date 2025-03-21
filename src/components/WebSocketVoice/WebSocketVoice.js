@@ -136,7 +136,9 @@ const WebSocketVoice = () => {
   const [showSettings, setShowSettings] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const sendDelayTimeoutRef = useRef(null);
-
+  
+  // Add state for accumulated transcripts
+  const [accumulatedTranscripts, setAccumulatedTranscripts] = useState('');
   
   // Check browser compatibility on initial load
   useEffect(() => {
@@ -297,15 +299,57 @@ const WebSocketVoice = () => {
           }
           break;
           
+        case 'transcript':
+          debugLog(`Transcript message received: "${message.transcript}", full: "${message.full_transcript}"`);
+          
+          // Use the full_transcript field to display the complete transcription
+          if (message.full_transcript) {
+            setTranscription(message.full_transcript);
+            setIsFinalTranscript(message.is_final);
+            
+            // If this is a final transcript, update the accumulated transcripts too
+            if (message.is_final) {
+              setAccumulatedTranscripts(message.full_transcript);
+            }
+          } else if (message.transcript) {
+            // Fallback to regular transcript if full_transcript is not available
+            setTranscription(message.transcript);
+            setIsFinalTranscript(message.is_final);
+            
+            if (message.is_final) {
+              setAccumulatedTranscripts(message.transcript);
+            }
+          }
+          break;
+          
         case 'transcript_update':
           debugLog(`Transcript update: "${message.transcript}"`);
           setTranscription(message.transcript);
           setIsFinalTranscript(message.is_final);
+          
+          // Always update the transcription display regardless of is_final
+          // This ensures we show real-time transcripts as they arrive
+          if (message.transcript) {
+            // For non-final transcripts, we'll show them immediately without adding to accumulated
+            if (!message.is_final) {
+              // Just show it in the regular transcription field
+              setTranscription(message.transcript);
+            } else {
+              // If this is a final transcript, append it to accumulated transcripts
+              setAccumulatedTranscripts(prev => {
+                // Add a space between transcripts
+                const separator = prev ? ' ' : '';
+                return prev + separator + message.transcript;
+              });
+            }
+          }
           break;
           
         case 'transcript_final':
           debugLog(`Final transcript: "${message.transcript}"`);
+          // For transcript_final, replace everything with the final version
           setTranscription(message.transcript);
+          setAccumulatedTranscripts(message.transcript);
           setIsFinalTranscript(true);
           break;
           
@@ -1075,6 +1119,7 @@ const WebSocketVoice = () => {
       
       // Clear previous transcript and response
       setTranscription('');
+      setAccumulatedTranscripts(''); // Clear accumulated transcripts
       setAiResponse('');
       setIsFinalTranscript(false);
       
@@ -1475,6 +1520,7 @@ const WebSocketVoice = () => {
     setIsRecording(false);
     isRecordingRef.current = false;
     setTranscription('');
+    setAccumulatedTranscripts(''); // Clear accumulated transcripts
     setIsFinalTranscript(false);
     setAiResponse(''); // Clear AI response
     
@@ -2071,11 +2117,27 @@ Options:
             <div className="messages-area">
               {/* Transcription display - always visible */}
               <div className="transcription-container">
-                {transcription ? (
-                  <div className={`transcription-text ${isFinalTranscript ? 'final' : ''}`}>
-                    {transcription}
+                {/* Always show current transcription */}
+                {transcription && !isFinalTranscript && (
+                  <div className="transcription-text">
+                    {/* Show accumulated transcripts first if they exist */}
+                    {accumulatedTranscripts && (
+                      <span className="final">{accumulatedTranscripts} </span>
+                    )}
+                    {/* Then show current non-final transcription */}
+                    <span className="current">{transcription}</span>
                   </div>
-                ) : (
+                )}
+
+                {/* If there's no active transcription but we have accumulated ones, show those */}
+                {(!transcription || isFinalTranscript) && accumulatedTranscripts && (
+                  <div className="transcription-text final">
+                    {accumulatedTranscripts}
+                  </div>
+                )}
+
+                {/* If there's nothing to show */}
+                {!transcription && !accumulatedTranscripts && (
                   <div className="transcription-empty">
                     Your speech will appear here...
                   </div>
