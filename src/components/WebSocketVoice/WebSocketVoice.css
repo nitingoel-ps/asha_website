@@ -553,7 +553,7 @@
   
   .streaming-voice-interface .top-icon {
     position: fixed;
-    bottom: 25px;
+    bottom: 5px;
     left: 50%;
     transform: translateX(-50%);
     z-index: 1000;
@@ -936,7 +936,7 @@
   }
   
   .streaming-voice-interface .voice-controls {
-    margin-top: 40px !important;
+    margin-top: 0px !important;
     height: 120px !important;
     min-height: 120px !important;
   }
@@ -1411,12 +1411,13 @@
   justify-content: center !important;
   align-items: center !important;
   width: 100% !important;
-  max-width: 600px !important;
-  height: 300px !important;
+  max-width: 400px !important; /* Reduced from 600px for better mobile fit */
+  aspect-ratio: 1 / 1 !important; /* Force 1:1 aspect ratio */
+  height: auto !important; /* Let height be determined by aspect ratio */
   margin: 40px auto 50px !important;
   position: relative !important;
   overflow: hidden !important;
-  border-radius: 12px !important;
+  border-radius: 50% !important; /* Make container perfectly circular */
   background-color: transparent !important;
   box-shadow: none !important;
   box-sizing: border-box !important;
@@ -1432,6 +1433,30 @@
   height: 100% !important;
   display: block !important;
   box-sizing: border-box !important;
+}
+
+/* Fallback for browsers that don't support aspect-ratio */
+@supports not (aspect-ratio: 1 / 1) {
+  .streaming-voice-interface .voice-visualization-container {
+    height: 0 !important;
+    padding-bottom: 100% !important; /* Creates a square */
+  }
+}
+
+/* Media query adjustments for mobile */
+@media (max-width: 768px) {
+  .streaming-voice-interface .voice-visualization-container {
+    max-width: 300px !important; /* Smaller on mobile */
+    margin: 20px auto 5px !important; /* Adjusted margins for mobile */
+  }
+}
+
+/* Update the small screen breakpoint as well */
+@media (max-width: 576px) {
+  .streaming-voice-interface .voice-visualization-container {
+    max-width: 300px !important; /* Even smaller on very small screens */
+    margin: 20px auto 5px !important;
+  }
 }
 
 /* Add animation for recording state with high specificity */
@@ -1467,15 +1492,6 @@
   animation: pulse-playing 1.5s infinite !important;
 }
 
-/* Make it responsive with high specificity */
-@media (max-width: 576px) {
-  .streaming-voice-interface .voice-visualization-container {
-    height: 180px !important;
-    margin: 25px auto 35px !important;
-    max-width: 95% !important;
-  }
-}
-
 /* Style for visualization toggle buttons with high specificity */
 .streaming-voice-interface .viz-toggle-btn.btn {
   flex: 1 !important;
@@ -1498,7 +1514,7 @@
   flex-direction: column !important;
   align-items: center !important;
   justify-content: center !important;
-  margin-top: 20px !important;
+  margin-top: 0px !important;
   margin-bottom: 30px !important;
   padding: 15px !important;
   position: relative !important;
