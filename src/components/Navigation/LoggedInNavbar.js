@@ -103,7 +103,7 @@ function LoggedInNavbar() {
                 <FaPlusCircle className="main-nav-icon" /> Add Health Data
               </Nav.Link>
               
-              <Nav.Link as={Link} to="/ai-chat" onClick={closeMenu} className="main-nav-item">
+              <Nav.Link as={Link} to="/websocket-voice" onClick={closeMenu} className="main-nav-item">
                 <PiUserSound className="main-nav-icon" /> Talk to AI
               </Nav.Link>
             </Nav>
