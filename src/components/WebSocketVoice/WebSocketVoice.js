@@ -15,9 +15,9 @@ const debugLog = (...args) => {
 };
 
 // Default setting for silence detection
-const DEFAULT_AUTO_SEND_ENABLED = true;
-const DEFAULT_SILENCE_THRESHOLD = 5000; // 5 seconds
-const DEFAULT_SEND_DELAY = 500; // 500ms delay after manual send button press
+const DEFAULT_AUTO_SEND_ENABLED = false; // Changed from true to false
+const DEFAULT_SILENCE_THRESHOLD = 3000; // Changed from 5000 to 3000 (3.0 seconds)
+const DEFAULT_SEND_DELAY = 700; // Changed from 500 to 700ms
 
 // Get the API base URL from environment
 const apiBaseURL = process.env.REACT_APP_API_BASE_URL || '';
