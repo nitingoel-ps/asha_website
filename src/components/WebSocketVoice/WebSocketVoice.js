@@ -3,6 +3,7 @@ import { Button, Card, Spinner, Alert, Form } from 'react-bootstrap';
 import { Mic, Square, X, Pause, Play, Keyboard, Send, Settings } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import './WebSocketVoice.css';
+import VoiceVisualization from './VoiceVisualization';
 
 // DEBUG mode - set to true for verbose logging
 const DEBUG = true;
@@ -152,6 +153,11 @@ const WebSocketVoice = () => {
     localStorage.getItem('showAiResponse') !== null
       ? localStorage.getItem('showAiResponse') === 'true'
       : DEFAULT_SHOW_AI_RESPONSE
+  );
+  
+  // Add this to the state variables in the WebSocketVoice component
+  const [visualizationMode, setVisualizationMode] = useState(
+    localStorage.getItem('visualizationMode') || 'circle'
   );
   
   // Check browser compatibility on initial load
@@ -1675,6 +1681,11 @@ const WebSocketVoice = () => {
           debugLog(`Show AI response updated from another tab: ${newValue}`);
           setShowAiResponse(newValue);
         }
+      } else if (e.key === 'visualizationMode') {
+        if (e.newValue !== visualizationMode) {
+          debugLog(`Visualization mode updated from another tab: ${e.newValue}`);
+          setVisualizationMode(e.newValue);
+        }
       }
     };
 
@@ -1683,7 +1694,7 @@ const WebSocketVoice = () => {
     return () => {
       window.removeEventListener('storage', handleStorageChange);
     };
-  }, [silenceThreshold, autoSendEnabled, sendDelay, showTranscription, showAiResponse]);
+  }, [silenceThreshold, autoSendEnabled, sendDelay, showTranscription, showAiResponse, visualizationMode]);
   
   // Add an effect that synchronizes connectionStatus with isConnected and isConnecting
   useEffect(() => {
@@ -1828,6 +1839,12 @@ const WebSocketVoice = () => {
     setShowAiResponse(newValue);
     localStorage.setItem('showAiResponse', newValue.toString());
     return newValue;
+  };
+  
+  // Add this function to update the visualization mode
+  const updateVisualizationMode = (mode) => {
+    setVisualizationMode(mode);
+    localStorage.setItem('visualizationMode', mode);
   };
   
   return (
@@ -1996,41 +2013,41 @@ Options:
                   Display AI response container
                 </Form.Text>
               </Form.Group>
+              
+              <hr className="settings-divider" />
+              
+              <Form.Group className="mb-3">
+                <Form.Label className="fw-medium">
+                  <strong>Visualization Style</strong>
+                </Form.Label>
+                <div className="d-flex gap-2 justify-content-center mt-2">
+                  <Button 
+                    variant={visualizationMode === 'bars' ? 'primary' : 'outline-primary'} 
+                    size="sm"
+                    onClick={() => updateVisualizationMode('bars')}
+                    className="viz-toggle-btn"
+                  >
+                    Bars
+                  </Button>
+                  <Button 
+                    variant={visualizationMode === 'circle' ? 'primary' : 'outline-primary'} 
+                    size="sm"
+                    onClick={() => updateVisualizationMode('circle')}
+                    className="viz-toggle-btn"
+                  >
+                    Circle
+                  </Button>
+                  <Button 
+                    variant={visualizationMode === 'wave' ? 'primary' : 'outline-primary'} 
+                    size="sm"
+                    onClick={() => updateVisualizationMode('wave')}
+                    className="viz-toggle-btn"
+                  >
+                    Wave
+                  </Button>
+                </div>
+              </Form.Group>
             </Form>
-          </div>
-        )}
-
-        {/* Connection status indicator */}
-        <div className="connection-status">
-          <span className={`status-indicator ${isWebSocketConnected() ? 'connected' : (socketRef.current && socketRef.current.readyState === WebSocket.CONNECTING ? 'connecting' : 'disconnected')}`}></span>
-          <span className="status-text">
-            {isWebSocketConnected() ? 'Connected' : (socketRef.current && socketRef.current.readyState === WebSocket.CONNECTING ? 'Connecting...' : 'Disconnected')}
-          </span>
-          {autoSendEnabled && (
-            <span className="auto-send-indicator ml-2">
-              <span className="indicator-dot"></span>
-              Auto: {formatSeconds(silenceThreshold)}s
-            </span>
-          )}
-          {sendDelay > 0 && (
-            <span className="send-delay-indicator">
-              <span className="indicator-dot delay-dot"></span>
-              Delay: {sendDelay}ms
-            </span>
-          )}
-        </div>
-
-        {/* Error display */}
-        {error && (
-          <div className="error-container">
-            <Alert 
-              variant="danger" 
-              className="error-message"
-              dismissible
-              onClose={() => setError(null)}
-            >
-              {error}
-            </Alert>
           </div>
         )}
 
@@ -2052,8 +2069,55 @@ Options:
 
         {/* Main content */}
         {browserSupported && (
-          <div className="main-content-container">
-            {/* Controls based on state - moved to the top */}
+          <Card.Body className="d-flex flex-column align-items-center justify-content-center">
+            {/* Connection status indicators */}
+            <div className="connection-status">
+              <span className={`status-indicator ${isWebSocketConnected() ? 'connected' : (socketRef.current && socketRef.current.readyState === WebSocket.CONNECTING ? 'connecting' : 'disconnected')}`}></span>
+              <span className="status-text">
+                {isWebSocketConnected() ? 'Connected' : (socketRef.current && socketRef.current.readyState === WebSocket.CONNECTING ? 'Connecting...' : 'Disconnected')}
+              </span>
+              {autoSendEnabled && (
+                <span className="auto-send-indicator ml-2">
+                  <span className="indicator-dot"></span>
+                  Auto: {formatSeconds(silenceThreshold)}s
+                </span>
+              )}
+              {sendDelay > 0 && (
+                <span className="send-delay-indicator">
+                  <span className="indicator-dot delay-dot"></span>
+                  Delay: {sendDelay}ms
+                </span>
+              )}
+            </div>
+          
+            {/* Voice Visualization - Add this above the controls */}
+            <div 
+              className={`voice-visualization-container ${isRecording ? 'recording' : ''} ${isPlaying ? 'playing' : ''}`}
+            >
+              <VoiceVisualization 
+                isRecording={isRecording}
+                isPlaying={isPlaying}
+                audioAnalyserRef={audioAnalyserRef}
+                currentAudioLevel={currentAudioLevel}
+                mode={visualizationMode}
+              />
+            </div>
+            
+            {/* Error display */}
+            {error && (
+              <div className="error-container">
+                <Alert 
+                  variant="danger" 
+                  className="error-message"
+                  dismissible
+                  onClose={() => setError(null)}
+                >
+                  {error}
+                </Alert>
+              </div>
+            )}
+            
+            {/* Controls based on state */}
             <div className="controls-area">
               {!isConnected && !isConnecting && (
                 <div className="disconnected-controls">
@@ -2242,7 +2306,7 @@ Options:
                 <Keyboard size={24} />
               </Button>
             </div>
-          </div>
+          </Card.Body>
         )}
       </Card>
     </div>
