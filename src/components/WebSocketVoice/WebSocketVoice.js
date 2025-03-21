@@ -18,6 +18,8 @@ const debugLog = (...args) => {
 const DEFAULT_AUTO_SEND_ENABLED = false; // Changed from true to false
 const DEFAULT_SILENCE_THRESHOLD = 3000; // Changed from 5000 to 3000 (3.0 seconds)
 const DEFAULT_SEND_DELAY = 700; // Changed from 500 to 700ms
+const DEFAULT_SHOW_TRANSCRIPTION = false; // Default to not showing transcription
+const DEFAULT_SHOW_AI_RESPONSE = false; // Default to not showing AI response
 
 // Get the API base URL from environment
 const apiBaseURL = process.env.REACT_APP_API_BASE_URL || '';
@@ -139,6 +141,18 @@ const WebSocketVoice = () => {
   
   // Add state for accumulated transcripts
   const [accumulatedTranscripts, setAccumulatedTranscripts] = useState('');
+  
+  // Add new states for display toggles
+  const [showTranscription, setShowTranscription] = useState(
+    localStorage.getItem('showTranscription') !== null
+      ? localStorage.getItem('showTranscription') === 'true'
+      : DEFAULT_SHOW_TRANSCRIPTION
+  );
+  const [showAiResponse, setShowAiResponse] = useState(
+    localStorage.getItem('showAiResponse') !== null
+      ? localStorage.getItem('showAiResponse') === 'true'
+      : DEFAULT_SHOW_AI_RESPONSE
+  );
   
   // Check browser compatibility on initial load
   useEffect(() => {
@@ -1649,6 +1663,18 @@ const WebSocketVoice = () => {
           debugLog(`Send delay updated from another tab: ${newValue}ms`);
           setSendDelay(newValue);
         }
+      } else if (e.key === 'showTranscription') {
+        const newValue = e.newValue === 'true';
+        if (newValue !== showTranscription) {
+          debugLog(`Show transcription updated from another tab: ${newValue}`);
+          setShowTranscription(newValue);
+        }
+      } else if (e.key === 'showAiResponse') {
+        const newValue = e.newValue === 'true';
+        if (newValue !== showAiResponse) {
+          debugLog(`Show AI response updated from another tab: ${newValue}`);
+          setShowAiResponse(newValue);
+        }
       }
     };
 
@@ -1657,7 +1683,7 @@ const WebSocketVoice = () => {
     return () => {
       window.removeEventListener('storage', handleStorageChange);
     };
-  }, [silenceThreshold, autoSendEnabled, sendDelay]);
+  }, [silenceThreshold, autoSendEnabled, sendDelay, showTranscription, showAiResponse]);
   
   // Add an effect that synchronizes connectionStatus with isConnected and isConnecting
   useEffect(() => {
@@ -1788,6 +1814,21 @@ const WebSocketVoice = () => {
       clearSendDelays();
     };
   }, []);
+  
+  // Toggle display settings
+  const toggleTranscription = (value) => {
+    const newValue = value !== undefined ? value : !showTranscription;
+    setShowTranscription(newValue);
+    localStorage.setItem('showTranscription', newValue.toString());
+    return newValue;
+  };
+
+  const toggleAiResponse = (value) => {
+    const newValue = value !== undefined ? value : !showAiResponse;
+    setShowAiResponse(newValue);
+    localStorage.setItem('showAiResponse', newValue.toString());
+    return newValue;
+  };
   
   return (
     <div className="streaming-voice-interface-container">
@@ -1926,6 +1967,34 @@ Options:
                   <small className="range-label">0ms</small>
                   <small className="range-label">2000ms</small>
                 </div>
+              </Form.Group>
+              
+              <hr className="settings-divider" />
+              
+              <Form.Group className="mb-3">
+                <Form.Check 
+                  type="switch"
+                  id="show-transcription-switch"
+                  label={<strong>Show Transcription</strong>}
+                  checked={showTranscription}
+                  onChange={(e) => toggleTranscription(e.target.checked)}
+                />
+                <Form.Text className="text-muted">
+                  Display transcription container
+                </Form.Text>
+              </Form.Group>
+              
+              <Form.Group className="mb-3">
+                <Form.Check 
+                  type="switch"
+                  id="show-ai-response-switch"
+                  label={<strong>Show AI Response</strong>}
+                  checked={showAiResponse}
+                  onChange={(e) => toggleAiResponse(e.target.checked)}
+                />
+                <Form.Text className="text-muted">
+                  Display AI response container
+                </Form.Text>
               </Form.Group>
             </Form>
           </div>
@@ -2115,48 +2184,52 @@ Options:
             
             {/* Messages display area with fixed heights and scrolling */}
             <div className="messages-area">
-              {/* Transcription display - always visible */}
-              <div className="transcription-container">
-                {/* Always show current transcription */}
-                {transcription && !isFinalTranscript && (
-                  <div className="transcription-text">
-                    {/* Show accumulated transcripts first if they exist */}
-                    {accumulatedTranscripts && (
-                      <span className="final">{accumulatedTranscripts} </span>
-                    )}
-                    {/* Then show current non-final transcription */}
-                    <span className="current">{transcription}</span>
-                  </div>
-                )}
+              {/* Transcription display - only visible if enabled */}
+              {showTranscription && (
+                <div className="transcription-container">
+                  {/* Always show current transcription */}
+                  {transcription && !isFinalTranscript && (
+                    <div className="transcription-text">
+                      {/* Show accumulated transcripts first if they exist */}
+                      {accumulatedTranscripts && (
+                        <span className="final">{accumulatedTranscripts} </span>
+                      )}
+                      {/* Then show current non-final transcription */}
+                      <span className="current">{transcription}</span>
+                    </div>
+                  )}
 
-                {/* If there's no active transcription but we have accumulated ones, show those */}
-                {(!transcription || isFinalTranscript) && accumulatedTranscripts && (
-                  <div className="transcription-text final">
-                    {accumulatedTranscripts}
-                  </div>
-                )}
+                  {/* If there's no active transcription but we have accumulated ones, show those */}
+                  {(!transcription || isFinalTranscript) && accumulatedTranscripts && (
+                    <div className="transcription-text final">
+                      {accumulatedTranscripts}
+                    </div>
+                  )}
 
-                {/* If there's nothing to show */}
-                {!transcription && !accumulatedTranscripts && (
-                  <div className="transcription-empty">
-                    Your speech will appear here...
-                  </div>
-                )}
-              </div>
+                  {/* If there's nothing to show */}
+                  {!transcription && !accumulatedTranscripts && (
+                    <div className="transcription-empty">
+                      Your speech will appear here...
+                    </div>
+                  )}
+                </div>
+              )}
               
-              {/* AI Response display - always visible */}
-              <div className="ai-response-container">
-                <div className="ai-response-label">AI Response:</div>
-                {aiResponse ? (
-                  <div className="ai-response-text">
-                    {aiResponse}
-                  </div>
-                ) : (
-                  <div className="ai-response-empty">
-                    AI response will appear here...
-                  </div>
-                )}
-              </div>
+              {/* AI Response display - only visible if enabled */}
+              {showAiResponse && (
+                <div className="ai-response-container">
+                  <div className="ai-response-label">AI Response:</div>
+                  {aiResponse ? (
+                    <div className="ai-response-text">
+                      {aiResponse}
+                    </div>
+                  ) : (
+                    <div className="ai-response-empty">
+                      AI response will appear here...
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Text chat button */}
