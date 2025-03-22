@@ -74,9 +74,6 @@ const VoiceVisualization = ({
     // Clear the canvas
     ctx.clearRect(0, 0, width, height);
     
-    // Debug visualization dimensions
-    console.log("Drawing in area:", { width, height, canvasWidth: canvas.width, canvasHeight: canvas.height });
-
     // Force a square drawing area to ensure circles remain circular
     // Calculate the size of the square within the rectangular canvas
     const size = Math.min(width, height);

@@ -540,7 +540,7 @@ const WebSocketVoice = () => {
           
           // Add safety timeout in case onended doesn't fire
           if (audio.duration && isFinite(audio.duration)) {
-            const safetyTimeout = (audio.duration * 1000) + 1000; // Duration in ms + 1000ms buffer
+            const safetyTimeout = (audio.duration * 1000) + 100; // Duration in ms + 1000ms buffer
             const currentSrc = audio.src; // Store the current source URL
             debugLog(`Setting safety timeout for ${safetyTimeout}ms based on audio duration ${audio.duration}s`);
             
