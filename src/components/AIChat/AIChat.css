@@ -192,6 +192,38 @@
   padding: 0 1px;
 }
 
+/* Style for clickable reference links */
+.ai-chat-reference a {
+  color: #0066cc;
+  text-decoration: none;
+  border-bottom: 1px dotted #0066cc;
+  transition: all 0.2s ease;
+}
+
+/* External link style (those that open in new tab) */
+.ai-chat-reference a[target="_blank"] {
+  color: #1a8a42;
+  border-bottom-color: #1a8a42;
+}
+
+/* Hover effect for reference links */
+.ai-chat-reference a:hover {
+  color: #004499;
+  border-bottom: 1px solid #004499;
+}
+
+/* Hover effect for external reference links */
+.ai-chat-reference a[target="_blank"]:hover {
+  color: #116d32;
+  border-bottom: 1px solid #116d32;
+}
+
+/* Reference tooltips */
+.ai-chat-reference[title] {
+  cursor: help;
+  border-bottom: 1px dotted #0066cc;
+}
+
 /* Pre-formatted text */
 .ai-chat-message pre {
   font-family: inherit;

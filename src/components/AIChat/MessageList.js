@@ -37,6 +37,7 @@ const ActivityIndicator = ({ text, isActive }) => {
 const ContentParser = ({ content, isStreaming }) => {
   const [activityStates, setActivityStates] = useState({});
   const prevContentRef = useRef('');
+  const segmentRefs = useRef({});
   const segments = parseContentWithActivities(content);
   
   useEffect(() => {
@@ -97,6 +98,24 @@ const ContentParser = ({ content, isStreaming }) => {
     prevContentRef.current = content;
   }, [content, isStreaming]);
   
+  // Effect to process citation links after render
+  useEffect(() => {
+    // Process each text segment to ensure external links open in new tabs
+    Object.values(segmentRefs.current).forEach(ref => {
+      if (ref && ref.querySelectorAll) {
+        const links = ref.querySelectorAll('a[href^="http"]');
+        links.forEach(link => {
+          // Skip if it's an internal reference
+          if (link.textContent === '[ref]') return;
+          
+          // Ensure target and rel attributes are set correctly
+          link.setAttribute('target', '_blank');
+          link.setAttribute('rel', 'noopener noreferrer');
+        });
+      }
+    });
+  }, [segments]);
+  
   return (
     <>
       {segments.map((segment, index) => {
@@ -110,31 +129,47 @@ const ContentParser = ({ content, isStreaming }) => {
             isActive={isActive} 
           />;
         } else {
-          return <ReactMarkdown 
-            key={index}
-            children={processReferenceLinks(segment.content || '')}
-            remarkPlugins={remarkGfm ? [remarkGfm] : []}
-            rehypePlugins={[rehypeRaw]}
-            components={{
-              code({ node, inline, className, children, ...props }) {
-                const match = /language-(\w+)/.exec(className || '');
-                return !inline && match && SyntaxHighlighter ? (
-                  <SyntaxHighlighter
-                    style={a11yDark}
-                    language={match[1]}
-                    PreTag="div"
-                    {...props}
-                  >
-                    {String(children).replace(/\n$/, '')}
-                  </SyntaxHighlighter>
-                ) : (
-                  <code className={className} {...props}>
-                    {children}
-                  </code>
-                );
-              },
-            }}
-          />;
+          const setRef = (el) => {
+            segmentRefs.current[index] = el;
+          };
+          
+          return <div 
+            key={index} 
+            ref={setRef}
+          >
+            <ReactMarkdown 
+              children={processReferenceLinks(segment.content || '')}
+              remarkPlugins={remarkGfm ? [remarkGfm] : []}
+              rehypePlugins={[rehypeRaw]}
+              components={{
+                // Override the default link renderer to add target blank for external links
+                a: ({ node, ...props }) => {
+                  const isExternal = props.href && props.href.startsWith('http');
+                  if (isExternal && !props.target) {
+                    return <a {...props} target="_blank" rel="noopener noreferrer" />;
+                  }
+                  return <a {...props} />;
+                },
+                code({ node, inline, className, children, ...props }) {
+                  const match = /language-(\w+)/.exec(className || '');
+                  return !inline && match && SyntaxHighlighter ? (
+                    <SyntaxHighlighter
+                      style={a11yDark}
+                      language={match[1]}
+                      PreTag="div"
+                      {...props}
+                    >
+                      {String(children).replace(/\n$/, '')}
+                    </SyntaxHighlighter>
+                  ) : (
+                    <code className={className} {...props}>
+                      {children}
+                    </code>
+                  );
+                },
+              }}
+            />
+          </div>;
         }
       })}
     </>
@@ -144,8 +179,25 @@ const ContentParser = ({ content, isStreaming }) => {
 const Message = ({ role, content, isStreaming }) => {
   console.log(`Rendering message - role: ${role}, streaming: ${isStreaming}, content length: ${content?.length}, content: "${content?.substring(0, 30)}${content?.length > 30 ? '...' : ''}"`);
   
+  // Add a ref to access the DOM element
+  const messageRef = useRef(null);
+  
+  // Effect to ensure all external links open in new tabs
+  useEffect(() => {
+    if (messageRef.current) {
+      // Find all citation reference links that start with http
+      const links = messageRef.current.querySelectorAll('.ai-chat-reference a[href^="http"]');
+      links.forEach(link => {
+        // Set target and rel attributes for each external link
+        link.setAttribute('target', '_blank');
+        link.setAttribute('rel', 'noopener noreferrer');
+        console.log('Updated external link to open in new tab:', link.href);
+      });
+    }
+  }, [content]); // Re-run when content changes
+  
   return (
-    <div className={`ai-chat-message ai-chat-${role}-message`}>
+    <div className={`ai-chat-message ai-chat-${role}-message`} ref={messageRef}>
       <div className={`ai-chat-message-content ${isStreaming ? 'is-streaming' : ''}`}>
         <ContentParser content={content} isStreaming={isStreaming} />
       </div>
