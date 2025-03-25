@@ -427,13 +427,22 @@ const WebSocketVoice = () => {
         case 'tools_update':
           debugLog(`Tools update message received: "${message.text}"`);
           
-          // Check if the text contains a reference in the format <<Ref: obj/id>>
+          // Check if the text contains a reference in the format <<Ref: type/value>>
           if (message.text && message.text.includes('<<Ref:')) {
-            const refMatch = message.text.match(/<<Ref:\s*([^\/]+)\/(\d+)>>/);
+            const refMatch = message.text.match(/<<Ref:\s*([^\/]+)\/([^>]+)>>/);
             if (refMatch) {
-              const [_, objectType, objectId] = refMatch;
-              const navigationTarget = `/patient-dashboard/${objectType}/${objectId}`;
-              debugLog(`Detected navigation reference: ${navigationTarget}`);
+              const [_, refType, refValue] = refMatch;
+              let navigationTarget;
+              
+              if (refType === 'section') {
+                // For section references, navigate directly to the section
+                navigationTarget = `/patient-dashboard/${refValue}`;
+                debugLog(`Detected section navigation reference: ${navigationTarget}`);
+              } else {
+                // For object references, include both the type and id
+                navigationTarget = `/patient-dashboard/${refType}/${refValue}`;
+                debugLog(`Detected object navigation reference: ${navigationTarget}`);
+              }
               
               // Store the navigation target for use after playback completes
               setPendingNavigation(navigationTarget);
