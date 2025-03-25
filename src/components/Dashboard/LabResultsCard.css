@@ -102,8 +102,8 @@
 }
 
 .dashboard-grid-3x1 .lab-result .badge-low {
-  background-color: rgba(255, 193, 7, 0.15);
-  color: #856404;
+  background-color: rgba(220, 53, 69, 0.15);
+  color: #dc3545;
 }
 
 .dashboard-grid-3x1 .lab-result .badge-borderline {
