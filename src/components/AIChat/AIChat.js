@@ -93,9 +93,26 @@ function AIChat() {
     try {
       const response = await axiosInstance.get('/chat-sessions/');
       console.log('Fetched sessions:', response.data);
-      // Ensure we're accessing the correct property from the response
-      // and that we initialize with an empty array if data is null/undefined
-      setSessions(response.data?.sessions || []);
+      
+      // Compare with current sessions to avoid unnecessary re-renders
+      const newSessions = response.data?.sessions || [];
+      const currentSessionIds = new Set(sessions.map(session => session.id));
+      const newSessionIds = new Set(newSessions.map(session => session.id));
+      
+      // Check if session lists have changed
+      const sessionsChanged = 
+        sessions.length !== newSessions.length || 
+        newSessions.some(session => !currentSessionIds.has(session.id)) ||
+        sessions.some(session => !newSessionIds.has(session.id));
+      
+      // Only update state if there are actual changes
+      if (sessionsChanged) {
+        console.log('Sessions have changed, updating state');
+        setSessions(newSessions);
+      } else {
+        console.log('Sessions unchanged, skipping update');
+      }
+      
       setLoading(false);
       console.log('Sessions loaded, loading set to false');
     } catch (error) {
@@ -274,7 +291,7 @@ function AIChat() {
   
   // Create a debounced version to avoid multiple refreshes
   const debouncedRefreshSession = useCallback(
-    debounce((sessionId) => refreshSessionById(sessionId), 1000),
+    debounce((sessionId) => refreshSessionById(sessionId), 500),
     []
   );
 
@@ -282,12 +299,31 @@ function AIChat() {
   const refreshAllSessions = useCallback(async () => {
     try {
       const response = await axiosInstance.get('/chat-sessions/');
-      setSessions(response.data?.sessions || []);
+      
+      // Compare with current sessions to avoid unnecessary re-renders
+      const newSessions = response.data?.sessions || [];
+      const currentSessionIds = new Set(sessions.map(session => session.id));
+      const newSessionIds = new Set(newSessions.map(session => session.id));
+      
+      // Check if session lists have changed
+      const sessionsChanged = 
+        sessions.length !== newSessions.length || 
+        newSessions.some(session => !currentSessionIds.has(session.id)) ||
+        sessions.some(session => !newSessionIds.has(session.id));
+      
+      // Only update state if there are actual changes
+      if (sessionsChanged) {
+        console.log('Sessions have changed, updating state');
+        setSessions(newSessions);
+      } else {
+        console.log('Sessions unchanged, skipping update');
+      }
+      
       console.log('All sessions refreshed');
     } catch (error) {
       console.error('Error refreshing all sessions:', error);
     }
-  }, []);
+  }, [sessions]);
   
   // Debounced version for all sessions refresh
   const debouncedRefreshAllSessions = useCallback(
@@ -297,14 +333,12 @@ function AIChat() {
   
   // Handler for chat completion notification
   const handleChatComplete = useCallback((sessionId) => {
-    // First refresh just the completed session
+    // Only refresh the completed session
     debouncedRefreshSession(sessionId);
     
-    // Then refresh all sessions after a longer delay
-    setTimeout(() => {
-      debouncedRefreshAllSessions();
-    }, 2000);
-  }, [debouncedRefreshSession, debouncedRefreshAllSessions]);
+    // Remove the additional sessions refresh since it's causing screen flashing
+    // and the session name update can be handled by the first refresh
+  }, [debouncedRefreshSession]);
 
   return (
     <Container fluid className="ai-chat-container">

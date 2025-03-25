@@ -247,6 +247,15 @@ function ChatWindow({ session, onSessionCreated, sessions = [], onSelectSession,
             const processedMessages = processStreamingContent(newMessages, buffer.trim(), aiMessageIndex);
             // Mark streaming as complete
             processedMessages[aiMessageIndex].isStreaming = false;
+            
+            // Also update the session object locally with new messages to avoid needing a refresh
+            if (session) {
+              session.messages = processedMessages.map(msg => ({
+                role: msg.role,
+                content: msg.content
+              }));
+            }
+            
             return processedMessages;
           }
           
@@ -267,8 +276,11 @@ function ChatWindow({ session, onSessionCreated, sessions = [], onSelectSession,
 
       // Notify parent that chat is complete - add this
       if (onChatComplete && currentSessionId) {
-        console.log('Chat complete, notifying parent to refresh sessions');
-        onChatComplete(currentSessionId);
+        console.log('Chat complete, delaying session refresh to avoid UI flashing');
+        // Delay the refresh callback to ensure UI has stabilized first
+        setTimeout(() => {
+          onChatComplete(currentSessionId);
+        }, 500);
       }
 
     } catch (error) {
