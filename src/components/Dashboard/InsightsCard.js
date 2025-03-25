@@ -66,9 +66,11 @@ function InsightsCard() {
               ))}
               {insights.length > maxItemsToShow && (
                 <div className="card-footer">
-                  <div className="more-alerts">
-                    {insights.length - maxItemsToShow} more insight{insights.length - maxItemsToShow !== 1 ? 's' : ''} to review
-                  </div>
+                  {!showAllInsights && (
+                    <div className="more-alerts">
+                      {insights.length - maxItemsToShow} more
+                    </div>
+                  )}
                   <button 
                     className="view-all-button"
                     onClick={() => setShowAllInsights(!showAllInsights)}

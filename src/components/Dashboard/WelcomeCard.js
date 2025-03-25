@@ -10,12 +10,10 @@ function WelcomeCard({ user }) {
 
   // Quick action items
   const quickActions = [
-    { icon: "📋", title: "Health Records", link: "/patient-dashboard" },
+    { icon: "📋", title: "View Records", link: "/patient-dashboard" },
+    { icon: "➕", title: "Add Records", link: "/add-health-data" },
     { icon: "🎙️", title: "Talk to Asha", link: "/websocket-voice" },
-    { icon: "➕", title: "Add Health Data", link: "/add-health-data" },
-    { icon: "💊", title: "Update Medications", link: "/patient-dashboard/med" },
-    { icon: "❤️", title: "Record Vitals", link: "/patient-dashboard/vital-signs" },
-    { icon: "🤒", title: "Record Symptom", link: "/patient-dashboard/symptoms" },
+    { icon: "💬", title: "Chat with Asha", link: "/ai-chat" },
   ];
 
   return (
@@ -42,8 +40,8 @@ function WelcomeCard({ user }) {
             </div>
           </div>
           <div className="score-details">
-            <div className="score-label">Health Score</div>
-            <div className="score-description">Based on your vitals, labs, and provider data</div>
+            <div className="score-label">Health Awareness Score</div>
+            <div className="score-description">Based on your interactions with your Health Data.</div>
           </div>
         </div>
       </div>
