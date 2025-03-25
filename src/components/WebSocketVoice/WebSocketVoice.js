@@ -108,7 +108,7 @@ const WebSocketVoice = () => {
   const audioDataRef = useRef(null);
   
   // Silence detection constants
-  const MAX_RECORDING_DURATION = 30000; // 30 seconds
+  const MAX_RECORDING_DURATION = 120000; // changed from 30 seconds to 2 minutes
   const silenceDetectionIntervalRef = useRef(null);
   const recordingStartTimeRef = useRef(null);
   
