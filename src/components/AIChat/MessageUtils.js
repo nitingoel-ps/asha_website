@@ -53,11 +53,16 @@ export const processReferenceLinks = (content) => {
     }
   }
   
-  // Replace [Ref: x/y] with a superscript link styled as a reference
-  // These are internal links that should navigate within the app
+  // Replace [Ref: x/y, a/b, c/d] with multiple superscript links styled as references
   let updatedContent = content.replace(
     /\[Ref:\s*([^\]]+)\]/g, 
-    (match, path) => `<sup><a class="ai-chat-reference" href="/patient-dashboard/${path.trim()}">[ref]</a></sup>`
+    (match, paths) => {
+      // Split by commas and create a link for each path
+      const pathArray = paths.split(',').map(p => p.trim());
+      return pathArray.map(path => 
+        `<sup><a class="ai-chat-reference" href="/patient-dashboard/${path}">[ref]</a></sup>`
+      ).join(' ');
+    }
   );
   
   // Handle case where citations are already HTML links inside sup tags
