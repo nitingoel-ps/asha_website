@@ -180,9 +180,11 @@ function AlertsCard({ maxItemsPerCategory = 2 }) {
           )}
           {!isLoading && !error && medicationInteractions.length > maxItemsPerCategory && (
             <div className="card-footer">
-              <div className="more-alerts">
-                {medicationInteractions.length - maxItemsPerCategory} more medication interaction{medicationInteractions.length - maxItemsPerCategory !== 1 ? 's' : ''} to review
-              </div>
+              {!showAllMedications && (
+                <div className="more-alerts">
+                  {medicationInteractions.length - maxItemsPerCategory} more
+                </div>
+              )}
               <button 
                 className="view-all-button"
                 onClick={() => setShowAllMedications(!showAllMedications)}
@@ -265,9 +267,11 @@ function AlertsCard({ maxItemsPerCategory = 2 }) {
           )}
           {!screeningsLoading && !screeningsError && recommendedScreenings.length > maxItemsPerCategory && (
             <div className="card-footer">
-              <div className="more-alerts">
-                {recommendedScreenings.length - maxItemsPerCategory} more screening recommendation{recommendedScreenings.length - maxItemsPerCategory !== 1 ? 's' : ''}
-              </div>
+              {!showAllScreenings && (
+                <div className="more-alerts">
+                  {recommendedScreenings.length - maxItemsPerCategory} more
+                </div>
+              )}
               <button 
                 className="view-all-button"
                 onClick={() => setShowAllScreenings(!showAllScreenings)}
@@ -320,9 +324,11 @@ function AlertsCard({ maxItemsPerCategory = 2 }) {
             </ul>
             {prescriptionRefills.length > maxItemsPerCategory && (
               <div className="card-footer">
-                <div className="more-alerts">
-                  {prescriptionRefills.length - maxItemsPerCategory} more prescription refill{prescriptionRefills.length - maxItemsPerCategory !== 1 ? 's' : ''} to review
-                </div>
+                {!showAllRefills && (
+                  <div className="more-alerts">
+                    {prescriptionRefills.length - maxItemsPerCategory} more
+                  </div>
+                )}
                 <button 
                   className="view-all-button"
                   onClick={() => setShowAllRefills(!showAllRefills)}
