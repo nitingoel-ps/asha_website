@@ -164,6 +164,9 @@ const WebSocketVoice = () => {
   const [pendingNavigation, setPendingNavigation] = useState(null);
   const pendingNavigationRef = useRef(null);
   
+  // Add new state for no speech detection
+  const [noSpeechDetected, setNoSpeechDetected] = useState(false);
+  
   // Check browser compatibility on initial load
   useEffect(() => {
     // Check if WebSocket is supported
@@ -465,6 +468,16 @@ const WebSocketVoice = () => {
           updateIsProcessing(false);
           setIsRecording(false);
           isRecordingRef.current = false;
+          break;
+          
+        case 'no_speech_detected':
+          debugLog('No speech detected in audio');
+          setNoSpeechDetected(true);
+          // Reset recording and processing states
+          updateIsProcessing(false);
+          setIsRecording(false);
+          isRecordingRef.current = false;
+          stopRecording(false); // Don't send another end_stream
           break;
           
         default:
@@ -1164,8 +1177,11 @@ const WebSocketVoice = () => {
     }
     
     try {
-      // Clean up any previous recording/playback state
+      // Clear any previous recording/playback state
       cleanupAudio(false);
+      
+      // Clear no speech alert if it was showing
+      setNoSpeechDetected(false);
       
       // Clear all audio resources and reset playback state
       pendingChunksRef.current = [];
@@ -1564,6 +1580,9 @@ const WebSocketVoice = () => {
     // Clear any pending send delays
     clearSendDelays();
     
+    // Clear no speech alert if it was showing
+    setNoSpeechDetected(false);
+    
     // Send cancel message to server
     if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
       debugLog('Sending cancel message to server');
@@ -1863,6 +1882,7 @@ const WebSocketVoice = () => {
   useEffect(() => {
     return () => {
       clearSendDelays();
+      setNoSpeechDetected(false); // Clear no speech alert on unmount
     };
   }, []);
   
@@ -1885,6 +1905,11 @@ const WebSocketVoice = () => {
   const updateVisualizationMode = (mode) => {
     setVisualizationMode(mode);
     localStorage.setItem('visualizationMode', mode);
+  };
+  
+  // Add handler to dismiss no speech alert
+  const handleDismissNoSpeech = () => {
+    setNoSpeechDetected(false);
   };
   
   return (
@@ -2153,6 +2178,20 @@ Options:
                   onClose={() => setError(null)}
                 >
                   {error}
+                </Alert>
+              </div>
+            )}
+            
+            {/* No speech detected alert */}
+            {noSpeechDetected && (
+              <div className="error-container">
+                <Alert 
+                  variant="warning" 
+                  className="error-message"
+                  dismissible
+                  onClose={handleDismissNoSpeech}
+                >
+                  No speech was detected in your recording. Please try again.
                 </Alert>
               </div>
             )}
