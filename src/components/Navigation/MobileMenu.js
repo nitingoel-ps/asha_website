@@ -111,7 +111,7 @@ const MobileMenu = ({ show, onClose, user, onLogout }) => {
             </Link>
           </li>
           <li className="mobile-menu-item">
-            <Link to="/ai-chat" className="mobile-menu-link" onClick={handleLinkClick}>
+            <Link to="/websocket-voice" className="mobile-menu-link" onClick={handleLinkClick}>
               <FaRobot className="mobile-menu-icon" />
               <span>Talk to AI</span>
             </Link>

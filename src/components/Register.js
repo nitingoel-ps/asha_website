@@ -4,10 +4,12 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import axiosInstance from '../utils/axiosInstance'; // Import axiosInstance
 import { Form, Button, Container, Row, Col, Card, Alert } from 'react-bootstrap';
 import { FaUserPlus } from 'react-icons/fa'; // Import icon
+import { useAuth } from '../context/AuthContext'; // Import auth context
 
 function Register() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { setUser, login } = useAuth(); // Get both setUser and login function from auth context
   const [formData, setFormData] = useState({
     username: '',
     password: '',
@@ -21,6 +23,7 @@ function Register() {
   const [isCodeValid, setIsCodeValid] = useState(false);
   const [errors, setErrors] = useState({});
   const [message, setMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     // Extract invitation code from URL parameters
@@ -64,13 +67,68 @@ function Register() {
       return;
     }
 
+    // Clear previous messages and errors
+    setMessage('');
+    setErrors({});
+    setIsLoading(true);
+
+    // Create a copy of formData with lowercase username
+    const submitData = {
+      ...formData,
+      username: formData.username.toLowerCase()
+    };
+
     axiosInstance
-      .post('/register/', formData)
+      .post('/register/', submitData)
       .then((response) => {
         setMessage('User registered successfully!');
-        setErrors({});
+        
+        // Now authenticate the user (similar to login flow)
+        axiosInstance.post('/token/', {
+          username: submitData.username,
+          password: submitData.password
+        })
+        .then((tokenResponse) => {
+          const { access, refresh } = tokenResponse.data;
+
+          // Save tokens to localStorage
+          localStorage.setItem('access_token', access);
+          localStorage.setItem('refresh_token', refresh);
+
+          // Set Authorization header for future requests
+          axiosInstance.defaults.headers['Authorization'] = `Bearer ${access}`;
+
+          // Fetch user details
+          return axiosInstance.get('/user-context');
+        })
+        .then((userResponse) => {
+          // Update user context
+          setUser(userResponse.data);
+          // Make sure to call login() to set isAuthenticated to true
+          login();
+          
+          // Update message to inform user they're being redirected
+          setMessage('Registration successful! Logging you in and redirecting to homepage...');
+          
+          // Display success message before redirecting to home page
+          setTimeout(() => {
+            navigate('/');
+          }, 2000);
+        })
+        .catch((loginError) => {
+          console.error('Auto-login failed:', loginError);
+          // If auto-login fails, show message and redirect to login
+          setMessage('Registration successful! Please log in with your new account.');
+          setTimeout(() => {
+            navigate('/login');
+          }, 2000);
+        })
+        .finally(() => {
+          setIsLoading(false);
+        });
       })
       .catch((error) => {
+        setIsLoading(false);
         if (error.response && error.response.data) {
           setErrors(error.response.data);
         } else {
@@ -200,8 +258,13 @@ function Register() {
                   />
                 </Form.Group>
                 {/* Submit Button */}
-                <Button variant="primary" type="submit" className="w-100">
-                  Register
+                <Button 
+                  variant="primary" 
+                  type="submit" 
+                  className="w-100"
+                  disabled={isLoading}
+                >
+                  {isLoading ? 'Processing...' : 'Register'}
                 </Button>
               </Form>
             </Card.Body>

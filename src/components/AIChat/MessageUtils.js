@@ -27,19 +27,81 @@ export const extractActivityText = (content) => {
  */
 export const processReferenceLinks = (content) => {
   if (!content) return '';
+
+  // First, extract all reference numbers and their URLs from a references section if it exists
+  const refMap = {};
+  const referenceSection = content.match(/References:[\s\S]*$/i) || content.match(/Sources:[\s\S]*$/i);
   
-  // Replace [Ref: x/y] with a superscript link styled as a reference
+  if (referenceSection) {
+    // Extract the reference part of the content
+    const referencePart = referenceSection[0];
+    
+    // Find all reference number and URL pairs in the reference section
+    const refPattern = /\[(\d+)\]\s*((?:https?:\/\/[^\s]+)|(?:[^[\n]+))/g;
+    let refMatch;
+    
+    while ((refMatch = refPattern.exec(referencePart)) !== null) {
+      const refNumber = refMatch[1];
+      const refContent = refMatch[2].trim();
+      
+      // Determine if the reference is a URL or text
+      const isUrl = /^https?:\/\//.test(refContent);
+      refMap[refNumber] = {
+        content: refContent,
+        isUrl: isUrl
+      };
+    }
+  }
+  
+  // Replace [Ref: x/y, a/b, c/d] with multiple superscript links styled as references
   let updatedContent = content.replace(
     /\[Ref:\s*([^\]]+)\]/g, 
-    (match, path) => `<sup><a class="ai-chat-reference" href="/patient-dashboard/${path.trim()}">[ref]</a></sup>`
+    (match, paths) => {
+      // Split by commas and create a link for each path
+      const pathArray = paths.split(',').map(p => p.trim());
+      return pathArray.map(path => 
+        `<sup><a class="ai-chat-reference" href="/patient-dashboard/${path}">[ref]</a></sup>`
+      ).join(' ');
+    }
   );
   
-  // Replace standalone reference numbers (e.g., [1], [2]) with a styled superscript element.
-  // Using a simpler regex to capture every occurrence.
+  // Handle case where citations are already HTML links inside sup tags
+  updatedContent = updatedContent.replace(
+    /<sup class="ai-chat-reference">\[<a href="(https?:\/\/[^"]+)">(\d+)<\/a>\]<\/sup>/g,
+    (match, url, number) => 
+      `<sup class="ai-chat-reference"><a href="${url}" target="_blank" rel="noopener noreferrer">[[${number}]]</a></sup>`
+  );
+  
+  // Replace standalone reference numbers (e.g., [1], [2]) with clickable links that open in a new tab
   updatedContent = updatedContent.replace(
     /\[(\d+)\](?!:)/g,
-    (match, number) => `<sup class="ai-chat-reference">[[${number}]]</sup>`
+    (match, number) => {
+      // If we have this reference number in our map
+      if (refMap[number]) {
+        const ref = refMap[number];
+        if (ref.isUrl) {
+          // It's a URL, make it open in a new tab
+          return `<sup class="ai-chat-reference"><a href="${ref.content}" target="_blank" rel="noopener noreferrer">[[${number}]]</a></sup>`;
+        } else {
+          // It's text, just style it
+          return `<sup class="ai-chat-reference" title="${ref.content}">[[${number}]]</sup>`;
+        }
+      } else {
+        // No reference found, just style it
+        return `<sup class="ai-chat-reference">[[${number}]]</sup>`;
+      }
+    }
   );
+  
+  // Also make any URLs in the reference section clickable and open in a new tab
+  if (referenceSection) {
+    const referencePart = referenceSection[0];
+    const updatedReferencePart = referencePart.replace(
+      /(\[(\d+)\]\s*)(https?:\/\/[^\s]+)/g,
+      (match, prefix, number, url) => `${prefix}<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`
+    );
+    updatedContent = updatedContent.replace(referencePart, updatedReferencePart);
+  }
   
   return updatedContent;
 };

@@ -11,7 +11,7 @@ function WelcomeCard({ user }) {
   // Quick action items
   const quickActions = [
     { icon: "📋", title: "Health Records", link: "/patient-dashboard" },
-    { icon: "🎙️", title: "Talk to Asha", link: "/ai-chat" },
+    { icon: "🎙️", title: "Talk to Asha", link: "/websocket-voice" },
     { icon: "➕", title: "Add Health Data", link: "/add-health-data" },
     { icon: "💊", title: "Update Medications", link: "/patient-dashboard/med" },
     { icon: "❤️", title: "Record Vitals", link: "/patient-dashboard/vital-signs" },
