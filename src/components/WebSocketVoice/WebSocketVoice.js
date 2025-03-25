@@ -160,6 +160,10 @@ const WebSocketVoice = () => {
     localStorage.getItem('visualizationMode') || 'circle'
   );
   
+  // Add new ref for pending navigation at the top with other refs
+  const [pendingNavigation, setPendingNavigation] = useState(null);
+  const pendingNavigationRef = useRef(null);
+  
   // Check browser compatibility on initial load
   useEffect(() => {
     // Check if WebSocket is supported
@@ -417,6 +421,24 @@ const WebSocketVoice = () => {
           // If audio is done playing, clean up
           if (!isPlayingRef.current) {
             handlePlaybackComplete();
+          }
+          break;
+          
+        case 'tools_update':
+          debugLog(`Tools update message received: "${message.text}"`);
+          
+          // Check if the text contains a reference in the format <<Ref: obj/id>>
+          if (message.text && message.text.includes('<<Ref:')) {
+            const refMatch = message.text.match(/<<Ref:\s*([^\/]+)\/(\d+)>>/);
+            if (refMatch) {
+              const [_, objectType, objectId] = refMatch;
+              const navigationTarget = `/patient-dashboard/${objectType}/${objectId}`;
+              debugLog(`Detected navigation reference: ${navigationTarget}`);
+              
+              // Store the navigation target for use after playback completes
+              setPendingNavigation(navigationTarget);
+              pendingNavigationRef.current = navigationTarget;
+            }
           }
           break;
           
@@ -1074,6 +1096,15 @@ const WebSocketVoice = () => {
     }
     
     debugLog('Processing and playback both complete, resetting UI state');
+    
+    // Check if there's a pending navigation after playback
+    if (pendingNavigationRef.current) {
+      debugLog(`Navigating to: ${pendingNavigationRef.current}`);
+      navigate(pendingNavigationRef.current);
+      // Reset the navigation state
+      setPendingNavigation(null);
+      pendingNavigationRef.current = null;
+    }
   };
   
   const cleanupAudio = (preserveForReplay = false) => {
