@@ -80,10 +80,18 @@ export function MedicationDetailView({ medications, refreshMedications }) {
     setError(null);
     
     try {
-      await axiosInstance.put(`/medications/${medication.id}/`, {
-        ...medication,
-        status: newStatus
-      });
+      // For non-user-reported medications, only send ID and status
+      const payload = medication.is_user_reported || medication.is_user_created
+        ? {
+            ...medication,
+            status: newStatus
+          }
+        : {
+            id: medication.id,
+            status: newStatus
+          };
+
+      await axiosInstance.put(`/medications/${medication.id}/`, payload);
       setShowStatusModal(false);
       
       // Explicitly refresh data from API
