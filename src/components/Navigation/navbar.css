@@ -995,3 +995,31 @@
     display: none;
   }
 }
+
+.mobile-top-add-button {
+  background: none;
+  border: none;
+  color: white;
+  padding: 8px;
+  margin-left: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+  z-index: 1041; /* Ensure button is above other elements */
+}
+
+.mobile-top-add-button:hover {
+  opacity: 0.8;
+}
+
+.mobile-top-add-button svg {
+  font-size: 1.5rem;
+}
+
+/* Adjust the title margin when add button is present */
+.mobile-top-add-button + .mobile-page-title,
+.mobile-page-title:has(+ .mobile-top-add-button) {
+  margin-right: -32px; /* Adjust this value to center the title properly */
+}

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Navbar, Nav, Container, NavDropdown, Image } from 'react-bootstrap';
-import { FaHome, FaSignOutAlt, FaTachometerAlt, FaCog, FaRobot, FaPlusCircle, FaBars, FaHeartbeat, FaMicrophone, FaEllipsisH, FaChevronLeft } from 'react-icons/fa';
+import { FaHome, FaSignOutAlt, FaTachometerAlt, FaCog, FaRobot, FaPlusCircle, FaBars, FaHeartbeat, FaMicrophone, FaEllipsisH, FaChevronLeft, FaPlus } from 'react-icons/fa';
 import { PiUserSound } from "react-icons/pi";
 
 import { useAuth } from '../../context/AuthContext';
@@ -147,6 +147,37 @@ function LoggedInNavbar() {
     return "U";
   };
 
+  const getAddButtonConfig = () => {
+    const pathSegments = location.pathname.split('/').filter(Boolean);
+    if (pathSegments.length !== 2 || pathSegments[0] !== 'patient-dashboard') return null;
+
+    const section = pathSegments[1];
+    const configs = {
+      'med': {
+        action: () => {
+          // We'll emit a custom event that the medications component will listen for
+          const event = new CustomEvent('openAddMedication');
+          window.dispatchEvent(event);
+        }
+      },
+      'symptoms': {
+        action: () => {
+          const event = new CustomEvent('openAddSymptom');
+          window.dispatchEvent(event);
+        }
+      },
+      'vital-signs': {
+        action: () => {
+          const event = new CustomEvent('openAddVital');
+          window.dispatchEvent(event);
+        }
+      }
+      // Add more sections as needed
+    };
+
+    return configs[section] || null;
+  };
+
   return (
     <>
       {/* Desktop Navbar */}
@@ -199,6 +230,15 @@ function LoggedInNavbar() {
               </button>
             )}
             <div className="mobile-page-title">{getPageTitle()}</div>
+            {getAddButtonConfig() && (
+              <button 
+                className="mobile-top-add-button"
+                onClick={getAddButtonConfig().action}
+                aria-label="Add new item"
+              >
+                <FaPlus />
+              </button>
+            )}
           </div>
 
           {/* Bottom Navigation Bar */}
