@@ -96,6 +96,69 @@ function PatientDashboard() {
     console.log('isMobile or activeTab changed:', { isMobile, activeTab });
   }, [isMobile, activeTab]);
 
+  // Update the getPageTitle function with logging
+  const getPageTitle = () => {
+    const pathSegments = location.pathname.split('/').filter(Boolean);
+    console.log('getPageTitle - Path segments:', pathSegments);
+    
+    // If we're in the root of patient-dashboard
+    if (pathSegments.length === 1) {
+      console.log('getPageTitle - Root path, returning Records');
+      return 'Records';
+    }
+    
+    // Map the parent route to a friendly name
+    const routeTitles = {
+      'med': {
+        base: 'Medications',
+        detail: 'Medication Details'
+      },
+      'visits': {
+        base: 'Visits',
+        detail: 'Visit Details'
+      },
+      'medical-reports': {
+        base: 'Medical Reports',
+        detail: 'Report Details'
+      },
+      'immunizations': {
+        base: 'Immunizations',
+        detail: 'Immunization Details'
+      },
+      'vital-signs': {
+        base: 'Vital Signs',
+        detail: 'Vital Sign Details'
+      },
+      'lab-panels': {
+        base: 'Lab Panels',
+        detail: 'Lab Results'
+      },
+      'health-priorities': {
+        base: 'Health Priorities',
+        detail: 'Priority Details'
+      },
+      'symptoms': {
+        base: 'Symptoms',
+        detail: 'Symptom Details'
+      }
+    };
+
+    const section = pathSegments[1];
+    const isDetail = pathSegments.length > 2;
+    
+    console.log('getPageTitle - Section:', section);
+    console.log('getPageTitle - Is detail view:', isDetail);
+    
+    if (routeTitles[section]) {
+      const title = isDetail ? routeTitles[section].detail : routeTitles[section].base;
+      console.log('getPageTitle - Returning title:', title);
+      return title;
+    }
+    
+    console.log('getPageTitle - No matching section, returning Records');
+    return 'Records';
+  };
+
   if (loading) {
     return (
       <Container className="mt-5 text-center">
@@ -121,79 +184,34 @@ function PatientDashboard() {
     );
   }
 
-  // Update the handleTabChange function to handle nested routes
+  // Update the handleTabChange function with logging
   const handleTabChange = (newTab) => {
+    console.log('handleTabChange - New tab:', newTab);
     if (newTab === "") {
+      console.log('handleTabChange - Navigating to root');
       navigate("/patient-dashboard", { replace: true });
     } else {
+      console.log('handleTabChange - Navigating to:', `/patient-dashboard/${newTab}`);
       navigate(`/patient-dashboard/${newTab}`);
     }
   };
 
-  // Add these new functions to handle back button text and navigation
-  const getBackButtonText = () => {
-    const pathSegments = location.pathname.split('/').filter(Boolean);
-    
-    // Special case for observation detail
-    if (pathSegments.includes('observation')) {
-      return 'Back to Lab Panels';
-    }
-    
-    // Add special case for health priorities detail
-    if (pathSegments.includes('health-priorities') && pathSegments.length > 2) {
-      return 'Back to Health Priorities';
-    }
-    
-    // Special case for symptoms detail or create
-    if (pathSegments.includes('symptoms') && pathSegments.length > 2) {
-      return 'Back to Symptoms';
-    }
-    
-    // If we're in a detail view (has more than 2 segments after patient-dashboard)
-    if (pathSegments.length > 2) {
-      // Map the parent route to a friendly name
-      const parentRouteNames = {
-        med: 'Medications',
-        visits: 'Visits',
-        'medical-reports': 'Medical Reports',
-        immunizations: 'Immunizations',
-        'lab-panels': 'Lab Panels',
-        'health-priorities': 'Health Priorities'
-      };
-      return `Back to ${parentRouteNames[pathSegments[1]] || 'Menu'}`;
-    }
-    
-    return 'Back to Menu';
-  };
-
+  // Update the handleBack function with logging
   const handleBack = () => {
     const pathSegments = location.pathname.split('/').filter(Boolean);
+    console.log('handleBack - Current path segments:', pathSegments);
     
-    // Special case for observation detail
-    if (pathSegments.includes('observation')) {
-      navigate('/patient-dashboard/lab-panels');
-      return;
-    }
-    
-    // Add handling for health priorities detail
-    if (pathSegments.includes('health-priorities') && pathSegments.length > 2) {
-      navigate('/patient-dashboard/health-priorities');
-      return;
-    }
-    
-    // Special case for symptoms routes
-    if (pathSegments.includes('symptoms') && pathSegments.length > 2) {
-      navigate('/patient-dashboard/symptoms');
-      return;
-    }
-    
+    // If we're in a detail view (has more than 2 segments)
     if (pathSegments.length > 2) {
-      // Go back to the parent route
+      console.log('handleBack - In detail view, navigating to:', `/patient-dashboard/${pathSegments[1]}`);
+      // Go back to the parent route (list view)
       navigate(`/patient-dashboard/${pathSegments[1]}`);
-    } else {
-      // Go back to main menu
-      handleTabChange('');
+      return;
     }
+    
+    console.log('handleBack - In list view, navigating to main menu');
+    // If we're in a list view, go back to main menu
+    handleTabChange('');
   };
 
   const NavigationMenu = () => (
@@ -255,15 +273,6 @@ function PatientDashboard() {
       {(!activeTab || !isMobile) && <NavigationMenu />}
       {(activeTab || !isMobile) && (
         <div className="content-area">
-          {isMobile && activeTab && (
-            <Button 
-              variant="outline-primary" 
-              className="back-button"
-              onClick={handleBack}
-            >
-              <ArrowLeft size={16} /> {getBackButtonText()}
-            </Button>
-          )}
           <div className="tab-content-wrapper">
             <Routes>
               {console.log("PatientDashboard: Rendering routes")}

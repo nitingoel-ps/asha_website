@@ -20,24 +20,63 @@ function LoggedInNavbar() {
   // Get page title based on current route
   const getPageTitle = () => {
     const path = location.pathname;
+    const pathSegments = path.split('/').filter(Boolean);
+    
+    // If we're in the root
     if (path === '/') return 'Home';
-    if (path === '/patient-dashboard') return 'Records';
-    if (path.includes('patient-dashboard')) {
-      // Extract the specific section from the path
-      const section = path.split('/').pop();
-      // Map the section to a user-friendly title
+    
+    // If we're in the patient dashboard
+    if (pathSegments[0] === 'patient-dashboard') {
+      // If we're at the root of patient-dashboard
+      if (pathSegments.length === 1) return 'Records';
+      
+      // If we're in a section
+      const section = pathSegments[1];
+      const isDetail = pathSegments.length > 2;
+      
+      // Map sections to their titles
       const titleMap = {
-        'vital-signs': 'Vital Signs',
-        'immunizations': 'Immunizations',
-        'visits': 'Visits',
-        'medical-reports': 'Medical Reports',
-        'lab-panels': 'Lab Panels',
-        'med': 'Medications',
-        'health-priorities': 'Health Priorities',
-        'symptoms': 'Symptoms'
+        'vital-signs': {
+          base: 'Vital Signs',
+          detail: 'Vital Sign Details'
+        },
+        'immunizations': {
+          base: 'Immunizations',
+          detail: 'Immunization Details'
+        },
+        'visits': {
+          base: 'Visits',
+          detail: 'Visit Details'
+        },
+        'medical-reports': {
+          base: 'Medical Reports',
+          detail: 'Report Details'
+        },
+        'lab-panels': {
+          base: 'Lab Panels',
+          detail: 'Lab Results'
+        },
+        'med': {
+          base: 'Medications',
+          detail: 'Medication Details'
+        },
+        'health-priorities': {
+          base: 'Health Priorities',
+          detail: 'Priority Details'
+        },
+        'symptoms': {
+          base: 'Symptoms',
+          detail: 'Symptom Details'
+        }
       };
-      return titleMap[section] || 'Records';
+
+      if (titleMap[section]) {
+        return isDetail ? titleMap[section].detail : titleMap[section].base;
+      }
+      return 'Records';
     }
+    
+    // Other routes
     if (path.includes('add-health-data')) return 'Add Records';
     if (path.includes('websocket-voice')) return 'Talk to Asha';
     return 'Asha AI';
@@ -45,12 +84,21 @@ function LoggedInNavbar() {
 
   // Check if we should show back button
   const shouldShowBackButton = () => {
-    const path = location.pathname;
-    return path.includes('patient-dashboard') && path !== '/patient-dashboard';
+    const pathSegments = location.pathname.split('/').filter(Boolean);
+    return pathSegments.length >= 2 && pathSegments[0] === 'patient-dashboard';
   };
 
   const handleBack = () => {
-    navigate('/patient-dashboard');
+    const pathSegments = location.pathname.split('/').filter(Boolean);
+    
+    // If we're in a detail view (more than 2 segments)
+    if (pathSegments.length > 2) {
+      // Go back to the section list
+      navigate(`/patient-dashboard/${pathSegments[1]}`);
+    } else {
+      // Go back to main dashboard
+      navigate('/patient-dashboard');
+    }
   };
 
   useEffect(() => {

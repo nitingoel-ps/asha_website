@@ -564,7 +564,7 @@
     display: flex;
     align-items: center;
     padding: 0 1rem;
-    z-index: 1030;
+    z-index: 1040; /* Increase z-index to ensure it's above other elements */
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   }
 
@@ -579,6 +579,7 @@
     justify-content: center;
     cursor: pointer;
     transition: opacity 0.2s ease;
+    z-index: 1041; /* Ensure button is above other elements */
   }
 
   .mobile-top-back-button:hover {
@@ -594,12 +595,21 @@
     font-weight: 500;
     flex: 1;
     text-align: center;
-    margin-right: 40px; /* Balance the space taken by back button */
+    margin: 0;
+    padding: 0;
+    color: white;
+    position: relative;
+    z-index: 1041; /* Ensure title is above other elements */
   }
 
   /* When back button is present, adjust title */
   .mobile-top-back-button + .mobile-page-title {
-    margin-left: -40px; /* Pull the title back to center accounting for back button */
+    margin-left: -32px; /* Adjust this value to center the title properly */
+  }
+
+  /* Ensure only one top bar is visible */
+  .mobile-top-bar ~ .mobile-top-bar {
+    display: none;
   }
 
   .mobile-bottom-nav {
@@ -864,7 +874,7 @@
   display: flex;
   align-items: center;
   padding: 0 1rem;
-  z-index: 1030;
+  z-index: 1040; /* Increase z-index to ensure it's above other elements */
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
@@ -879,6 +889,7 @@
   justify-content: center;
   cursor: pointer;
   transition: opacity 0.2s ease;
+  z-index: 1041; /* Ensure button is above other elements */
 }
 
 .mobile-top-back-button:hover {
@@ -894,12 +905,21 @@
   font-weight: 500;
   flex: 1;
   text-align: center;
-  margin-right: 40px; /* Balance the space taken by back button */
+  margin: 0;
+  padding: 0;
+  color: white;
+  position: relative;
+  z-index: 1041; /* Ensure title is above other elements */
 }
 
 /* When back button is present, adjust title */
 .mobile-top-back-button + .mobile-page-title {
-  margin-left: -40px; /* Pull the title back to center accounting for back button */
+  margin-left: -32px; /* Adjust this value to center the title properly */
+}
+
+/* Ensure only one top bar is visible */
+.mobile-top-bar ~ .mobile-top-bar {
+  display: none;
 }
 
 .mobile-bottom-nav {
