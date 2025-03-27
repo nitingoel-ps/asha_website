@@ -44,7 +44,7 @@ function VisitDetail({ visit }) {
     console.log("Fetching binary content for ID:", binaryId);
 
     try {
-      const response = await axiosInstance.get(`/get-binary`, {
+      const response = await axiosInstance.get(`/get-binary/`, {
         params: { binary_id: binaryId },
         responseType: 'blob'
       });

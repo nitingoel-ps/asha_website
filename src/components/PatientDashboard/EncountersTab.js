@@ -21,7 +21,7 @@ function EncountersTab({ encounters = [] }) {
   const handleDocumentClick = async (attachment) => {
     const binaryId = attachment.replace("Binary/", "");
     try {
-      const response = await axiosInstance.get(`/get-binary`, {
+      const response = await axiosInstance.get(`/get-binary/`, {
         params: { binary_id: binaryId }
       });
       setContentType(response.headers['content-type']);
