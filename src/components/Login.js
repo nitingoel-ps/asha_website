@@ -43,7 +43,7 @@ function Login() {
       axiosInstance.defaults.headers['Authorization'] = `Bearer ${access}`;
 
       // Step 4: Fetch user details
-      const userResponse = await axiosInstance.get('/user-context'); // Assuming `/user-context` returns user details
+      const userResponse = await axiosInstance.get('/user-context/'); // Assuming `/user-context` returns user details
       const userDetails = userResponse.data;
 
       // Step 5: Update global authentication state

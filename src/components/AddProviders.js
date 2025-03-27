@@ -68,7 +68,7 @@ function AddProviders() {
 
   const fetchLatestProgress = async (providerId) => {
     try {
-      const response = await axiosInstance.get('/data-refresh-progress', {
+      const response = await axiosInstance.get('/data-refresh-progress/', {
         params: {
           provider_id: providerId
         }
@@ -94,7 +94,7 @@ function AddProviders() {
   useEffect(() => {
     const loadConnectionsAndProgress = async () => {
       try {
-        const response = await axiosInstance.get("/provider-connections");
+        const response = await axiosInstance.get("/provider-connections/");
         const connectionsList = response.data || [];
         setConnections(connectionsList);
         setLoadingConnections(false);
@@ -138,7 +138,7 @@ function AddProviders() {
     const pollProgress = async () => {
       try {
         console.log("Polling progress for provider:", providerId);
-        const response = await axiosInstance.get('/data-refresh-progress', {
+        const response = await axiosInstance.get('/data-refresh-progress/', {
           params: {
             provider_id: providerId
           }
@@ -182,7 +182,7 @@ function AddProviders() {
 
   const refreshConnectionStatus = async () => {
     try {
-      const response = await axiosInstance.get("/provider-connections");
+      const response = await axiosInstance.get("/provider-connections/");
       setConnections(response.data || []);
     } catch (error) {
       console.error("Failed to refresh connections:", error);
@@ -305,7 +305,7 @@ function AddProviders() {
     setSearchResults([]);
 
     try {
-      const response = await axiosInstance.get('/search-health-organizations', {
+      const response = await axiosInstance.get('/search-health-organizations/', {
         params: {
           type: searchType,
           query: searchQuery
