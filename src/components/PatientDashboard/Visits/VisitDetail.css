@@ -371,23 +371,23 @@
 .visit-navigation {
   display: flex;
   align-items: center;
-  gap: 12px;
-  background: #F7FAFC;
-  padding: 4px 16px;
+  gap: 8px;
+  background: white;
+  padding: 4px 12px;
   border-radius: 6px;
 }
 
 .visit-nav-info {
   font-size: 14px;
   color: #4A5568;
-  min-width: 80px;
+  min-width: 60px;
   text-align: center;
 }
 
 .nav-button {
   background: none;
   border: none;
-  padding: 8px;
+  padding: 6px;
   cursor: pointer;
   color: #4A5568;
   border-radius: 4px;
@@ -434,16 +434,18 @@
     margin-bottom: 0;
   }
 
-  .mobile-visit-navigation {
-    padding: 8px 12px;
+  .visit-navigation {
+    width: 100%;
+    justify-content: center;
+    padding: 4px 8px;
   }
 
-  .mobile-visit-navigation .nav-button {
-    padding: 6px;
-  }
-
-  .mobile-visit-navigation .visit-nav-info {
+  .visit-nav-info {
     font-size: 13px;
-    min-width: 60px;
+    min-width: 50px;
+  }
+
+  .nav-button {
+    padding: 4px;
   }
 }
