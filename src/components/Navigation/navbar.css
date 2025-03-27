@@ -563,15 +563,43 @@
     color: white;
     display: flex;
     align-items: center;
-    justify-content: center;
     padding: 0 1rem;
     z-index: 1030;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   }
 
+  .mobile-top-back-button {
+    background: none;
+    border: none;
+    color: white;
+    padding: 8px;
+    margin-right: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+  }
+
+  .mobile-top-back-button:hover {
+    opacity: 0.8;
+  }
+
+  .mobile-top-back-button svg {
+    font-size: 1.5rem;
+  }
+
   .mobile-page-title {
     font-size: 1.2rem;
     font-weight: 500;
+    flex: 1;
+    text-align: center;
+    margin-right: 40px; /* Balance the space taken by back button */
+  }
+
+  /* When back button is present, adjust title */
+  .mobile-top-back-button + .mobile-page-title {
+    margin-left: -40px; /* Pull the title back to center accounting for back button */
   }
 
   .mobile-bottom-nav {
@@ -835,15 +863,43 @@
   color: white;
   display: flex;
   align-items: center;
-  justify-content: center;
   padding: 0 1rem;
   z-index: 1030;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
+.mobile-top-back-button {
+  background: none;
+  border: none;
+  color: white;
+  padding: 8px;
+  margin-right: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.mobile-top-back-button:hover {
+  opacity: 0.8;
+}
+
+.mobile-top-back-button svg {
+  font-size: 1.5rem;
+}
+
 .mobile-page-title {
   font-size: 1.2rem;
   font-weight: 500;
+  flex: 1;
+  text-align: center;
+  margin-right: 40px; /* Balance the space taken by back button */
+}
+
+/* When back button is present, adjust title */
+.mobile-top-back-button + .mobile-page-title {
+  margin-left: -40px; /* Pull the title back to center accounting for back button */
 }
 
 .mobile-bottom-nav {

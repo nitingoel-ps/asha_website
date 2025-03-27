@@ -1,11 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Navbar, Nav, Container, NavDropdown, Image } from 'react-bootstrap';
-import { FaHome, FaSignOutAlt, FaTachometerAlt, FaCog, FaRobot, FaPlusCircle, FaBars, FaHeartbeat, FaMicrophone, FaEllipsisH } from 'react-icons/fa';
+import { FaHome, FaSignOutAlt, FaTachometerAlt, FaCog, FaRobot, FaPlusCircle, FaBars, FaHeartbeat, FaMicrophone, FaEllipsisH, FaChevronLeft } from 'react-icons/fa';
 import { PiUserSound } from "react-icons/pi";
 
 import { useAuth } from '../../context/AuthContext';
-import { useNavigate } from "react-router-dom";
 import MobileMenu from './MobileMenu';
 import './navbar.css'; // Import custom navbar styles
 
@@ -22,10 +21,36 @@ function LoggedInNavbar() {
   const getPageTitle = () => {
     const path = location.pathname;
     if (path === '/') return 'Home';
-    if (path.includes('patient-dashboard')) return 'Records';
+    if (path === '/patient-dashboard') return 'Records';
+    if (path.includes('patient-dashboard')) {
+      // Extract the specific section from the path
+      const section = path.split('/').pop();
+      // Map the section to a user-friendly title
+      const titleMap = {
+        'vital-signs': 'Vital Signs',
+        'immunizations': 'Immunizations',
+        'visits': 'Visits',
+        'medical-reports': 'Medical Reports',
+        'lab-panels': 'Lab Panels',
+        'med': 'Medications',
+        'health-priorities': 'Health Priorities',
+        'symptoms': 'Symptoms'
+      };
+      return titleMap[section] || 'Records';
+    }
     if (path.includes('add-health-data')) return 'Add Records';
     if (path.includes('websocket-voice')) return 'Talk to Asha';
     return 'Asha AI';
+  };
+
+  // Check if we should show back button
+  const shouldShowBackButton = () => {
+    const path = location.pathname;
+    return path.includes('patient-dashboard') && path !== '/patient-dashboard';
+  };
+
+  const handleBack = () => {
+    navigate('/patient-dashboard');
   };
 
   useEffect(() => {
@@ -120,6 +145,11 @@ function LoggedInNavbar() {
         <>
           {/* Top Bar */}
           <div className="mobile-top-bar">
+            {shouldShowBackButton() && (
+              <button className="mobile-top-back-button" onClick={handleBack}>
+                <FaChevronLeft />
+              </button>
+            )}
             <div className="mobile-page-title">{getPageTitle()}</div>
           </div>
 
