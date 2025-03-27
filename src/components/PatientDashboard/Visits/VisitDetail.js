@@ -1,17 +1,59 @@
 import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { Button } from 'react-bootstrap';
-import { FileText, ExternalLink, ChevronRight, Activity, Pill, FlaskConical } from 'lucide-react';
+import { FileText, ExternalLink, ChevronRight, Activity, Pill, FlaskConical, ChevronLeft, ChevronRight as ChevronRightIcon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import axiosInstance from '../../../utils/axiosInstance';
 import './VisitDetail.css';
 import DocumentViewer from './DocumentViewer';
 
-function VisitDetail({ visit }) {
+function VisitDetail({ visit, encounters, onBack }) {
   const navigate = useNavigate();
   const [viewingDocument, setViewingDocument] = useState(null);
   const [documentBlobUrl, setDocumentBlobUrl] = useState(null);
   const [currentDocIndex, setCurrentDocIndex] = useState(0);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  // Add visit navigation functionality
+  const currentVisitIndex = encounters.findIndex(v => v.id === visit.id);
+  const hasPrevVisit = currentVisitIndex > 0;
+  const hasNextVisit = currentVisitIndex < encounters.length - 1;
+
+  const navigateVisit = (direction) => {
+    const newIndex = direction === 'next' 
+      ? currentVisitIndex + 1 
+      : currentVisitIndex - 1;
+    
+    if (newIndex >= 0 && newIndex < encounters.length) {
+      navigate(`/patient-dashboard/visits/${encounters[newIndex].id}`);
+    }
+  };
+
+  // Add keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'ArrowLeft' && hasPrevVisit) {
+        navigateVisit('prev');
+      } else if (e.key === 'ArrowRight' && hasNextVisit) {
+        navigateVisit('next');
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [hasPrevVisit, hasNextVisit]);
+
+  // Add mobile detection
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    window.addEventListener('resize', checkMobile);
+    checkMobile();
+    
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -141,7 +183,32 @@ function VisitDetail({ visit }) {
     <div className="visit-detail-wrapper">
       <div className="visit-detail">
         <div className="visit-header">
-          <h2 className="visit-title">{visit.type}</h2>
+          <div className="visit-header-top">
+            <h2 className="visit-title">{visit.type}</h2>
+            {!isMobile && encounters.length > 1 && (
+              <div className="visit-navigation">
+                <button 
+                  className="nav-button"
+                  onClick={() => navigateVisit('prev')}
+                  disabled={!hasPrevVisit}
+                  title="Previous Visit"
+                >
+                  <ChevronLeft size={20} />
+                </button>
+                <span className="visit-nav-info">
+                  Visit {currentVisitIndex + 1} of {encounters.length}
+                </span>
+                <button 
+                  className="nav-button"
+                  onClick={() => navigateVisit('next')}
+                  disabled={!hasNextVisit}
+                  title="Next Visit"
+                >
+                  <ChevronRightIcon size={20} />
+                </button>
+              </div>
+            )}
+          </div>
           
           <div className="visit-meta">
             <div className="meta-item">
@@ -232,6 +299,29 @@ function VisitDetail({ visit }) {
 
         {/* Render document viewer with ReactDOM.createPortal */}
         {renderDocumentViewer()}
+
+        {/* Add mobile navigation at the bottom */}
+        {isMobile && encounters.length > 1 && (
+          <div className="mobile-visit-navigation">
+            <button 
+              className="nav-button"
+              onClick={() => navigateVisit('prev')}
+              disabled={!hasPrevVisit}
+            >
+              <ChevronLeft size={20} />
+            </button>
+            <span className="visit-nav-info">
+              {currentVisitIndex + 1} of {encounters.length}
+            </span>
+            <button 
+              className="nav-button"
+              onClick={() => navigateVisit('next')}
+              disabled={!hasNextVisit}
+            >
+              <ChevronRightIcon size={20} />
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

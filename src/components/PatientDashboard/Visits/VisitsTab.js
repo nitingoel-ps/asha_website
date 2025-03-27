@@ -92,6 +92,7 @@ function VisitsTab({ encounters }) {
           element={
             <VisitDetail 
               visit={currentVisit}
+              encounters={encounters}
               onBack={() => navigate('.')}
             />
           } 
