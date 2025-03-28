@@ -13,6 +13,13 @@
   font-size: 0.875rem;
 }
 
+/* Hide header on mobile */
+@media (max-width: 767px) {
+  .reports-header {
+    display: none;
+  }
+}
+
 .timeline-container {
   position: relative;
   max-width: 1200px;
