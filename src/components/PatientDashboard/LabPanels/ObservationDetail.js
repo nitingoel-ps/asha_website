@@ -135,9 +135,9 @@ const HistoryItem = ({ value }) => (
                                 <span className="abnormal-indicator">⚠ Abnormal</span>
                             )}
                         </div>
-                        <div className="history-date">{formatDate(value.date)}</div>
                     </div>
                 </div>
+                <div className="history-date">{formatDate(value.date)}</div>
             </div>
             <div className="history-details">
                 <div className="detail-row">
