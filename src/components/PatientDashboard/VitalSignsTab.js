@@ -237,6 +237,17 @@ function VitalSignsTab() {
   const graphRef = useRef(null);
   const shouldScrollRef = useRef(false);
 
+  // Add event listener for the custom event from top nav bar
+  useEffect(() => {
+    const handleOpenAddVital = () => {
+      setShowAddModal(true);
+      setError("");
+    };
+
+    window.addEventListener('openAddVital', handleOpenAddVital);
+    return () => window.removeEventListener('openAddVital', handleOpenAddVital);
+  }, []);
+
   // Fetch vital signs data from the new API endpoint
   useEffect(() => {
     fetchVitalSigns();
@@ -578,17 +589,6 @@ function VitalSignsTab() {
 
   return (
     <div className="vital-signs-tab">
-      <div className="vital-signs-header">
-        <h3>❤️ Vital Signs</h3>
-        <Button 
-          variant="primary" 
-          className="add-vital-btn"
-          onClick={handleShowAddModal}
-        >
-          <FaPlusCircle /> Record New Vital
-        </Button>
-      </div>
-
       {success && (
         <Alert variant="success" className="alert-message" onClose={() => setSuccess("")} dismissible>
           {success}
