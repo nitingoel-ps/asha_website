@@ -1,9 +1,15 @@
 const handleAddClick = () => {
-  if (activeTab === 'vitals') {
-    // Dispatch custom event for vital signs
-    window.dispatchEvent(new Event('openAddVital'));
-  } else if (activeTab === 'medications') {
-    // Handle medications add click
-    window.dispatchEvent(new Event('openAddMedication'));
+  switch (activeTab) {
+    case 'vitals':
+      window.dispatchEvent(new Event('openAddVital'));
+      break;
+    case 'medications':
+      window.dispatchEvent(new Event('openAddMedication'));
+      break;
+    case 'symptoms':
+      window.dispatchEvent(new Event('openAddSymptom'));
+      break;
+    default:
+      break;
   }
 }; 
