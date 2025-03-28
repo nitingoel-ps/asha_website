@@ -30,6 +30,11 @@ function LoggedInNavbar() {
       // If we're at the root of patient-dashboard
       if (pathSegments.length === 1) return 'Records';
       
+      // Special case for observation URLs
+      if (pathSegments[1] === 'observation' && pathSegments[2]) {
+        return 'Observation';
+      }
+      
       // If we're in a section
       const section = pathSegments[1];
       const isDetail = pathSegments.length > 2;
@@ -85,11 +90,18 @@ function LoggedInNavbar() {
   // Check if we should show back button
   const shouldShowBackButton = () => {
     const pathSegments = location.pathname.split('/').filter(Boolean);
+    // Show back button for any patient-dashboard route except the root
     return pathSegments.length >= 2 && pathSegments[0] === 'patient-dashboard';
   };
 
   const handleBack = () => {
     const pathSegments = location.pathname.split('/').filter(Boolean);
+    
+    // Special case for observation URLs - use browser history
+    if (pathSegments[1] === 'observation' && pathSegments[2]) {
+      window.history.back();
+      return;
+    }
     
     // If we're in a detail view (more than 2 segments)
     if (pathSegments.length > 2) {
