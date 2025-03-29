@@ -64,7 +64,7 @@ function PatientDashboard() {
     }
 
     axiosInstance
-      .get("/patient-dashboard")
+      .get("/patient-dashboard/")
       .then((response) => {
         setPatientData(response.data);
         setLoading(false);
