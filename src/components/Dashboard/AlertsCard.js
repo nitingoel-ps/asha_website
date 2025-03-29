@@ -25,7 +25,9 @@ function AlertsCard({ maxItemsPerCategory = 2 }) {
       try {
         setIsLoading(true);
         const response = await axiosInstance.get('/medication-review/');
-        const transformedData = response.data.notifications.map((item, index) => ({
+        // Add null check and default to empty array if notifications is undefined
+        const notificationsData = response.data?.notifications || [];
+        const transformedData = notificationsData.map((item, index) => ({
           id: index + 1,
           severity: item.severity,
           icon: "⚠️",
@@ -42,6 +44,8 @@ function AlertsCard({ maxItemsPerCategory = 2 }) {
       } catch (err) {
         setError('Failed to fetch medication interactions');
         console.error('Error fetching medication interactions:', err);
+        // Set empty array on error
+        setMedicationInteractions([]);
       } finally {
         setIsLoading(false);
       }
@@ -56,7 +60,9 @@ function AlertsCard({ maxItemsPerCategory = 2 }) {
       try {
         setScreeningsLoading(true);
         const response = await axiosInstance.get('/screening-review/');
-        const transformedData = response.data.screening_recommendations.map((item, index) => ({
+        // Add null check and default to empty array if screening_recommendations is undefined
+        const screeningsData = response.data?.screening_recommendations || [];
+        const transformedData = screeningsData.map((item, index) => ({
           id: index + 1,
           severity: item.priority,
           icon: "📅",
@@ -73,6 +79,8 @@ function AlertsCard({ maxItemsPerCategory = 2 }) {
       } catch (err) {
         setScreeningsError('Failed to fetch screening recommendations');
         console.error('Error fetching screening recommendations:', err);
+        // Set empty array on error
+        setRecommendedScreenings([]);
       } finally {
         setScreeningsLoading(false);
       }

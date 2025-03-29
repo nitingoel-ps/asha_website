@@ -13,7 +13,8 @@ function InsightsCard() {
     const fetchInsights = async () => {
       try {
         const response = await axiosInstance.get('/key-insights/');
-        const formattedInsights = response.data.insights.map((insight, index) => ({
+        const insightsData = response.data?.insights || [];
+        const formattedInsights = insightsData.map((insight, index) => ({
           id: index + 1,
           title: insight.heading,
           content: insight.narration,
@@ -23,6 +24,7 @@ function InsightsCard() {
       } catch (err) {
         setError('Failed to load insights. Please try again later.');
         console.error('Error fetching insights:', err);
+        setInsights([]);
       } finally {
         setLoading(false);
       }
