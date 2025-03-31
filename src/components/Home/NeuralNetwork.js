@@ -3,6 +3,8 @@ import React, { useEffect, useRef } from "react";
 const NeuralNetwork = ({ nodeCount = 20 }) => {  // Changed from hardcoded 40 to configurable 20
   const canvasRef = useRef(null);
   const containerRef = useRef(null);
+  const animationFrameRef = useRef(null);  // Add ref to store animation frame
+  const isComponentMounted = useRef(true);  // Add ref to track mount state
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -104,6 +106,9 @@ const NeuralNetwork = ({ nodeCount = 20 }) => {  // Changed from hardcoded 40 to
     window.addEventListener("resize", resize);    
 
     const animate = () => {
+      // Only continue animation if component is mounted
+      if (!isComponentMounted.current) return;
+
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       // Draw connections first
@@ -132,13 +137,21 @@ const NeuralNetwork = ({ nodeCount = 20 }) => {  // Changed from hardcoded 40 to
         node.draw();
       });
 
-      requestAnimationFrame(animate);
+      // Store the animation frame reference
+      animationFrameRef.current = requestAnimationFrame(animate);
     };
 
+    resize();
+    window.addEventListener("resize", resize);
     animate();
 
+    // Cleanup function
     return () => {
+      isComponentMounted.current = false;  // Mark component as unmounted
       window.removeEventListener("resize", resize);
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);  // Cancel any pending animation frame
+      }
     };
   }, [nodeCount]);
 
