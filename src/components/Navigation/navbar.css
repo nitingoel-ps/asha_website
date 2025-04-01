@@ -1023,3 +1023,40 @@
 .mobile-page-title:has(+ .mobile-top-add-button) {
   margin-right: -32px; /* Adjust this value to center the title properly */
 }
+
+/* Special styling for the microphone icon in the mobile bottom nav */
+.microphone-nav-item {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.microphone-icon {
+  font-size: 1.8rem !important; /* Make it bigger than other icons */
+  background-color: #20c0c3; /* Lighter shade of the navbar's teal color (#019ea1) */
+  color: white;
+  border-radius: 50%;
+  padding: 10px;
+  margin-bottom: 0.25rem;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2); /* Add subtle shadow for depth */
+  /*margin-top: -15px;  Pull it up slightly to stand out */
+  transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.microphone-nav-item:hover .microphone-icon,
+.microphone-nav-item:focus .microphone-icon {
+  transform: scale(1.05);
+  background-color: #18b7ba; /* Slightly darker on hover but still lighter than navbar */
+}
+
+/* Adjust the position of other elements if needed due to the special microphone size */
+.mobile-nav-item.microphone-nav-item {
+  margin-top: -10px; /* Adjust this value to align the microphone icon nicely */
+}

@@ -8,6 +8,7 @@ import ChatList from './ChatList';
 import { processStreamingContent, isActivityMessage } from './MessageUtils';
 import { FiSend, FiEdit } from 'react-icons/fi';
 import { PiListMagnifyingGlassThin } from "react-icons/pi";
+import { aiChatEvents } from '../../components/Navigation/LoggedInNavbar';
 
 
 function ChatWindow({ session, onSessionCreated, sessions = [], onSelectSession, onDeleteSession, onRenameSession, loading, onChatComplete }) {
@@ -51,6 +52,29 @@ function ChatWindow({ session, onSessionCreated, sessions = [], onSelectSession,
       }
     }
   }, [session, sessions]);
+
+  // Listen for mobile top bar events
+  useEffect(() => {
+    // Handle toggle chat list event from mobile top bar
+    const handleToggleChatList = () => {
+      setIsChatListVisible(!isChatListVisible);
+    };
+    
+    // Handle new chat event from mobile top bar
+    const handleNewChat = () => {
+      handleNewChatClick();
+    };
+    
+    // Add event listeners
+    window.addEventListener(aiChatEvents.TOGGLE_CHAT_LIST, handleToggleChatList);
+    window.addEventListener(aiChatEvents.NEW_CHAT, handleNewChat);
+    
+    // Clean up
+    return () => {
+      window.removeEventListener(aiChatEvents.TOGGLE_CHAT_LIST, handleToggleChatList);
+      window.removeEventListener(aiChatEvents.NEW_CHAT, handleNewChat);
+    };
+  }, [isChatListVisible]); // Include isChatListVisible to update the toggle function when it changes
 
   // Sync the ref with state whenever messages change
   useEffect(() => {
@@ -371,12 +395,17 @@ function ChatWindow({ session, onSessionCreated, sessions = [], onSelectSession,
     // Update on mount
     updateMobileViewportHeight();
     
-    // Add resize listener
+    // Add resize and orientation change listeners
     window.addEventListener('resize', updateMobileViewportHeight);
-    return () => window.removeEventListener('resize', updateMobileViewportHeight);
+    window.addEventListener('orientationchange', updateMobileViewportHeight);
+    
+    return () => {
+      window.removeEventListener('resize', updateMobileViewportHeight);
+      window.removeEventListener('orientationchange', updateMobileViewportHeight);
+    };
   }, []);
 
-  const handleNewChat = async () => {
+  const handleNewChatClick = async () => {
     // If we have no messages in the current session, don't create a new one
     if (session && messages.length === 0) {
       console.log('Current session is empty, not creating a new one');
@@ -416,16 +445,9 @@ function ChatWindow({ session, onSessionCreated, sessions = [], onSelectSession,
 
   return (
     <div className="ai-chat-window">
+      {/* Microphone button - only visible on desktop/tablet */}
       <Button
-        className="d-md-none toggle-chat-list-btn"
-        onClick={() => setIsChatListVisible(!isChatListVisible)}
-      >
-        <PiListMagnifyingGlassThin size={20} />
-      </Button>
-      
-      {/* Updated microphone button to match keyboard button styling */}
-      <Button
-        className="mic-btn"
+        className="mic-btn d-none d-md-flex"
         onClick={handleMicrophoneClick}
         aria-label="Switch to voice chat"
         variant="link"
@@ -433,12 +455,6 @@ function ChatWindow({ session, onSessionCreated, sessions = [], onSelectSession,
         <FiMic size={24} />
       </Button>
       
-      <Button
-        className="d-md-none new-chat-btn"
-        onClick={handleNewChat}
-      >
-        <FiEdit size={20} />
-      </Button>
       <div className={`ai-chat-sidebar ${isChatListVisible ? 'd-block' : 'd-none'}`}>
         <ChatList
           sessions={sessions}

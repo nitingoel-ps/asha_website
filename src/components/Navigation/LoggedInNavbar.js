@@ -1,12 +1,19 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Navbar, Nav, Container, NavDropdown, Image } from 'react-bootstrap';
-import { FaHome, FaSignOutAlt, FaTachometerAlt, FaCog, FaRobot, FaPlusCircle, FaBars, FaHeartbeat, FaMicrophone, FaEllipsisH, FaChevronLeft, FaPlus } from 'react-icons/fa';
+import { FaHome, FaSignOutAlt, FaTachometerAlt, FaCog, FaRobot, FaPlusCircle, FaBars, FaHeartbeat, FaMicrophone, FaEllipsisH, FaChevronLeft, FaPlus, FaList, FaEdit } from 'react-icons/fa';
 import { PiUserSound } from "react-icons/pi";
+import { PiListMagnifyingGlassThin } from "react-icons/pi";
 
 import { useAuth } from '../../context/AuthContext';
 import MobileMenu from './MobileMenu';
 import './navbar.css'; // Import custom navbar styles
+
+// Create a custom event bus for AI Chat actions
+export const aiChatEvents = {
+  TOGGLE_CHAT_LIST: 'ai-chat-toggle-list',
+  NEW_CHAT: 'ai-chat-new-chat'
+};
 
 function LoggedInNavbar() {
   const { logout, user } = useAuth();
@@ -81,6 +88,9 @@ function LoggedInNavbar() {
       return 'Records';
     }
     
+    // AI Chat routes
+    if (path.includes('/ai-chat')) return 'Chat with Asha';
+    
     // Other routes
     if (path.includes('add-health-data')) return 'Add Records';
     if (path.includes('websocket-voice')) return 'Talk to Asha';
@@ -92,6 +102,11 @@ function LoggedInNavbar() {
     const pathSegments = location.pathname.split('/').filter(Boolean);
     // Show back button for any patient-dashboard route except the root
     return pathSegments.length >= 2 && pathSegments[0] === 'patient-dashboard';
+  };
+
+  // Check if we're on the AI Chat page
+  const isAIChatPage = () => {
+    return location.pathname.includes('/ai-chat');
   };
 
   const handleBack = () => {
@@ -111,6 +126,20 @@ function LoggedInNavbar() {
       // Go back to main dashboard
       navigate('/patient-dashboard');
     }
+  };
+
+  // Function to handle AI Chat list toggle
+  const handleToggleChatList = () => {
+    // Dispatch custom event that ChatWindow will listen for
+    const event = new CustomEvent(aiChatEvents.TOGGLE_CHAT_LIST);
+    window.dispatchEvent(event);
+  };
+  
+  // Function to handle new chat button
+  const handleNewChat = () => {
+    // Dispatch custom event that ChatWindow will listen for
+    const event = new CustomEvent(aiChatEvents.NEW_CHAT);
+    window.dispatchEvent(event);
   };
 
   useEffect(() => {
@@ -241,7 +270,15 @@ function LoggedInNavbar() {
                 <FaChevronLeft />
               </button>
             )}
+            
+            {isAIChatPage() && (
+              <button className="ai-chat-list-btn" onClick={handleToggleChatList}>
+                <PiListMagnifyingGlassThin />
+              </button>
+            )}
+            
             <div className="mobile-page-title">{getPageTitle()}</div>
+            
             {getAddButtonConfig() && (
               <button 
                 className="mobile-top-add-button"
@@ -249,6 +286,12 @@ function LoggedInNavbar() {
                 aria-label="Add new item"
               >
                 <FaPlus />
+              </button>
+            )}
+            
+            {isAIChatPage() && (
+              <button className="ai-chat-new-btn" onClick={handleNewChat}>
+                <FaEdit />
               </button>
             )}
           </div>
@@ -263,9 +306,8 @@ function LoggedInNavbar() {
               <FaHeartbeat />
               <span>Records</span>
             </Link>
-            <Link to="/websocket-voice" className="mobile-nav-item">
-              <FaMicrophone />
-              <span>Asha</span>
+            <Link to="/websocket-voice" className="mobile-nav-item microphone-nav-item">
+              <FaMicrophone className="microphone-icon" />
             </Link>
             <Link to="/add-health-data" className="mobile-nav-item">
               <FaPlusCircle />
