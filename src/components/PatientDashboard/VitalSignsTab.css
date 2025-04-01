@@ -72,9 +72,9 @@
   gap: 8px;
 }
 
+/* Icon styling for desktop */
 .vital-title-icon {
   font-size: 18px;
-  color: var(--primary);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -195,51 +195,30 @@
     width: 100%;
   }
   
-  /* Icon styling */
+  /* Icon styling for mobile */
   .mobile-icon-wrapper {
-    margin-right: 20px;
-    padding-top: 6px;
-  }
-  
-  .mobile-icon-wrapper svg {
-    font-size: 24px;
-    color: #333;
-    background-color: #f0f7f7;
-    border-radius: 50%;
-    padding: 12px;
-    width: 48px;
+    margin-right: 16px;
+    font-size: 42px;
+    display: flex;
+    align-items: center;
+    padding-top: 0;
+    line-height: 1;
     height: 48px;
   }
   
-  /* Make icons the correct color */
-  .mobile-icon-wrapper svg[data-icon="heart"] {
-    color: #000;
-    background-color: #f0f7f7;
-  }
-  
-  .mobile-icon-wrapper svg[data-icon="wave-square"] {
-    color: #000;
-    background-color: #f0f7f7;
-  }
-  
-  .mobile-icon-wrapper svg[data-icon="lungs-virus"] {
-    color: #000;
-    background-color: #f0f7f7;
-  }
-  
-  .mobile-icon-wrapper svg[data-icon="ruler"] {
-    color: #000;
-    background-color: #f0f7f7;
-  }
-  
-  .mobile-icon-wrapper svg[data-icon="weight"] {
-    color: #000;
-    background-color: #f0f7f7;
-  }
-  
+  /* Remove all the SVG specific styling */
+  .mobile-icon-wrapper svg,
+  .mobile-icon-wrapper svg[data-icon="heart"],
+  .mobile-icon-wrapper svg[data-icon="wave-square"],
+  .mobile-icon-wrapper svg[data-icon="lungs-virus"],
+  .mobile-icon-wrapper svg[data-icon="ruler"],
+  .mobile-icon-wrapper svg[data-icon="weight"],
   .mobile-icon-wrapper svg[data-icon="chart-line"] {
-    color: #000;
-    background-color: #f0f7f7;
+    background-color: transparent;
+    padding: 0;
+    border-radius: 0;
+    width: auto;
+    height: auto;
   }
   
   /* Content styling */

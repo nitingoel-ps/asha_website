@@ -611,29 +611,29 @@ function VitalSignsTab() {
             calculateTrend(displayValue, getLatestValue(vitalSign, [previousVital]), vitalSign) : 
             { type: 'stable', text: 'No change' };
             
-          // Get the appropriate icon component based on vital type
-          let IconComponent;
+          // Use emoji-style icons like the original design
+          let vitalIcon;
           switch(vitalSign) {
             case "Blood Pressure":
-              IconComponent = FaHeart;
+              vitalIcon = "❤️";
               break;
             case "Pulse":
-              IconComponent = FaWaveSquare;
+              vitalIcon = "📈";
               break;
             case "Oxygen Saturation":
-              IconComponent = FaLungsVirus;
+              vitalIcon = "🫁";
               break;
             case "Height":
-              IconComponent = FaRuler;
+              vitalIcon = "📏";
               break;
             case "Weight":
-              IconComponent = FaWeight;
+              vitalIcon = "⚖️";
               break;
             case "Body Mass Index":
-              IconComponent = FaChartLine;
+              vitalIcon = "📊";
               break;
             default:
-              IconComponent = FaChartLine;
+              vitalIcon = "📊";
           }
 
           return (
@@ -648,7 +648,7 @@ function VitalSignsTab() {
                   <div className="vital-card-header">
                     <div className="vital-title-wrapper">
                       <span className="vital-title-icon">
-                        <IconComponent />
+                        {vitalIcon}
                       </span>
                       <h3 className="vital-card-title">{vitalSign}</h3>
                     </div>
@@ -686,7 +686,7 @@ function VitalSignsTab() {
                 <div className="mobile-card-wrapper">
                   <div className="mobile-card-row">
                     <div className="mobile-icon-wrapper">
-                      <IconComponent />
+                      {vitalIcon}
                     </div>
                     <div className="mobile-card-content">
                       <div className="mobile-title-row">
