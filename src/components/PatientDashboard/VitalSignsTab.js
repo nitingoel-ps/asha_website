@@ -610,6 +610,31 @@ function VitalSignsTab() {
           const trend = latestVital && previousVital ? 
             calculateTrend(displayValue, getLatestValue(vitalSign, [previousVital]), vitalSign) : 
             { type: 'stable', text: 'No change' };
+            
+          // Get the appropriate icon component based on vital type
+          let IconComponent;
+          switch(vitalSign) {
+            case "Blood Pressure":
+              IconComponent = FaHeart;
+              break;
+            case "Pulse":
+              IconComponent = FaWaveSquare;
+              break;
+            case "Oxygen Saturation":
+              IconComponent = FaLungsVirus;
+              break;
+            case "Height":
+              IconComponent = FaRuler;
+              break;
+            case "Weight":
+              IconComponent = FaWeight;
+              break;
+            case "Body Mass Index":
+              IconComponent = FaChartLine;
+              break;
+            default:
+              IconComponent = FaChartLine;
+          }
 
           return (
             <Card 
@@ -617,37 +642,77 @@ function VitalSignsTab() {
               className="vital-signs-card"
               onClick={() => handleCardClick(vitalSign)}
             >
-              <div className="vital-card-content">
-                <div className="vital-icon">
-                  {icon}
-                </div>
-                <div className="vital-reading-container">
-                  <div className="vital-measurement">
-                    <div className="card-text">
-                      {displayValue}
+              {!isMobile ? (
+                // Desktop card layout
+                <>
+                  <div className="vital-card-header">
+                    <div className="vital-title-wrapper">
+                      <span className="vital-title-icon">
+                        <IconComponent />
+                      </span>
+                      <h3 className="vital-card-title">{vitalSign}</h3>
+                    </div>
+                    {latestVital && (
+                      <div className="vital-date">
+                        {formatDate(latestVital.date_taken)}
+                      </div>
+                    )}
+                  </div>
+                  <div className="vital-card-content">
+                    <div className="vital-reading-container">
+                      <div className="vital-measurement">
+                        <div className="card-text">
+                          {displayValue}
+                        </div>
+                      </div>
+                      <div className="vital-unit">
+                        {unit}
+                      </div>
                     </div>
                   </div>
-                  <div className="vital-unit">
-                    {unit}
+                  <div className="vital-card-footer">
+                    <div className={`trend-container trend-${trend.type}`}>
+                      <span className="trend-icon">
+                        {trend.type === 'up' ? '▲' : trend.type === 'down' ? '▼' : '●'}
+                      </span>
+                      <span className="trend-text">
+                        {trend.text}
+                      </span>
+                    </div>
                   </div>
-                  <div className="card-title">
-                    {vitalSign}
-                  </div>
-                  <div className={`trend-container trend-${trend.type}`}>
-                    <span className="trend-icon">
-                      {trend.type === 'up' ? '▲' : trend.type === 'down' ? '▼' : '●'}
-                    </span>
-                    <span className="trend-text">
-                      {trend.text}
-                    </span>
+                </>
+              ) : (
+                // Completely restructured mobile layout to match design
+                <div className="mobile-card-wrapper">
+                  <div className="mobile-card-row">
+                    <div className="mobile-icon-wrapper">
+                      <IconComponent />
+                    </div>
+                    <div className="mobile-card-content">
+                      <div className="mobile-title-row">
+                        <div className="mobile-vital-name">{vitalSign}</div>
+                        {latestVital && (
+                          <div className="mobile-vital-date">
+                            {formatDate(latestVital.date_taken)}
+                          </div>
+                        )}
+                      </div>
+                      <div className="mobile-reading-row">
+                        <div className="mobile-reading-value">{displayValue}</div>
+                        <div className="mobile-reading-unit">{unit}</div>
+                      </div>
+                      <div className={`mobile-trend trend-${trend.type}`}>
+                        <span className="trend-icon">
+                          {trend.type === 'up' ? '▲' : trend.type === 'down' ? '▼' : '●'}
+                        </span>
+                        <span className="trend-text">
+                          {trend.text}
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 </div>
-                {latestVital && (
-                  <div className="vital-date">
-                    {formatDate(latestVital.date_taken)}
-                  </div>
-                )}
-              </div>
+              )}
             </Card>
           );
         })}
