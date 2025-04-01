@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import './WebSocketVoice.css';
 
 // Visualization configuration - centralized customization
@@ -64,6 +64,12 @@ const VoiceVisualization = ({
 }) => {
   const canvasRef = useRef(null);
   const animationRef = useRef(null);
+  const [hasActiveAnalyser, setHasActiveAnalyser] = useState(false);
+  
+  // Update active analyzer state when references change
+  useEffect(() => {
+    setHasActiveAnalyser(!!audioAnalyserRef?.current);
+  }, [audioAnalyserRef]);
   
   // Drawing functions for different visualization types
   const drawVisualizer = (analyser, canvas, dataArray, bufferLength, mode) => {
@@ -80,8 +86,8 @@ const VoiceVisualization = ({
     const offsetX = (width - size) / 2;
     const offsetY = (height - size) / 2;
 
-    if (!analyser && !isPlaying && !isRecording) {
-      // Draw idle state with a pulsing 3D circle
+    // Draw idle state ONLY when not recording/playing AND no active analyzer/audio data
+    if (!isRecording && !isPlaying && !hasActiveAnalyser) {
       drawIdleCircle(ctx, offsetX, offsetY, size);
       return;
     }

@@ -1424,6 +1424,7 @@
   box-shadow: none !important;
   box-sizing: border-box !important;
   z-index: 5 !important;
+  animation: pulse-idle 2s infinite !important;
 }
 
 /* Canvas element that holds the visualization */
@@ -1574,4 +1575,32 @@
   padding: 5px 10px !important;
   border-radius: 20px !important;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Add animation for idle (not recording/playing) state */
+@keyframes pulse-idle {
+  0% {
+    box-shadow: 0 0 0 0 rgba(1, 158, 161, 0.3);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(1, 158, 161, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(1, 158, 161, 0);
+  }
+}
+
+/* Apply the pulse animation to the container by default */
+.streaming-voice-interface .voice-visualization-container {
+  animation: pulse-idle 2s infinite !important;
+}
+
+/* Override with recording animation when recording */
+.streaming-voice-interface .voice-visualization-container.recording {
+  animation: pulse-recording 1.5s infinite !important;
+}
+
+/* Override with playing animation when playing */
+.streaming-voice-interface .voice-visualization-container.playing {
+  animation: pulse-playing 1.5s infinite !important;
 } 
