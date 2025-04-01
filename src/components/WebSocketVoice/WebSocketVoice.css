@@ -834,7 +834,7 @@
   font-size: 0.85rem !important;
   color: #555 !important;
   position: absolute !important;
-  top: 70px !important; /* Increased from 15px to be visible below top navbar */
+  top: 10px !important; /* Increased from 15px to be visible below top navbar */
   left: 0 !important;
   right: 0 !important;
   justify-content: center !important;
