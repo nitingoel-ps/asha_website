@@ -319,19 +319,22 @@
 
   .ai-chat-sidebar {
     display: none;
+    position: fixed; /* Fixed positioning instead of absolute */
+    top: 56px; /* Start right below the top nav bar */
+    left: 0;
+    width: 100%;
+    height: calc(100vh - 116px); /* Full height minus top and bottom bars */
+    max-height: calc(100vh - 116px); /* Ensure it doesn't expand beyond viewport */
+    z-index: 1030; /* Below mobile top bar (1040) but above most content */
+    background: white; /* Move background to base style so it's always visible */
   }
 
   .ai-chat-sidebar.d-block {
     display: block;
-    position: absolute;
-    top: 56px; /* Align with top navigation bar */
-    left: 0;
-    width: 100%;
-    height: calc(100% - 56px); /* Adjust height to account for the top bar */
-    background: white;
-    z-index: 999;
     overflow-y: auto;
-    padding-top: 10px;
+    padding-top: 0; /* Remove padding to start immediately below the navbar */
+    padding-bottom: 10px; /* Add padding at the bottom for better spacing */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Add shadow for better visual separation */
   }
 
   .ai-chat-main {
@@ -615,5 +618,6 @@
 }
 
 .ai-chat-list-btn svg, .ai-chat-new-btn svg {
-  font-size: 1.2rem;
+  font-size: 1.4rem;
+  stroke-width: 2px;
 }

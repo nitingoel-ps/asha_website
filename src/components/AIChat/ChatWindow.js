@@ -1,13 +1,11 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Form, Button, Spinner } from 'react-bootstrap';
-import { FiMenu, FiPlus, FiMic } from 'react-icons/fi';
+import { FiMenu, FiPlus, FiMic, FiSend, FiEdit, FiList } from 'react-icons/fi';
 import { useNavigate, useParams } from 'react-router-dom';
 import axiosInstance from '../../utils/axiosInstance';
 import MessageList from './MessageList';
 import ChatList from './ChatList';
 import { processStreamingContent, isActivityMessage } from './MessageUtils';
-import { FiSend, FiEdit } from 'react-icons/fi';
-import { PiListMagnifyingGlassThin } from "react-icons/pi";
 import { aiChatEvents } from '../../components/Navigation/LoggedInNavbar';
 
 
@@ -443,6 +441,14 @@ function ChatWindow({ session, onSessionCreated, sessions = [], onSelectSession,
     }
   };
 
+  const handleToggleChat = (session) => {
+    // If selecting a session, close the chat list
+    if (session) {
+      setIsChatListVisible(false);
+      onSelectSession(session);
+    }
+  };
+
   return (
     <div className="ai-chat-window">
       {/* Microphone button - only visible on desktop/tablet */}
@@ -459,10 +465,7 @@ function ChatWindow({ session, onSessionCreated, sessions = [], onSelectSession,
         <ChatList
           sessions={sessions}
           selectedSession={session}
-          onSelectSession={(session) => {
-            setIsChatListVisible(false);
-            onSelectSession(session);
-          }}
+          onSelectSession={handleToggleChat}
           onDeleteSession={onDeleteSession}
           onRenameSession={onRenameSession}
           loading={loading}

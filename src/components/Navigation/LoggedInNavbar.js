@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Navbar, Nav, Container, NavDropdown, Image } from 'react-bootstrap';
-import { FaHome, FaSignOutAlt, FaTachometerAlt, FaCog, FaRobot, FaPlusCircle, FaBars, FaHeartbeat, FaMicrophone, FaEllipsisH, FaChevronLeft, FaPlus, FaList, FaEdit } from 'react-icons/fa';
+import { FaHome, FaSignOutAlt, FaTachometerAlt, FaCog, FaRobot, FaPlusCircle, FaBars, FaHeartbeat, FaMicrophone, FaEllipsisH, FaChevronLeft, FaPlus } from 'react-icons/fa';
 import { PiUserSound } from "react-icons/pi";
-import { PiListMagnifyingGlassThin } from "react-icons/pi";
+import { FiEdit, FiList } from "react-icons/fi";
 
 import { useAuth } from '../../context/AuthContext';
 import MobileMenu from './MobileMenu';
@@ -273,7 +273,7 @@ function LoggedInNavbar() {
             
             {isAIChatPage() && (
               <button className="ai-chat-list-btn" onClick={handleToggleChatList}>
-                <PiListMagnifyingGlassThin />
+                <FiList />
               </button>
             )}
             
@@ -291,7 +291,7 @@ function LoggedInNavbar() {
             
             {isAIChatPage() && (
               <button className="ai-chat-new-btn" onClick={handleNewChat}>
-                <FaEdit />
+                <FiEdit />
               </button>
             )}
           </div>
