@@ -129,19 +129,19 @@
   top: 50% !important;
   left: 50% !important;
   transform: translate(-50%, -50%) !important;
-  background-color: #0d6efd !important;
-  border-color: #0d6efd !important;
+  background-color: #019ea1 !important;
+  border-color: #019ea1 !important;
   border: none !important;
-  box-shadow: 0 4px 10px rgba(13, 110, 253, 0.3) !important;
+  box-shadow: 0 4px 10px rgba(1, 158, 161, 0.3) !important;
   z-index: 50 !important;
   overflow: hidden !important;
 }
 
 .record-button.btn:hover {
   transform: translate(-50%, -50%) scale(1.05) !important;
-  background-color: #0b5ed7 !important;
-  border-color: #0b5ed7 !important;
-  box-shadow: 0 6px 15px rgba(13, 110, 253, 0.4) !important;
+  background-color: #018b8d !important;
+  border-color: #018b8d !important;
+  box-shadow: 0 6px 15px rgba(1, 158, 161, 0.4) !important;
 }
 
 .record-button.btn:active {
@@ -265,7 +265,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  color: #0d6efd;
+  color: #019ea1;
   position: absolute;
   top: 50%;
   left: 50%;
@@ -365,12 +365,12 @@
 
 .transcription-container::-webkit-scrollbar-thumb,
 .ai-response-container::-webkit-scrollbar-thumb {
-  background-color: rgba(0, 0, 0, 0.2);
-  border-radius: 6px;
+  background-color: rgba(1, 158, 161, 0.2);
+  border-radius: 4px;
 }
 
 .ai-response-container::-webkit-scrollbar-thumb {
-  background-color: rgba(13, 110, 253, 0.2);
+  background-color: rgba(1, 158, 161, 0.2);
 }
 
 /* Transcription container styles */
@@ -402,6 +402,7 @@
 
 .transcription-text.final {
   font-weight: 500;
+  border-left: 4px solid #019ea1;
 }
 
 .transcription-empty {
@@ -426,13 +427,13 @@
   max-height: 200px;
   min-height: 80px;
   overflow-y: auto;
-  border-left: 4px solid #0d6efd;
+  border-left: 4px solid #019ea1;
 }
 
 .ai-response-text {
   font-size: 1.1rem;
   line-height: 1.5;
-  color: #0d6efd;
+  color: #019ea1;
   white-space: pre-wrap;
   word-break: break-word;
 }
@@ -444,12 +445,13 @@
 }
 
 .ai-response-label {
-  font-size: 0.8rem;
-  font-weight: bold;
-  text-transform: uppercase;
-  color: #0d6efd;
-  margin-bottom: 5px;
-  letter-spacing: 0.5px;
+  font-size: 0.9rem;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: #019ea1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 /* Error message styling to minimize space usage */
@@ -1081,10 +1083,9 @@
 }
 
 .auto-send-settings-button button.active-setting {
-  background-color: rgba(13, 110, 253, 0.1);
-  border-color: rgba(13, 110, 253, 0.3);
-  color: #0d6efd;
-  opacity: 1;
+  background-color: rgba(1, 158, 161, 0.1);
+  border-color: rgba(1, 158, 161, 0.3);
+  color: #019ea1;
 }
 
 .setting-indicator {
@@ -1093,7 +1094,7 @@
   right: 0;
   width: 8px;
   height: 8px;
-  background-color: #0d6efd;
+  background-color: #019ea1;
   border-radius: 50%;
   border: 1px solid white;
 }
@@ -1104,14 +1105,14 @@
 }
 
 .auto-send-settings-button button.active-setting:hover {
-  background-color: rgba(13, 110, 253, 0.15);
+  background-color: rgba(1, 158, 161, 0.15);
 }
 
 /* Auto-Send Indicator in connection status */
 .auto-send-indicator {
+  color: #019ea1;
   margin-left: 12px;
   font-size: 0.8rem;
-  color: #0d6efd;
   display: flex;
   align-items: center;
 }
@@ -1119,7 +1120,7 @@
 .send-delay-indicator {
   margin-left: 12px;
   font-size: 0.8rem;
-  color: #6c757d;
+  color: #019ea1;
   display: flex;
   align-items: center;
 }
@@ -1127,14 +1128,14 @@
 .indicator-dot {
   width: 6px;
   height: 6px;
-  background-color: #0d6efd;
+  background-color: #019ea1;
   border-radius: 50%;
   margin-right: 5px;
   display: inline-block;
 }
 
 .delay-dot {
-  background-color: #6c757d;
+  background-color: #019ea1;
 }
 
 /* Auto-Send Settings Panel */
@@ -1220,8 +1221,8 @@
 
 /* Form styles for better appearance */
 .form-check-input:checked {
-  background-color: #0d6efd;
-  border-color: #0d6efd;
+  background-color: #019ea1;
+  border-color: #019ea1;
 }
 
 .fw-medium {
@@ -1247,7 +1248,7 @@
   width: 20px;
   height: 20px;
   margin-top: -8px;
-  background-color: #0d6efd;
+  background-color: #019ea1;
   border: 0;
   border-radius: 50%;
   -webkit-appearance: none;
@@ -1273,7 +1274,7 @@
 .form-range::-moz-range-thumb {
   width: 20px;
   height: 20px;
-  background-color: #0d6efd;
+  background-color: #019ea1;
   border: 0;
   border-radius: 50%;
   -moz-appearance: none;
@@ -1379,7 +1380,7 @@
 
 /* Add styles for the current transcription */
 .transcription-text .current {
-  color: #666;
+  color: #019ea1;
   font-style: italic;
 }
 

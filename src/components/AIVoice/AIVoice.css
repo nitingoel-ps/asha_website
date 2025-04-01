@@ -87,6 +87,14 @@
   width: auto !important;
   min-width: 180px !important;
   text-align: center;
+  background-color: #019ea1 !important; /* Match navbar teal color */
+  border-color: #019ea1 !important;
+}
+
+.record-button:hover,
+.record-button:focus {
+  background-color: #01888b !important; /* Slightly darker teal on hover */
+  border-color: #01888b !important;
 }
 
 .recording-controls {
@@ -110,7 +118,22 @@
   justify-content: center;
 }
 
-.send-button,
+.send-button {
+  min-width: 90px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  background-color: #019ea1 !important; /* Match navbar teal color */
+  border-color: #019ea1 !important;
+}
+
+.send-button:hover,
+.send-button:focus {
+  background-color: #01888b !important; /* Slightly darker teal on hover */
+  border-color: #01888b !important;
+}
+
 .cancel-button {
   min-width: 90px;
   display: flex;
@@ -120,7 +143,7 @@
 }
 
 .recording-indicator {
-  color: #dc3545;
+  color: #019ea1;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -132,7 +155,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  color: #0d6efd;
+  color: #019ea1;
   position: absolute;
   top: 50%;
   left: 50%;
@@ -376,6 +399,14 @@
   align-items: center;
   justify-content: center;
   gap: 5px;
+  background-color: #019ea1 !important; /* Match navbar teal color */
+  border-color: #019ea1 !important;
+}
+
+.play-button:hover,
+.play-button:focus {
+  background-color: #01888b !important; /* Slightly darker teal on hover */
+  border-color: #01888b !important;
 }
 
 .playback-controls {
@@ -533,10 +564,10 @@
   justify-content: center !important;
   border-radius: 9999px !important;
   border: none !important;
-  background: #bfdbef !important; /* Light blue background */
+  background: #b3e6e8 !important; /* Light teal background instead of light blue */
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12) !important;
   transition: all 0.2s ease !important;
-  color: #073c72 !important; /* Deeper blue for icon */
+  color: #019ea1 !important; /* Teal for icon instead of blue */
   position: relative !important;
   overflow: hidden !important;
   margin: 0 !important;
@@ -545,14 +576,14 @@
 
 .streaming-voice-interface .voice-playback__button.btn:hover {
   transform: translateY(-1px) !important;
-  box-shadow: 0 4px 12px rgba(25, 118, 210, 0.15) !important;
-  background: #BBDEFB !important; /* Slightly darker on hover */
+  box-shadow: 0 4px 12px rgba(1, 158, 161, 0.15) !important; /* Teal shadow */
+  background: #a0e0e2 !important; /* Slightly darker on hover */
 }
 
 .streaming-voice-interface .voice-playback__button.btn:active {
   transform: translateY(1px) !important;
-  box-shadow: 0 1px 4px rgba(25, 118, 210, 0.1) !important;
-  background: #90CAF9 !important; /* Even darker when pressed */
+  box-shadow: 0 1px 4px rgba(1, 158, 161, 0.1) !important;
+  background: #8cd9dc !important; /* Even darker when pressed */
 }
 
 .streaming-voice-interface .voice-playback__button.btn svg {
