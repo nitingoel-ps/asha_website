@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Navbar, Nav, Container, NavDropdown, Image } from 'react-bootstrap';
-import { FaHome, FaSignOutAlt, FaTachometerAlt, FaCog, FaRobot, FaPlusCircle, FaBars, FaHeartbeat, FaMicrophone, FaEllipsisH, FaChevronLeft, FaPlus } from 'react-icons/fa';
+import { FaHome, FaSignOutAlt, FaTachometerAlt, FaCog, FaRobot, FaPlusCircle, FaBars, FaHeartbeat, FaMicrophone, FaEllipsisH, FaChevronLeft, FaPlus, FaKeyboard } from 'react-icons/fa';
 import { PiUserSound } from "react-icons/pi";
 import { FiEdit, FiList } from "react-icons/fi";
 
@@ -109,6 +109,12 @@ function LoggedInNavbar() {
     return location.pathname.includes('/ai-chat');
   };
 
+  // Check if we're on the AI Voice page
+  const isAIVoicePage = () => {
+    return location.pathname.includes('/websocket-voice') || 
+           location.pathname.includes('/ai-voice');
+  };
+
   const handleBack = () => {
     const pathSegments = location.pathname.split('/').filter(Boolean);
     
@@ -125,6 +131,35 @@ function LoggedInNavbar() {
     } else {
       // Go back to main dashboard
       navigate('/patient-dashboard');
+    }
+  };
+
+  // Function to handle switching between voice and text chat
+  const handleVoiceTextToggle = () => {
+    const pathSegments = location.pathname.split('/').filter(Boolean);
+    
+    // If we're on the voice page, navigate to text chat
+    if (isAIVoicePage()) {
+      // Check if we have a session_id in the URL query params
+      const urlParams = new URLSearchParams(window.location.search);
+      const sessionId = urlParams.get('session_id');
+      
+      // If we have a session ID, navigate to that specific chat
+      if (sessionId) {
+        navigate(`/ai-chat/${sessionId}`);
+      } else {
+        navigate('/ai-chat');
+      }
+    } 
+    // If we're on any other page, navigate to voice chat
+    else {
+      // If we're on the AI Chat page with a session ID, pass it to the voice page
+      if (isAIChatPage() && pathSegments.length > 1) {
+        const chatSessionId = pathSegments[1];
+        navigate(`/websocket-voice?session_id=${chatSessionId}`);
+      } else {
+        navigate('/websocket-voice');
+      }
     }
   };
 
@@ -306,9 +341,22 @@ function LoggedInNavbar() {
               <FaHeartbeat />
               <span>Records</span>
             </Link>
-            <Link to="/websocket-voice" className="mobile-nav-item microphone-nav-item">
-              <FaMicrophone className="microphone-icon" />
-            </Link>
+            <button 
+              className="mobile-nav-item microphone-nav-item" 
+              onClick={handleVoiceTextToggle}
+            >
+              {isAIVoicePage() ? (
+                <>
+                  <FaKeyboard className="microphone-icon" />
+                  <span>Chat</span>
+                </>
+              ) : (
+                <>
+                  <FaMicrophone className="microphone-icon" />
+                  <span>Voice</span>
+                </>
+              )}
+            </button>
             <Link to="/add-health-data" className="mobile-nav-item">
               <FaPlusCircle />
               <span>Add</span>

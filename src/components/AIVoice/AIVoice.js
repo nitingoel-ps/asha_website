@@ -810,15 +810,6 @@ const AIVoice = () => {
     }
   };
 
-  const handleNavigateToTextChat = () => {
-    // If we have a session ID, navigate to that specific chat
-    if (sessionId) {
-      navigate(`/ai-chat/${sessionId}`);
-    } else {
-      navigate('/ai-chat');
-    }
-  };
-
   // Component cleanup
   useEffect(() => {
     return () => {
@@ -836,11 +827,6 @@ const AIVoice = () => {
   return (
     <div className="streaming-voice-interface-container">
       <Card className="streaming-voice-interface">
-        <div className="top-icon">
-          <Button variant="link" onClick={handleNavigateToTextChat}>
-            <Keyboard size={24} />
-          </Button>
-        </div>
         <Card.Body>
           <div className="main-content-container">
             {/* Error messages container */}
