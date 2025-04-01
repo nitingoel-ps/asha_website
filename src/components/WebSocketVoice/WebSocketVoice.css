@@ -834,11 +834,18 @@
   font-size: 0.85rem !important;
   color: #555 !important;
   position: absolute !important;
-  top: 15px !important;
+  top: 70px !important; /* Increased from 15px to be visible below top navbar */
   left: 0 !important;
   right: 0 !important;
   justify-content: center !important;
   z-index: 10 !important;
+  background-color: rgba(255, 255, 255, 0.8) !important; /* Add slight background for better visibility */
+  padding: 5px 8px !important;
+  border-radius: 20px !important;
+  width: auto !important;
+  max-width: 90% !important;
+  margin: 0 auto !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
 }
 
 .status-indicator {
@@ -923,13 +930,13 @@
 /* Mobile adjustments with higher specificity */
 @media (max-width: 768px) {
   .streaming-voice-interface .connection-status {
-    top: 15px !important;
+    top: 60px !important; /* Slightly lower on mobile */
+    font-size: 0.8rem !important;
+    padding: 4px 8px !important;
   }
   
   .streaming-voice-interface .voice-visualization-container {
-    height: 220px !important;
-    margin: 30px auto 40px !important;
-    max-width: 90% !important;
+    margin: 85px auto 30px !important; /* Adjust margins for mobile */
   }
   
   .streaming-voice-interface .controls-area {
@@ -938,9 +945,7 @@
   }
   
   .streaming-voice-interface .voice-controls {
-    margin-top: 0px !important;
-    height: 120px !important;
-    min-height: 120px !important;
+    padding: 8px !important;
   }
   
   .streaming-voice-interface .voice-playback__controls {
@@ -1031,81 +1036,59 @@
   }
 }
 
-/* Debug button */
-.debug-info-button {
-  position: absolute;
-  top: 15px;
-  left: 15px;
-  z-index: 20;
-}
-
-.debug-info-button button {
-  font-size: 0.75rem;
-  padding: 2px 8px;
-  opacity: 0.7;
-}
-
-.debug-info-button button:hover {
-  opacity: 1;
-}
-
-@media (max-width: 768px) {
-  .debug-info-button {
-    top: 10px;
-    left: 10px;
-  }
-  
-  .debug-info-button button {
-    font-size: 0.7rem;
-    padding: 1px 6px;
-  }
-}
-
 /* Auto-Send Settings Button */
 .auto-send-settings-button {
-  position: absolute;
-  top: 15px;
-  right: 15px;
-  z-index: 20;
+  display: none; /* Hide the settings button as it will be moved to navbar */
 }
 
-.auto-send-settings-button button {
-  font-size: 0.75rem;
-  padding: 4px 8px;
-  opacity: 0.7;
-  border-radius: 50%;
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
+/* Create a new class for navbar settings button */
+.navbar-settings-button {
+  padding: 0 !important;
+  background: none !important;
+  border: none !important;
+  color: #ffffff !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  position: relative !important;
+  width: 40px !important;
+  height: 40px !important;
 }
 
-.auto-send-settings-button button.active-setting {
-  background-color: rgba(1, 158, 161, 0.1);
-  border-color: rgba(1, 158, 161, 0.3);
-  color: #019ea1;
+.navbar-settings-button svg {
+  font-size: 1.25rem !important;
 }
 
-.setting-indicator {
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 8px;
-  height: 8px;
-  background-color: #019ea1;
-  border-radius: 50%;
-  border: 1px solid white;
+/* Add styles for settings panel to display properly when opened from navbar */
+.mobile-top-bar .auto-send-settings-panel {
+  position: fixed !important;
+  top: 60px !important; /* Position below navbar */
+  right: 5px !important;
+  z-index: 2000 !important; /* Higher z-index to appear above other elements */
 }
 
-.auto-send-settings-button button:hover {
-  opacity: 1;
-  background-color: #e9ecef;
-}
+/* Mobile adjustments */
+@media (max-width: 768px) {
+  .streaming-voice-interface .connection-status {
+    top: 60px !important; /* Slightly lower on mobile */
+    font-size: 0.8rem !important;
+    padding: 4px 8px !important;
+  }
 
-.auto-send-settings-button button.active-setting:hover {
-  background-color: rgba(1, 158, 161, 0.15);
+  .streaming-voice-interface .voice-visualization-container {
+    margin: 85px auto 30px !important; /* Adjust margins for mobile */
+  }
+  
+  /* Make the voice controls fit better on mobile */
+  .streaming-voice-interface .voice-controls {
+    padding: 8px !important;
+  }
+  
+  /* Update settings panel position for mobile */
+  .mobile-top-bar .auto-send-settings-panel {
+    width: 270px !important;
+    top: 58px !important;
+  }
 }
 
 /* Auto-Send Indicator in connection status */
@@ -1415,7 +1398,7 @@
   max-width: 400px !important; /* Reduced from 600px for better mobile fit */
   aspect-ratio: 1 / 1 !important; /* Force 1:1 aspect ratio */
   height: auto !important; /* Let height be determined by aspect ratio */
-  margin: 40px auto 50px !important;
+  margin: 90px auto 40px !important; /* Increase top margin from 40px to 90px */
   position: relative !important;
   overflow: hidden !important;
   border-radius: 50% !important; /* Make container perfectly circular */
@@ -1515,10 +1498,44 @@
   flex-direction: column !important;
   align-items: center !important;
   justify-content: center !important;
-  margin-top: 0px !important;
+  margin-top: 20px !important;
   margin-bottom: 30px !important;
   padding: 15px !important;
   position: relative !important;
   z-index: 20 !important;
   min-height: 200px !important;
+}
+
+/* Add specific styles for settings panel when opened from mobile navbar */
+.mobile-top-bar ~ .auto-send-settings-panel {
+  position: fixed !important;
+  top: 56px !important; /* Position just below navbar */
+  right: 10px !important;
+  z-index: 2000 !important; /* Higher z-index than most elements */
+  width: 280px !important;
+  max-width: 90% !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Update button styles for vizualization toggle buttons */
+.viz-toggle-btn.btn-primary {
+  background-color: #019ea1 !important;
+  border-color: #019ea1 !important;
+}
+
+.viz-toggle-btn.btn-outline-primary {
+  color: #019ea1 !important;
+  border-color: #019ea1 !important;
+}
+
+.viz-toggle-btn.btn-outline-primary:hover {
+  background-color: rgba(1, 158, 161, 0.1) !important;
+}
+
+/* Add a light background to the connection indicator for better legibility */
+.connection-status {
+  background-color: rgba(255, 255, 255, 0.85) !important;
+  padding: 5px 10px !important;
+  border-radius: 20px !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
 } 

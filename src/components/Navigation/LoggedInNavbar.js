@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Navbar, Nav, Container, NavDropdown, Image } from 'react-bootstrap';
-import { FaHome, FaSignOutAlt, FaTachometerAlt, FaCog, FaRobot, FaPlusCircle, FaBars, FaHeartbeat, FaMicrophone, FaEllipsisH, FaChevronLeft, FaPlus, FaKeyboard } from 'react-icons/fa';
+import { FaHome, FaSignOutAlt, FaTachometerAlt, FaCog, FaRobot, FaPlusCircle, FaBars, FaHeartbeat, FaMicrophone, FaEllipsisH, FaChevronLeft, FaPlus, FaKeyboard, FaBell, FaUserCircle, FaComments, FaRegComments } from 'react-icons/fa';
 import { PiUserSound } from "react-icons/pi";
 import { FiEdit, FiList } from "react-icons/fi";
 
@@ -23,6 +23,7 @@ function LoggedInNavbar() {
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const navbarRef = useRef(null);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+  const [showVoiceSettings, setShowVoiceSettings] = useState(false);
 
   // Get page title based on current route
   const getPageTitle = () => {
@@ -254,6 +255,10 @@ function LoggedInNavbar() {
     return configs[section] || null;
   };
 
+  const isVoicePage = () => {
+    return location.pathname.includes('/websocket-voice') || location.pathname.includes('/ai-voice');
+  };
+
   return (
     <>
       {/* Desktop Navbar */}
@@ -327,6 +332,19 @@ function LoggedInNavbar() {
             {isAIChatPage() && (
               <button className="ai-chat-new-btn" onClick={handleNewChat}>
                 <FiEdit />
+              </button>
+            )}
+            
+            {isVoicePage() && (
+              <button
+                className="mobile-top-add-button"
+                onClick={() => {
+                  if (window.voiceSettingsHandlers) {
+                    window.voiceSettingsHandlers.toggleSettings();
+                  }
+                }}
+              >
+                <FaCog />
               </button>
             )}
           </div>

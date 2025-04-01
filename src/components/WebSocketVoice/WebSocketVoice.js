@@ -1912,70 +1912,43 @@ const WebSocketVoice = () => {
     setNoSpeechDetected(false);
   };
   
+  // Export settings state handler function
+  useEffect(() => {
+    // Make settings functionality accessible to parent components
+    if (window.voiceSettingsHandlers) {
+      window.voiceSettingsHandlers = {
+        showSettings,
+        setShowSettings,
+        toggleSettings: () => setShowSettings(!showSettings)
+      };
+    } else {
+      window.voiceSettingsHandlers = {
+        showSettings,
+        setShowSettings,
+        toggleSettings: () => setShowSettings(!showSettings)
+      };
+    }
+
+    return () => {
+      // Cleanup when component unmounts
+      window.voiceSettingsHandlers = null;
+    };
+  }, [showSettings]);
+  
   return (
     <div className="streaming-voice-interface-container">
       <Card className="streaming-voice-interface">
-        {/* Add debug button */}
-        <div className="debug-info-button">
-          <Button 
-            variant="outline-secondary" 
-            size="sm"
-            onClick={() => {
-              const connectionDetails = `
-WebSocket Info:
-- URL: ${wsUrl.current || 'Not set'}
-- State: ${socketRef.current ? getWebSocketStateString(socketRef.current.readyState) : 'No socket'}
-- Chunks Sent: ${chunkCounterRef.current}
-- Network: ${networkStatus}
-- Auth Token: ${localStorage.getItem('access_token') ? 'Present' : 'Missing'}
-
-Audio Info:
-- Current Level: ${currentAudioLevel.toFixed(2)}
-- Threshold: 5 (activity if above)
-- Silence Timer: ${silenceThreshold}ms
-- Auto-Send: ${autoSendEnabled ? 'Enabled' : 'Disabled'}
-- Send Delay: ${sendDelay}ms
-- Last Activity: ${lastAudioActivityRef.current ? new Date(lastAudioActivityRef.current).toISOString().split('T')[1].split('.')[0] : 'N/A'}
-
-Options:
-1. Toggle auto-send (currently ${autoSendEnabled ? 'ON' : 'OFF'})
-              `;
-              
-              const option = prompt(connectionDetails, "Enter 1 to toggle auto-send");
-              
-              if (option === "1") {
-                const newState = toggleAutoSend();
-                alert(`Auto-send is now ${newState ? 'enabled' : 'disabled'}`);
-              }
-            }}
-          >
-            Debug
-          </Button>
-        </div>
+        {/* Remove debug button */}
         
-        {/* Small indicator for auto-send status when recording */}
-        {DEBUG && isRecording && (
-          <div style={{ 
-            position: 'absolute', 
-            top: '10px', 
-            right: '50px', 
-            fontSize: '10px',
-            color: autoSendEnabled ? 'green' : 'red',
-            backgroundColor: 'rgba(255,255,255,0.7)',
-            padding: '2px 4px',
-            borderRadius: '3px'
-          }}>
-            Auto-Send: {autoSendEnabled ? `ON (${formatSeconds(silenceThreshold)}s)` : 'OFF'}
-          </div>
-        )}
+        {/* Remove small indicator for auto-send status */}
 
-        {/* Auto-Send Settings Button - in top right corner */}
+        {/* Auto-Send Settings Button - Will be moved to navbar but keep in component for now */}
         <div className="auto-send-settings-button">
           <Button
             variant="outline-secondary"
             size="sm"
             onClick={() => setShowSettings(!showSettings)}
-            title="Auto-Send Settings"
+            title="Voice Settings"
             className={autoSendEnabled ? "active-setting" : ""}
           >
             <Settings size={16} />
