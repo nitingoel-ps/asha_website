@@ -311,7 +311,7 @@
 /* Mobile-specific fixes */
 @media (max-width: 768px) {
   .ai-chat-container {
-    height: calc((var(--vh, 1vh) * 100) - 116px); /* Account for 56px top bar and 60px bottom bar */
+    height: calc((var(--vh, 1vh) * 100) - 141px); /* Account for 56px top bar and 85px bottom bar */
     padding: 0; /* Remove padding on mobile */
     overflow: hidden; /* Prevent outer container scrolling */
     margin-top: 56px; /* Add margin to offset the fixed top navigation */
@@ -323,8 +323,8 @@
     top: 56px; /* Start right below the top nav bar */
     left: 0;
     width: 100%;
-    height: calc(100vh - 116px); /* Full height minus top and bottom bars */
-    max-height: calc(100vh - 116px); /* Ensure it doesn't expand beyond viewport */
+    height: calc(100vh - 141px); /* Full height minus top and bottom bars */
+    max-height: calc(100vh - 141px); /* Ensure it doesn't expand beyond viewport */
     z-index: 1030; /* Below mobile top bar (1040) but above most content */
     background: white; /* Move background to base style so it's always visible */
   }
@@ -353,7 +353,7 @@
   }
 
   .ai-chat-messages-container {
-    padding: 10px 10px 70px 10px; /* Increased bottom padding to avoid overlap with bottom nav */
+    padding: 10px 10px 95px 10px; /* Increased bottom padding to avoid overlap with bottom nav */
     flex-grow: 1;
     overflow-y: auto;
     width: 100%;
@@ -364,7 +364,7 @@
     padding: 10px;
     border-top: 1px solid #dee2e6;
     position: fixed; /* Fix to the bottom of the screen */
-    bottom: 60px; /* Position above the bottom navigation bar */
+    bottom: 85px; /* Position above the bottom navigation bar */
     left: 0;
     right: 0;
     background: white;

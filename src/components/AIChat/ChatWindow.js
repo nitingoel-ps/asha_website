@@ -403,13 +403,24 @@ function ChatWindow({ session, onSessionCreated, sessions = [], onSelectSession,
     };
   }, []);
 
-  const handleNewChatClick = async () => {
-    // If we have no messages in the current session, don't create a new one
-    if (session && messages.length === 0) {
-      console.log('Current session is empty, not creating a new one');
-      return; // Just reuse the current empty session
+  // Add function to handle the new chat button click
+  const handleNewChatClick = () => {
+    if (sessions.length > 0 && onSelectSession) {
+      // For simplicity, just redirect to base chat path
+      // The parent component will handle creating a new chat
+      navigate('/ai-chat');
+      // If we're in mobile view, hide the chat list
+      setIsChatListVisible(false);
+      
+      // Create new session if onSessionCreated is provided
+      if (onSessionCreated) {
+        handleNewChatRequest();
+      }
     }
-    
+  };
+
+  // Function to create a new chat session
+  const handleNewChatRequest = async () => {
     try {
       setIsLoading(true);
       const response = await axiosInstance.post('/chat-sessions/', {
@@ -417,13 +428,8 @@ function ChatWindow({ session, onSessionCreated, sessions = [], onSelectSession,
       });
       const newSession = response.data;
       
-      // Mark that we've processed URL changes to prevent loops
-      urlSessionProcessedRef.current = true;
-      
+      // Call the callback to update the parent component
       onSessionCreated(newSession);
-      
-      // Update URL to reflect the new session - parent component will handle this
-      // We don't need to navigate here as the parent will do it
     } catch (error) {
       console.error('Error creating new chat session:', error);
     } finally {
@@ -472,7 +478,25 @@ function ChatWindow({ session, onSessionCreated, sessions = [], onSelectSession,
         />
       </div>
       <div className="ai-chat-messages-container">
-        <MessageList messages={messages} />
+        {loading && !session ? (
+          <div className="text-center p-5">
+            <Spinner animation="border" />
+            <p className="mt-3">Loading your most recent conversation...</p>
+          </div>
+        ) : !session && sessions.length === 0 ? (
+          <div className="text-center p-5">
+            <p>Welcome to AI Chat! Start a new conversation to begin.</p>
+            <Button 
+              variant="primary" 
+              onClick={handleNewChatClick}
+              className="mt-3"
+            >
+              <FiPlus className="me-2" /> New Chat
+            </Button>
+          </div>
+        ) : (
+          <MessageList messages={messages} />
+        )}
         <div ref={messageEndRef} />
       </div>
       <Form ref={formRef} onSubmit={handleSend} className="ai-chat-message-input-form">
@@ -483,11 +507,11 @@ function ChatWindow({ session, onSessionCreated, sessions = [], onSelectSession,
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             placeholder="Type your message..."
-            disabled={isLoading}
+            disabled={isLoading || !session}
           />
           <Button 
             type="submit" 
-            disabled={isLoading || !newMessage.trim()} 
+            disabled={isLoading || !newMessage.trim() || !session} 
             className="ms-2"
             onClick={() => console.log('Send button clicked')}
           >
