@@ -101,6 +101,8 @@ const WebSocketVoice = () => {
   });
   const pendingChunksRef = useRef([]);
   const allAudioChunksUrlsRef = useRef([]);
+  const allAudioChunksMetaRef = useRef([]); // Store metadata for each chunk
+  const chunkIdCounterRef = useRef(0); // Counter for generating unique chunk IDs
   const isPlayingRef = useRef(false);
   const userInteractionContextRef = useRef(null);
   const autoplayFailedRef = useRef(false);
@@ -108,6 +110,8 @@ const WebSocketVoice = () => {
   const audioAnalyserRef = useRef(null);
   const audioDataRef = useRef(null);
   const playbackVisualizationRef = useRef(null);
+  const playbackWatchdogRef = useRef(null); // Watchdog timer for stalled playback
+  const isProcessingCompleteRef = useRef(false); // Track if server processing is complete
   
   // Silence detection constants
   const MAX_RECORDING_DURATION = 120000; // changed from 30 seconds to 2 minutes
@@ -316,9 +320,8 @@ const WebSocketVoice = () => {
   const handleWebSocketMessage = (event) => {
     try {
       const message = JSON.parse(event.data);
-      const timestamp = new Date().toISOString();
-      
-      debugLog(`[RECEIVED ${timestamp}] Message type: ${message.type}`);
+      const timestampISO = new Date().toISOString();
+      debugLog(`[RECEIVED ${timestampISO}] Message type: ${message.type}`);
       
       switch (message.type) {
         case 'stream_started':
@@ -407,25 +410,20 @@ const WebSocketVoice = () => {
           break;
           
         case 'processing_complete':
-          debugLog('Server signaled processing complete');
+          debugLog(`Server signaled processing complete`);
           
-          // There may be a race condition where we receive processing_complete
-          // after we've already stopped recording but before we've received any audio
-          // Only reset processing state if we're not playing audio
-          if (!isPlayingRef.current) {
-            debugLog('No active playback, resetting processing state immediately');
-            updateIsProcessing(false);
+          // Set the flag for processing completion
+          isProcessingCompleteRef.current = true;
+          
+          // Check if audio is still playing
+          if (isPlayingRef.current) {
+            debugLog(`Audio is currently playing, will reset processing state after playback`);
           } else {
-            debugLog('Audio is currently playing, will reset processing state after playback');
-            // We'll let handlePlaybackComplete reset the processing state when audio finishes
-          }
-          
-          setIsRecording(false); // Ensure recording state is reset
-          isRecordingRef.current = false; // Reset recording ref
-          
-          // If audio is done playing, clean up
-          if (!isPlayingRef.current) {
-            handlePlaybackComplete();
+            // No audio is playing, reset processing state immediately
+            debugLog(`No audio is playing, resetting processing state immediately`);
+            updateIsProcessing(false);
+            // Reset the flag since we've handled it
+            isProcessingCompleteRef.current = false;
           }
           break;
           
@@ -492,14 +490,26 @@ const WebSocketVoice = () => {
   
   // Initialize the audio context
   const initializeAudioContext = async () => {
-    if (!audioContextRef.current) {
-      audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
+    try {
+      debugLog('Initializing AudioContext');
+      
+      if (!audioContextRef.current) {
+        audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
+        debugLog(`Created new AudioContext, state: ${audioContextRef.current.state}, sampleRate: ${audioContextRef.current.sampleRate}`);
+      }
+      
+      if (audioContextRef.current.state === 'suspended') {
+        debugLog('AudioContext is suspended, attempting to resume');
+        await audioContextRef.current.resume();
+        debugLog(`AudioContext resumed, new state: ${audioContextRef.current.state}`);
+      }
+      
+      return audioContextRef.current;
+    } catch (error) {
+      debugLog(`Error initializing AudioContext: ${error.message}`);
+      setError(`Error initializing audio: ${error.message}`);
+      throw error;
     }
-    
-    if (audioContextRef.current.state === 'suspended') {
-      await audioContextRef.current.resume();
-    }
-    return audioContextRef.current;
   };
   
   // Handle audio chunk from server
@@ -536,131 +546,242 @@ const WebSocketVoice = () => {
     }
   };
   
-  // Play audio chunks as they arrive - ensuring sequential playback
+  // Function to queue and play audio data
   const queueAndPlayAudio = async (arrayBuffer) => {
     try {
-      if (!audioContextRef.current) {
-        await initializeAudioContext();
-      }
+      // Generate unique chunk ID for this audio piece
+      const chunkId = chunkIdCounterRef.current++;
       
-      // Create audio blob with the correct MIME type
-      const audioBlob = new Blob([arrayBuffer], { type: 'audio/mp3' }); // Consistent MIME type for playback
-      const audioUrl = URL.createObjectURL(audioBlob);
+      // Convert array buffer to a Blob
+      const blob = new Blob([arrayBuffer], { type: 'audio/wav' });
       
-      debugLog(`Created audio blob URL: ${audioUrl}, size: ${arrayBuffer.byteLength} bytes`);
+      // Create a URL for the blob
+      const url = URL.createObjectURL(blob);
       
-      // Store this URL in our complete list for potential replay
-      allAudioChunksUrlsRef.current.push(audioUrl);
+      // Store metadata about this chunk
+      const chunkMeta = {
+        id: chunkId,
+        url: url,
+        size: blob.size,
+        timestamp: Date.now(),
+        played: false
+      };
       
-      // Ensure we have an audio element
+      // Add to our metadata tracking
+      allAudioChunksMetaRef.current.push(chunkMeta);
+      
+      debugLog(`[Chunk ${chunkId}] Created audio blob URL: ${url}, size: ${blob.size} bytes`);
+      
+      // Initialize audio element on first playback
       if (!audioBuffersRef.current.audio) {
-        debugLog('Creating new Audio element for playback');
-        createAudioElement();
-      } else {
-        // If audio element exists but doesn't have analyzer connected, connect it
-        ensureAudioElementConnected();
+        debugLog(`[Chunk ${chunkId}] Creating new Audio element for playback`);
+        
+        // Create a new audio element
+        audioBuffersRef.current.audio = createAudioElement();
       }
       
-      // Add this chunk to the pending chunks queue
-      debugLog(`Adding chunk to queue (${pendingChunksRef.current.length} already in queue)`);
-      pendingChunksRef.current.push(audioUrl);
+      // Get the current audio element reference
+      const audioElement = audioBuffersRef.current.audio;
       
-      // If not currently playing, start playing the first chunk
-      if (!isPlayingRef.current) {
-        debugLog('Starting initial playback');
+      // Add this chunk to the queue
+      pendingChunksRef.current.push({
+        url,
+        id: chunkId
+      });
+      
+      debugLog(`[Chunk ${chunkId}] Adding chunk to queue (${pendingChunksRef.current.length - 1} already in queue)`);
+      
+      // If this is the first chunk or we're not currently playing, start playback
+      if (pendingChunksRef.current.length === 1 && !isPlayingRef.current) {
+        debugLog(`[Chunk ${chunkId}] Starting initial playback`);
+        
+        // Set playing state
         isPlayingRef.current = true;
+        setIsPlaying(true);
         
-        const firstChunkUrl = pendingChunksRef.current.shift();
-        const audio = audioBuffersRef.current.audio;
+        // Start the first chunk
+        const firstChunk = pendingChunksRef.current.shift();
+        audioElement.src = firstChunk.url;
+        audioElement.dataset.chunkId = firstChunk.id;
         
-        audio.src = firstChunkUrl;
-        audio.load(); // Important: reload after changing source
+        // Start visualization if not already started
+        startPlaybackVisualization();
         
-        // Make sure we have user interaction context for autoplay
-        if (userInteractionContextRef.current) {
-          try {
-            const playPromise = audio.play();
-            
-            // Set a timeout to check if playback actually started
-            const playbackCheckTimeout = setTimeout(() => {
-              debugLog('Playback check timeout - checking if audio is actually playing');
-              
-              // Only proceed if we're still in playing state
-              if (!isPlayingRef.current) {
-                debugLog('No longer in playing state, skipping playback check');
-                return;
-              }
-              
-              // If the element isn't playing or has errors, try creating a new one
-              if (!audio.currentTime || audio.error) {
-                debugLog('Audio element appears to be stuck, creating a new one');
-                
-                // Create a new audio element as a fallback
-                try {
-                  // Clean up the old one first
-                  audio.pause();
-                  URL.revokeObjectURL(audio.src);
-                  
-                  // Create a new audio element
-                  const newAudio = new Audio();
-                  audioBuffersRef.current.audio = newAudio;
-                  
-                  // Set up the same event handlers (simplified version)
-                  newAudio.onended = () => handleNextChunk(newAudio);
-                  
-                  // Try playing this chunk again
-                  pendingChunksRef.current.unshift(firstChunkUrl);
-                  handleNextChunk(newAudio);
-                } catch (error) {
-                  debugLog('Error creating fallback audio element:', error);
-                }
-              } else {
-                debugLog(`Audio is playing - currentTime: ${audio.currentTime}s`);
-              }
-            }, 2000);
-            
-            // Clear the timeout if playback starts successfully
-            playPromise.then(() => {
-              clearTimeout(playbackCheckTimeout);
-              debugLog('Started playing first audio chunk');
-              setIsPlaying(true);
-              
-              // Start visualization animation when playback begins
-              startPlaybackVisualization();
-            }).catch(e => {
-              clearTimeout(playbackCheckTimeout);
-              debugLog('Error starting initial audio playback:', e);
-              // Set autoplay failed flags
-              autoplayFailedRef.current = true;
-              setAutoplayFailed(true);
-              isPlayingRef.current = false;
-              
-              // Put the URL back in the queue for later manual playback
-              pendingChunksRef.current.unshift(firstChunkUrl);
-            });
-          } catch (e) {
-            debugLog('Error starting initial audio playback:', e);
-            // Set autoplay failed flags
-            autoplayFailedRef.current = true;
-            setAutoplayFailed(true);
+        // Set watchdog timer based on chunk duration
+        setChunkWatchdog(audioElement, firstChunk.id);
+        
+        try {
+          // Play the audio
+          await audioElement.play();
+          debugLog(`[Chunk ${firstChunk.id}] Started playing first audio chunk`);
+          markChunkAsPlayed(firstChunk.id);
+          
+        } catch (error) {
+          debugLog(`[Chunk ${firstChunk.id}] Error playing first chunk:`, error);
+          // Move on to next chunk if there is one
+          if (pendingChunksRef.current.length > 0) {
+            handleNextChunk(audioElement);
+          } else {
+            // No more chunks to play
             isPlayingRef.current = false;
+            setIsPlaying(false);
             
-            // Put the URL back in the queue for later manual playback
-            pendingChunksRef.current.unshift(firstChunkUrl);
+            // If processing is complete, update the state
+            if (isProcessingCompleteRef.current) {
+              updateIsProcessing(false);
+            }
           }
-        } else {
-          debugLog('No user interaction context for autoplay');
-          autoplayFailedRef.current = true;
-          setAutoplayFailed(true);
-          isPlayingRef.current = false;
-          pendingChunksRef.current.unshift(firstChunkUrl);
         }
       } else {
-        debugLog('Already playing, chunk queued for later');
+        // Already playing, so just queue this chunk
+        debugLog(`[Chunk ${chunkId}] Setting up playback watchdog timer`);
+        
+        // If this is the second chunk and the first chunk is still playing
+        if (pendingChunksRef.current.length === 1 && isPlayingRef.current) {
+          debugLog(`[Chunk ${chunkId}] Already playing, chunk queued for later`);
+        }
       }
-    } catch (error) {
-      debugLog('Error in queueAndPlayAudio:', error);
-      setError(`Audio playback error: ${error.message}`);
+      
+      return true;
+    } catch (e) {
+      debugLog('Error in queueAndPlayAudio:', e);
+      return false;
+    }
+  };
+  
+  // Function to try to estimate audio duration
+  const tryToEstimateAudioDuration = async (url, chunkId = 'unknown') => {
+    return new Promise((resolve) => {
+      debugLog(`[Chunk ${chunkId}] Trying to estimate audio length from blob URL`);
+      
+      // Create temporary audio element to get duration
+      const tempAudio = new Audio();
+      tempAudio.preload = 'metadata';
+      tempAudio.src = url;
+      
+      // Set a timeout in case metadata never loads
+      const timeoutId = setTimeout(() => {
+        debugLog(`[Chunk ${chunkId}] Setting fixed safety timeout of 6000ms - cannot determine audio duration`);
+        tempAudio.removeEventListener('loadedmetadata', onMetadataLoaded);
+        tempAudio.removeEventListener('error', onError);
+        resolve(6); // Default to 6 seconds
+      }, 500);
+      
+      const onMetadataLoaded = () => {
+        clearTimeout(timeoutId);
+        if (tempAudio.duration && isFinite(tempAudio.duration)) {
+          debugLog(`[Chunk ${chunkId}] Detected audio duration: ${tempAudio.duration.toFixed(3)}s`);
+          resolve(tempAudio.duration);
+        } else {
+          debugLog(`[Chunk ${chunkId}] Could not determine duration from metadata`);
+          resolve(6); // Default to 6 seconds
+        }
+        tempAudio.removeEventListener('loadedmetadata', onMetadataLoaded);
+        tempAudio.removeEventListener('error', onError);
+        tempAudio.src = '';
+      };
+      
+      const onError = (e) => {
+        clearTimeout(timeoutId);
+        debugLog(`[Chunk ${chunkId}] Error loading audio metadata:`, e);
+        resolve(6); // Default to 6 seconds
+        tempAudio.removeEventListener('loadedmetadata', onMetadataLoaded);
+        tempAudio.removeEventListener('error', onError);
+        tempAudio.src = '';
+      };
+      
+      tempAudio.addEventListener('loadedmetadata', onMetadataLoaded);
+      tempAudio.addEventListener('error', onError);
+    });
+  };
+  
+  // Function to create watchdog for chunk playback
+  const setChunkWatchdog = (audioElement, chunkId, detectedDuration = null) => {
+    // First clear any existing safety timeout
+    if (audioElement.safetyTimeoutId) {
+      clearTimeout(audioElement.safetyTimeoutId);
+      audioElement.safetyTimeoutId = null;
+    }
+    
+    // If we were given a duration, use it directly
+    if (detectedDuration !== null && isFinite(detectedDuration)) {
+      const timeoutMs = Math.ceil(detectedDuration * 1000) + 1000; // Add 1s buffer
+      debugLog(`[Chunk ${chunkId}] Updated safety timeout to ${timeoutMs}ms after detecting duration ${detectedDuration.toFixed(3)}s`);
+      
+      // Set a new safety timeout based on the detected duration
+      audioElement.safetyTimeoutId = setTimeout(() => {
+        debugLog(`[Chunk ${chunkId}] Safety timeout triggered after ${timeoutMs}ms`);
+        
+        // Check if still playing this chunk
+        if (audioElement.dataset.chunkId == chunkId && !audioElement.ended) {
+          debugLog(`[Chunk ${chunkId}] Chunk playback appears to be stuck, forcing advancement`);
+          handleNextChunk(audioElement);
+        }
+      }, timeoutMs);
+      
+      return timeoutMs;
+    }
+    
+    // If we don't have a duration, try to estimate from the source URL
+    if (audioElement.src) {
+      (async () => {
+        try {
+          // Try to get chunk ID more reliably
+          const currentChunkId = audioElement.dataset.chunkId || getCurrentPlayingChunkId(audioElement.src) || chunkId;
+          
+          // Delay before checking duration to give the browser time to load metadata
+          await new Promise(resolve => setTimeout(resolve, 100));
+          
+          // First try to get duration from the audio element if loaded
+          if (audioElement.duration && isFinite(audioElement.duration)) {
+            const timeoutMs = Math.ceil(audioElement.duration * 1000) + 1000; // Add 1s buffer
+            debugLog(`[Chunk ${currentChunkId}] Updated safety timeout to ${timeoutMs}ms after detecting duration ${audioElement.duration.toFixed(3)}s`);
+            
+            // Set a new safety timeout based on the detected duration
+            audioElement.safetyTimeoutId = setTimeout(() => {
+              debugLog(`[Chunk ${currentChunkId}] Safety timeout triggered after ${timeoutMs}ms`);
+              
+              // Check if still playing this chunk
+              if (!audioElement.ended) {
+                debugLog(`[Chunk ${currentChunkId}] Chunk playback appears to be stuck, forcing advancement`);
+                handleNextChunk(audioElement);
+              }
+            }, timeoutMs);
+            
+            return;
+          }
+          
+          // If audio element doesn't have duration, try to estimate from the source
+          const estimatedDuration = await tryToEstimateAudioDuration(audioElement.src, currentChunkId);
+          const timeoutMs = Math.ceil(estimatedDuration * 1000) + 1000; // Add 1s buffer
+          
+          // Set a new safety timeout based on the estimated duration
+          audioElement.safetyTimeoutId = setTimeout(() => {
+            debugLog(`[Chunk ${currentChunkId}] Safety timeout triggered after ${timeoutMs}ms`);
+            
+            // Check if still playing this chunk
+            if (!audioElement.ended) {
+              debugLog(`[Chunk ${currentChunkId}] Chunk playback appears to be stuck, forcing advancement`);
+              handleNextChunk(audioElement);
+            }
+          }, timeoutMs);
+        } catch (e) {
+          debugLog(`[Chunk ${chunkId}] Error setting chunk watchdog:`, e);
+          
+          // Set a conservative default timeout
+          audioElement.safetyTimeoutId = setTimeout(() => {
+            debugLog(`[Chunk ${chunkId}] Default safety timeout triggered`);
+            handleNextChunk(audioElement);
+          }, 6000);
+        }
+      })();
+    } else {
+      // No source, set a conservative default timeout
+      debugLog(`[Chunk ${chunkId}] No source URL, setting default safety timeout`);
+      audioElement.safetyTimeoutId = setTimeout(() => {
+        debugLog(`[Chunk ${chunkId}] Default safety timeout triggered`);
+        handleNextChunk(audioElement);
+      }, 6000);
     }
   };
   
@@ -713,6 +834,13 @@ const WebSocketVoice = () => {
     if (!isPlayingRef.current && !isPaused) {
       debugLog('Playback already stopped, ignoring redundant stop call');
       return;
+    }
+    
+    // Clear any active watchdog timer
+    if (playbackWatchdogRef.current) {
+      clearTimeout(playbackWatchdogRef.current);
+      playbackWatchdogRef.current = null;
+      debugLog('Cleared playback watchdog timer');
     }
     
     // Stop visualization animation when stopping playback
@@ -814,41 +942,33 @@ const WebSocketVoice = () => {
   };
   
   const handlePlaybackComplete = () => {
-    // Guard against repeated calls
-    if (isPlaybackCompleteRef.current) {
-      debugLog('Playback already marked as complete, ignoring redundant call');
-      return;
-    }
-    
+    // Log completion
     debugLog('Playback completed');
-    isPlaybackCompleteRef.current = true;
     
-    // Update UI state
-    setIsPlaying(false);
+    // Stop visualization
+    stopPlaybackVisualization();
+    
+    // Reset states
     isPlayingRef.current = false;
+    setIsPlaying(false);
     
-    // Ensure processing state is reset
-    if (isProcessingRef.current) {
-      debugLog('Resetting processing state after playback completed');
+    // Only reset processing state if processing_complete message was received
+    if (isProcessingCompleteRef.current) {
+      debugLog('Resetting processing state after playback completed (processing_complete received)');
       updateIsProcessing(false);
+      isProcessingCompleteRef.current = false;
+      debugLog('Processing and playback both complete, resetting UI state');
+    } else {
+      debugLog('Playback completed but still waiting for more chunks or processing_complete');
+      // We're still waiting for more chunks or the processing_complete message
+      // Don't reset processing state yet
     }
     
-    // Reset audio playback resources
-    if (!autoplayFailedRef.current) {
-      // Only clean up if autoplay didn't fail (otherwise we need to keep the audio for manual play)
-      setTimeout(() => cleanupAudio(false), 100);
-    }
+    // Create a summary of chunk playback
+    debugChunkSummary();
     
-    debugLog('Processing and playback both complete, resetting UI state');
-    
-    // Check if there's a pending navigation after playback
-    if (pendingNavigationRef.current) {
-      debugLog(`Navigating to: ${pendingNavigationRef.current}`);
-      navigate(pendingNavigationRef.current);
-      // Reset the navigation state
-      setPendingNavigation(null);
-      pendingNavigationRef.current = null;
-    }
+    // Clean up audio resources but preserve for replay
+    cleanupAudio(true);
   };
   
   // Clean up audio resources
@@ -1711,190 +1831,100 @@ const WebSocketVoice = () => {
     // Create a property to track safety timeouts
     audio.safetyTimeoutId = null;
     
+    // Add preload attribute to ensure audio is ready before playing
+    audio.preload = 'auto';
+    
     // Connect audio to analyzer for visualization
     connectAudioToAnalyzer(audio);
     
     // Set up comprehensive event handlers for the audio element
     audio.onended = () => {
-      debugLog('Audio playback ended naturally');
+      const chunkId = audio.dataset.chunkId || getCurrentPlayingChunkId(audio.src) || 'unknown';
+      debugLog(`[Chunk ${chunkId}] Audio playback ended naturally`);
+      
       // Clear any existing safety timeout
       if (audio.safetyTimeoutId) {
         clearTimeout(audio.safetyTimeoutId);
         audio.safetyTimeoutId = null;
       }
-      handleNextChunk(audio);
+      
+      // Check if we're still in an active playback state
+      if (!isPlayingRef.current) {
+        debugLog(`[Chunk ${chunkId}] isPlayingRef is false, not proceeding with next chunk`);
+        return;
+      }
+      
+      // Check if we have more chunks to play
+      if (pendingChunksRef.current.length > 0) {
+        debugLog(`[Chunk ${chunkId}] We have ${pendingChunksRef.current.length} chunks left to play`);
+        
+        // Force a slight delay before moving to next chunk
+        // This is critical for reliable sequential playback
+        setTimeout(() => {
+          debugLog(`[Chunk ${chunkId}] Moving to next chunk after natural end`);
+          handleNextChunk(audio);
+        }, 50); // Small delay to allow browser to update state
+      } else {
+        debugLog(`[Chunk ${chunkId}] No more chunks in queue after natural end`);
+        
+        // If processing is complete, reset processing state
+        if (isProcessingCompleteRef.current) {
+          debugLog(`[Chunk ${chunkId}] Processing is complete, resetting state`);
+          updateIsProcessing(false);
+          isProcessingCompleteRef.current = false;
+        }
+        
+        // Complete playback
+        setTimeout(() => {
+          handlePlaybackComplete();
+        }, 50);
+      }
+    };
+    
+    audio.onerror = (e) => {
+      const error = e.target.error;
+      const chunkId = audio.dataset.chunkId || getCurrentPlayingChunkId(audio.src) || 'unknown';
+      debugLog(`[Chunk ${chunkId}] Audio playback error: ${error ? error.code : 'unknown'}`);
+      
+      // Clear any existing safety timeout
+      if (audio.safetyTimeoutId) {
+        clearTimeout(audio.safetyTimeoutId);
+        audio.safetyTimeoutId = null;
+      }
+      
+      // Force advancement to next chunk
+      if (isPlayingRef.current && pendingChunksRef.current.length > 0) {
+        debugLog(`[Chunk ${chunkId}] Advancing to next chunk after error`);
+        setTimeout(() => {
+          handleNextChunk(audio);
+        }, 50);
+      } else {
+        debugLog(`[Chunk ${chunkId}] No more chunks to play after error`);
+        handlePlaybackComplete();
+      }
     };
     
     audio.onpause = () => {
-      debugLog('Audio playback paused');
+      const chunkId = audio.dataset.chunkId || getCurrentPlayingChunkId(audio.src) || 'unknown';
+      debugLog(`[Chunk ${chunkId}] Audio playback paused`);
     };
     
     audio.onplay = () => {
-      debugLog('Audio playback started');
+      const chunkId = audio.dataset.chunkId || getCurrentPlayingChunkId(audio.src) || 'unknown';
+      debugLog(`[Chunk ${chunkId}] Audio playback started`);
       
       // Clear any existing safety timeout first
       if (audio.safetyTimeoutId) {
         clearTimeout(audio.safetyTimeoutId);
         audio.safetyTimeoutId = null;
       }
-      
-      // Add safety timeout in case onended doesn't fire
-      if (audio.duration && isFinite(audio.duration)) {
-        const safetyTimeout = (audio.duration * 1000) + 100; // Duration in ms + 1000ms buffer
-        const currentSrc = audio.src; // Store the current source URL
-        debugLog(`Setting safety timeout for ${safetyTimeout}ms based on audio duration ${audio.duration}s`);
-        
-        // Store the timeout ID
-        audio.safetyTimeoutId = setTimeout(() => {
-          // Only advance if this chunk is still playing (hasn't already advanced)
-          // Check if the src is still the same to prevent premature advancement
-          if (isPlayingRef.current && audio.src && audio.src === currentSrc) {
-            debugLog('Safety timeout triggered - onended may not have fired');
-            handleNextChunk(audio);
-          } else {
-            debugLog('Safety timeout ignored - audio src changed or playback already completed');
-          }
-          audio.safetyTimeoutId = null;
-        }, safetyTimeout);
-      } else {
-        // If we can't determine duration, use a smarter fallback approach
-        const currentSrc = audio.src; // Store the current source URL
-        
-        // Check if there's any audio data to estimate length from
-        let estimatedTimeout = 6000; // Default to 6 seconds
-        let fixedTimeoutId = null;
-        
-        // Try to get size information to estimate length
-        try {
-          const urlParts = currentSrc.split('/');
-          const blobId = urlParts[urlParts.length - 1];
-          const matchingUrl = allAudioChunksUrlsRef.current.find(url => url.includes(blobId));
-          
-          if (matchingUrl) {
-            // We found the matching URL in our list, try to estimate size
-            debugLog('Trying to estimate audio length from blob URL');
-            
-            // Set an escalating checking mechanism
-            let checkCount = 0;
-            const checkInterval = setInterval(() => {
-              checkCount++;
-              
-              // Check if the audio has started playing and has a duration now
-              if (audio.duration && isFinite(audio.duration)) {
-                clearInterval(checkInterval);
-                
-                // Also clear the fixed timeout since we now have a better estimate
-                if (fixedTimeoutId) {
-                  clearTimeout(fixedTimeoutId);
-                  fixedTimeoutId = null;
-                }
-                
-                // Clear any existing safety timeout
-                if (audio.safetyTimeoutId) {
-                  clearTimeout(audio.safetyTimeoutId);
-                  audio.safetyTimeoutId = null;
-                }
-                
-                const newTimeout = (audio.duration * 1000) + 1000;
-                debugLog(`Updated safety timeout to ${newTimeout}ms after detecting duration ${audio.duration}s`);
-                
-                // Set the new timeout and store its ID
-                audio.safetyTimeoutId = setTimeout(() => {
-                  if (isPlayingRef.current && audio.src && audio.src === currentSrc) {
-                    debugLog('Updated safety timeout triggered - onended may not have fired');
-                    handleNextChunk(audio);
-                  }
-                  audio.safetyTimeoutId = null;
-                }, newTimeout);
-                return;
-              }
-              
-              // If we've checked several times and still no duration, estimate from current time
-              if (checkCount >= 3 && audio.currentTime > 0) {
-                clearInterval(checkInterval);
-                
-                // Also clear the fixed timeout since we now have a better estimate
-                if (fixedTimeoutId) {
-                  clearTimeout(fixedTimeoutId);
-                  fixedTimeoutId = null;
-                }
-                
-                // Clear any existing safety timeout
-                if (audio.safetyTimeoutId) {
-                  clearTimeout(audio.safetyTimeoutId);
-                  audio.safetyTimeoutId = null;
-                }
-                
-                // Estimate total length as at least 3x current progress, minimum 5s
-                const estimatedDuration = Math.max(audio.currentTime * 3, 5);
-                const newTimeout = (estimatedDuration * 1000);
-                debugLog(`Estimated safety timeout: ${newTimeout}ms based on currentTime ${audio.currentTime}s`);
-                
-                // Set the new timeout and store its ID
-                audio.safetyTimeoutId = setTimeout(() => {
-                  if (isPlayingRef.current && audio.src && audio.src === currentSrc) {
-                    debugLog('Estimated safety timeout triggered - onended may not have fired');
-                    handleNextChunk(audio);
-                  }
-                  audio.safetyTimeoutId = null;
-                }, newTimeout);
-              }
-              
-              // Give up after 5 checks
-              if (checkCount >= 5) {
-                clearInterval(checkInterval);
-              }
-            }, 500); // Check every 500ms
-          }
-        } catch (e) {
-          debugLog('Error estimating audio length:', e);
-        }
-        
-        debugLog(`Setting fixed safety timeout of ${estimatedTimeout}ms - cannot determine audio duration`);
-        // Store the fixed timeout ID both locally and on the audio element
-        fixedTimeoutId = setTimeout(() => {
-          if (isPlayingRef.current && audio.src && audio.src === currentSrc) {
-            debugLog('Fixed safety timeout triggered - advancing to next chunk');
-            handleNextChunk(audio);
-          } else {
-            debugLog('Fixed safety timeout ignored - audio src changed or playback already completed');
-          }
-          if (audio.safetyTimeoutId === fixedTimeoutId) {
-            audio.safetyTimeoutId = null;
-          }
-        }, estimatedTimeout);
-        
-        // Store the timeout ID
-        audio.safetyTimeoutId = fixedTimeoutId;
-      }
     };
     
-    audio.onerror = (e) => {
-      const error = e.target.error;
-      debugLog(`Audio playback error: ${error ? error.code : 'unknown'}`);
-      
-      // Prevent infinite loops - don't try to handle next chunk on playback errors
-      // if we're in the middle of cleanup or already finished
-      if (!isProcessing && !isPlayingRef.current) {
-        debugLog('Not handling next chunk due to error during inactive state');
-        return;
-      }
-      
-      if (audio.src) {
-        try {
-          URL.revokeObjectURL(audio.src);
-        } catch (e) {
-          debugLog('Error revoking URL:', e);
-        }
-      }
-      
-      // Only proceed to next chunk if we're still actively playing
-      if (isPlayingRef.current) {
-        handleNextChunk(audio);
-      }
-    };
-    
-    audioBuffersRef.current.audio = audio;
+    // Additional event to help with debugging playback issues
+    audio.addEventListener('waiting', () => {
+      const chunkId = audio.dataset.chunkId || getCurrentPlayingChunkId(audio.src) || 'unknown';
+      debugLog(`[Chunk ${chunkId}] Audio playback waiting for more data`);
+    });
     
     return audio;
   };
@@ -1904,6 +1934,9 @@ const WebSocketVoice = () => {
     if (!audio || !audioContextRef.current) return;
     
     try {
+      // Output debug info about audio state
+      debugLog(`Connecting audio to analyzer. Audio state: src=${!!audio.src}, preload=${audio.preload}, readyState=${audio.readyState}`);
+      
       // Create an audio source from the HTML Audio element
       const mediaSource = audioContextRef.current.createMediaElementSource(audio);
       
@@ -1951,118 +1984,178 @@ const WebSocketVoice = () => {
   
   // Handle playing the next chunk from the queue
   const handleNextChunk = (audioElement) => {
-    // Guard against infinite loops: ensure we're still in an active state
-    if (!isPlayingRef.current && !isProcessing) {
-      debugLog('Skipping handleNextChunk since playback is no longer active');
-      return;
-    }
-    
-    // Clear any safety timeout that might be active
+    // Track the current chunk ID for better debugging
+    const currentChunkId = audioElement.dataset.chunkId || getCurrentPlayingChunkId(audioElement.src) || 'unknown';
+    debugLog(`[Chunk ${currentChunkId}] Handling next chunk`);
+
+    // Clear safety timeout if it exists
     if (audioElement.safetyTimeoutId) {
-      debugLog('Clearing active safety timeout as handleNextChunk was called');
       clearTimeout(audioElement.safetyTimeoutId);
       audioElement.safetyTimeoutId = null;
     }
-    
-    // Ensure the current audio is completely stopped before proceeding
-    if (audioElement.currentTime > 0 && !audioElement.paused && !audioElement.ended) {
-      debugLog('Previous audio still playing, pausing before handling next chunk');
-      audioElement.pause();
-      // Force currentTime to end to ensure it's considered complete
-      if (audioElement.duration && isFinite(audioElement.duration)) {
-        audioElement.currentTime = audioElement.duration;
-      }
-    }
-    
-    // Clean up the current URL
+
+    // Clear audio source to release memory
     if (audioElement.src) {
       try {
         URL.revokeObjectURL(audioElement.src);
-        audioElement.removeAttribute('src'); // Clear source
-        audioElement.load(); // Reset the audio element
       } catch (e) {
-        debugLog('Error cleaning up audio source:', e);
+        debugLog(`[Chunk ${currentChunkId}] Error revoking URL:`, e);
       }
+      audioElement.removeAttribute('src');
     }
-    
-    // Play next chunk if available
+
+    // Critical: Set isPlayingRef to true if we have chunks to play
+    // This ensures playback chain doesn't break between chunks
     if (pendingChunksRef.current.length > 0) {
-      const nextChunkUrl = pendingChunksRef.current.shift();
-      debugLog(`Playing next chunk in queue (${pendingChunksRef.current.length} remaining)`);
+      isPlayingRef.current = true;
+    }
+
+    // Check if we're in the middle of cleanup or if playback was manually stopped
+    if (!isPlayingRef.current) {
+      debugLog(`[Chunk ${currentChunkId}] Not playing more chunks because isPlayingRef is false`);
       
-      audioElement.src = nextChunkUrl;
-      audioElement.load(); // Important: reload after changing source
+      // If we have pending chunks but playback was stopped, log this unusual state
+      if (pendingChunksRef.current.length > 0) {
+        debugLog(`[Chunk ${currentChunkId}] WARNING: ${pendingChunksRef.current.length} chunks left in queue but playback was stopped`);
+      }
       
-      // Add event listener to check audio metadata before playing
-      const metadataCheckTimeout = setTimeout(() => {
-        debugLog('Audio metadata load timed out - trying to play anyway');
-        playNextAudio();
-      }, 1000);
+      return;
+    }
+
+    // Check if there are more chunks to play
+    if (pendingChunksRef.current.length > 0) {
+      const nextChunk = pendingChunksRef.current.shift();
+      debugLog(`[Chunk ${currentChunkId}] Playing next chunk (ID: ${nextChunk.id}). ${pendingChunksRef.current.length} chunks remaining`);
+      
+      // Set the source and metadata
+      audioElement.src = nextChunk.url;
+      audioElement.dataset.chunkId = nextChunk.id;
+      
+      // Set a watchdog timer for this chunk
+      setChunkWatchdog(audioElement, nextChunk.id);
       
       const onMetadataLoaded = () => {
-        clearTimeout(metadataCheckTimeout);
-        debugLog(`Audio metadata loaded - duration: ${audioElement.duration}s, ready state: ${audioElement.readyState}`);
+        debugLog(`[Chunk ${nextChunk.id}] Metadata loaded, duration: ${audioElement.duration}s`);
+        
+        // Update the watchdog based on actual duration if available
+        if (audioElement.duration && isFinite(audioElement.duration)) {
+          setChunkWatchdog(audioElement, nextChunk.id, audioElement.duration);
+        }
+        
+        audioElement.removeEventListener('loadedmetadata', onMetadataLoaded);
+      };
+      
+      audioElement.addEventListener('loadedmetadata', onMetadataLoaded);
+      
+      const canPlayThroughHandler = () => {
+        debugLog(`[Chunk ${nextChunk.id}] Can play through, starting playback`);
+        audioElement.removeEventListener('canplaythrough', canPlayThroughHandler);
+        
+        const playNextAudio = async () => {
+          try {
+            await audioElement.play();
+            markChunkAsPlayed(nextChunk.id);
+            debugLog(`[Chunk ${nextChunk.id}] Started playing`);
+            
+            // Monitor playback state with a watchdog timer if the ended event doesn't fire
+            const checkInterval = setInterval(() => {
+              // Check if player is in ended state
+              if (audioElement.ended) {
+                clearInterval(checkInterval);
+                debugLog(`[Chunk ${nextChunk.id}] Detected ended state in interval check`);
+                
+                // If we have more chunks, move to next one
+                if (pendingChunksRef.current.length > 0) {
+                  debugLog(`[Chunk ${nextChunk.id}] Moving to next chunk after detecting ended state`);
+                  handleNextChunk(audioElement);
+                } else {
+                  debugLog(`[Chunk ${nextChunk.id}] No more chunks, completing playback`);
+                  handlePlaybackComplete();
+                }
+              }
+            }, 250); // Check every 250ms
+            
+            // Cleanup the interval when audio actually ends
+            audioElement.addEventListener('ended', () => {
+              clearInterval(checkInterval);
+            }, { once: true });
+            
+          } catch (e) {
+            debugLog(`[Chunk ${nextChunk.id}] Error playing audio:`, e);
+            
+            // If play fails, still try to continue to the next chunk
+            // Force a small delay to avoid potential rapid errors
+            setTimeout(() => {
+              handleNextChunk(audioElement);
+            }, 100);
+          }
+        };
+        
         playNextAudio();
       };
       
-      // One-time event listener for metadata
-      audioElement.addEventListener('loadedmetadata', onMetadataLoaded, { once: true });
+      audioElement.addEventListener('canplaythrough', canPlayThroughHandler);
       
-      // Function to attempt playback
-      const playNextAudio = () => {
-        audioElement.removeEventListener('loadedmetadata', onMetadataLoaded);
-        
-        // Check if audio is already playing
-        if (audioElement.currentTime > 0 && !audioElement.paused && !audioElement.ended) {
-          debugLog('Another audio chunk is already playing - waiting before playing next');
-          
-          // Set a one-time event listener for when the current audio ends
-          const waitForEnd = () => {
-            debugLog('Previous audio finished, now playing next chunk');
-            
-            // Try playing again after the current one ends
-            audioElement.play().catch(e => {
-              debugLog('Error playing next chunk after waiting:', e);
-              if (isPlayingRef.current) {
-                setTimeout(() => handleNextChunk(audioElement), 100);
-              }
-            });
-          };
-          
-          // Listen for the end of the current audio
-          audioElement.addEventListener('ended', waitForEnd, { once: true });
-          
-          // Also set a safety timeout in case ended doesn't fire
-          if (audioElement.duration && isFinite(audioElement.duration)) {
-            const remaining = (audioElement.duration - audioElement.currentTime) * 1000 + 200;
-            setTimeout(waitForEnd, remaining);
-          } else {
-            setTimeout(waitForEnd, 2000);
-          }
-          
-          return;
-        }
-        
-        audioElement.play().catch(e => {
-          debugLog('Error playing next chunk:', e);
-          // Only try the next chunk if we're still in an active playback state
-          if (isPlayingRef.current) {
-            debugLog('Playback failed, trying next chunk after delay');
-            setTimeout(() => handleNextChunk(audioElement), 100);
-          } else {
-            debugLog('Not proceeding to next chunk due to inactive playback state');
-          }
-        });
-      };
     } else {
-      debugLog('No more chunks in queue');
-      isPlayingRef.current = false;
-      setIsPlaying(false);
+      // No more chunks to play
+      debugLog(`[Chunk ${currentChunkId}] No more chunks in queue, playback complete`);
       
-      if (!isProcessing) {
-        handlePlaybackComplete();
-      }
+      // Reset playing state
+      isPlayingRef.current = false;
+      
+      // Trigger playback complete handler
+      handlePlaybackComplete();
     }
+    
+    // If processing is complete, reset processing state
+    if (isProcessingCompleteRef.current && !isPlayingRef.current) {
+      debugLog('Processing is complete and playback is done, resetting state');
+      updateIsProcessing(false);
+      isProcessingCompleteRef.current = false;
+    }
+  };
+
+  // Function to log a summary of chunk processing
+  const debugChunkSummary = () => {
+    const chunks = allAudioChunksMetaRef.current;
+    debugLog(`--- CHUNK PLAYBACK SUMMARY ---`);
+    debugLog(`Total chunks: ${chunks.length}`);
+    
+    const playedChunks = chunks.filter(c => c.played);
+    debugLog(`Played chunks: ${playedChunks.length}/${chunks.length}`);
+    
+    const unplayedChunks = chunks.filter(c => !c.played);
+    if (unplayedChunks.length > 0) {
+      debugLog(`Unplayed chunks: ${unplayedChunks.length}`);
+      unplayedChunks.forEach(c => {
+        debugLog(`  Chunk ${c.id}: size ${c.size} bytes, created at ${new Date(c.timestamp).toISOString()}`);
+      });
+    }
+    
+    debugLog(`-----------------------------`);
+  };
+
+  // Function to mark a chunk as played in our metadata
+  const markChunkAsPlayed = (chunkId) => {
+    const chunk = allAudioChunksMetaRef.current.find(c => c.id === chunkId);
+    if (chunk) {
+      chunk.played = true;
+      chunk.playedAt = Date.now();
+      debugLog(`[Chunk ${chunkId}] Marked as played`);
+    }
+  };
+
+  // Function to get the current playing chunk ID from a src URL
+  const getCurrentPlayingChunkId = (src) => {
+    if (!src) return 'unknown';
+    
+    // Try to find the chunk by URL
+    const chunk = allAudioChunksMetaRef.current.find(c => c.url === src);
+    if (chunk) return chunk.id;
+    
+    // If not found, extract just the last part of the blob URL for logging
+    const urlParts = src.split('/');
+    return urlParts[urlParts.length - 1] || 'unknown';
   };
   
   return (

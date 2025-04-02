@@ -397,7 +397,7 @@ const VoiceVisualization = ({
     const dpr = window.devicePixelRatio || 1;
     
     // Debug log DPR
-    console.log('Device Pixel Ratio:', dpr);
+    //console.log('Device Pixel Ratio:', dpr);
     
     // Step 1: Set inline styles on the canvas to make it fill the container
     canvas.style.width = '100%';
@@ -431,7 +431,7 @@ const VoiceVisualization = ({
     const safeHeight = Math.max(displayHeight, 100);
     
     // Debug log to see actual dimensions
-    console.log('Voice Visualization dimensions:', {
+    /*console.log('Voice Visualization dimensions:', {
       container: {
         width: container.clientWidth,
         height: container.clientHeight,
@@ -455,7 +455,7 @@ const VoiceVisualization = ({
         }
       },
       dpr: dpr
-    });
+    });*/
     
     // Step 4: Set the canvas size attributes accounting for device pixel ratio
     // Add a maximum size limit to prevent excessive canvas dimensions
