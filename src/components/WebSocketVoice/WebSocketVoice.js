@@ -4,6 +4,7 @@ import { Mic, Square, X, Pause, Play, Keyboard, Send, Settings } from 'lucide-re
 import { useNavigate, useSearchParams, useParams } from 'react-router-dom';
 import './WebSocketVoice.css';
 import VoiceVisualization from './VoiceVisualization';
+import { useAuth } from '../../context/AuthContext'; // Add import for auth context
 
 // DEBUG mode - set to true for verbose logging
 const DEBUG = true;
@@ -21,6 +22,7 @@ const DEFAULT_SILENCE_THRESHOLD = 3000; // Changed from 5000 to 3000 (3.0 second
 const DEFAULT_SEND_DELAY = 700; // Changed from 500 to 700ms
 const DEFAULT_SHOW_TRANSCRIPTION = false; // Default to not showing transcription
 const DEFAULT_SHOW_AI_RESPONSE = false; // Default to not showing AI response
+const MAX_RECONNECTION_ATTEMPTS = 3; // Maximum number of reconnection attempts before assuming auth error
 
 // Get the API base URL from environment
 const apiBaseURL = process.env.REACT_APP_API_BASE_URL || '';
@@ -58,6 +60,7 @@ const getWebSocketStateString = (readyState) => {
 const WebSocketVoice = () => {
   const navigate = useNavigate();
   const { sessionId } = useParams();
+  const { logout } = useAuth(); // Add auth context for logout functionality
   
   // Browser compatibility check
   const [browserSupported, setBrowserSupported] = useState(true);
@@ -175,6 +178,9 @@ const WebSocketVoice = () => {
   
   // Check browser compatibility on initial load
   useEffect(() => {
+    // Log important references for debugging
+    debugLog('Component initialized with navigate:', navigate ? 'available' : 'not available');
+    
     // Check if WebSocket is supported
     if (!window.WebSocket) {
       debugLog('WebSocket not supported in this browser');
@@ -192,11 +198,48 @@ const WebSocketVoice = () => {
     }
     
     setBrowserSupported(true);
-  }, []);
+  }, [navigate]);
+  
+  // Helper function to handle navigation
+  const navigateToUrl = (url) => {
+    if (!url) {
+      debugLog('Cannot navigate - URL is empty');
+      return false;
+    }
+    
+    if (!navigate) {
+      debugLog('Cannot navigate - navigate function is not available');
+      setError('Navigation is not available. Please try again later.');
+      return false;
+    }
+    
+    try {
+      debugLog(`Navigating to: ${url}`);
+      navigate(url);
+      return true;
+    } catch (error) {
+      debugLog('Error during navigation:', error);
+      setError(`Failed to navigate to ${url}`);
+      return false;
+    }
+  };
   
   // Configure WebSocket connection
   const setupWebSocket = () => {
     try {
+      // Check if we're already connecting
+      if (socketRef.current && socketRef.current.readyState === WebSocket.CONNECTING) {
+        debugLog('WebSocket connection already in progress, not starting another');
+        return socketRef.current;
+      }
+      
+      // Check if we've hit the retry limit
+      if (socketRef.current && socketRef.current.reconnectAttempts >= MAX_RECONNECTION_ATTEMPTS) {
+        debugLog(`Maximum reconnection attempts (${MAX_RECONNECTION_ATTEMPTS}) reached, stopping reconnection attempts`);
+        handleAuthError('Unable to establish a secure connection. You may need to login again.');
+        return null;
+      }
+      
       // Close any existing connection
       if (socketRef.current) {
         debugLog('Closing existing WebSocket connection');
@@ -228,11 +271,19 @@ const WebSocketVoice = () => {
         wsUrl.current = `${wsUrl.current}?token=${authToken}`;
       } else {
         debugLog('No authentication token found');
+        handleAuthError('No authentication token found. Please login again.');
+        return null;
       }
       
       debugLog(`Connecting to WebSocket: ${wsUrl.current}`);
       
       const socket = new WebSocket(wsUrl.current);
+      
+      // Track reconnection attempts
+      const prevAttempts = socketRef.current?.reconnectAttempts || 0;
+      socket.reconnectAttempts = prevAttempts + 1;
+      
+      debugLog(`WebSocket connection attempt ${socket.reconnectAttempts}`);
       socketRef.current = socket;
       
       // Set up connection timeout
@@ -243,7 +294,7 @@ const WebSocketVoice = () => {
           setConnectionStatus('disconnected');
           socket.close();
         }
-      }, 10000); // 10 seconds timeout
+      }, 10000);
       
       socket.onopen = () => {
         clearTimeout(connectionTimeout);
@@ -261,6 +312,9 @@ const WebSocketVoice = () => {
         
         // Add more detailed debugging info for close events
         let closeReason = 'Connection closed';
+        let isAuthError = false;
+        
+        // Check for all possible authentication-related codes
         if (event.code === 1000) {
           closeReason = 'Normal closure';
         } else if (event.code === 1001) {
@@ -277,6 +331,8 @@ const WebSocketVoice = () => {
           closeReason = 'Invalid frame payload data';
         } else if (event.code === 1008) {
           closeReason = 'Policy violation';
+          // Code 1008 is often used for authentication errors
+          isAuthError = true;
         } else if (event.code === 1009) {
           closeReason = 'Message too big';
         } else if (event.code === 1010) {
@@ -294,6 +350,36 @@ const WebSocketVoice = () => {
         }
         
         debugLog(`Close code ${event.code}: ${closeReason}`);
+        
+        // Check if the error reason explicitly mentions auth issues
+        if (event.reason && (
+            event.reason.toLowerCase().includes('unauthoriz') || 
+            event.reason.toLowerCase().includes('forbidden') ||
+            event.reason.toLowerCase().includes('auth') ||
+            event.reason.includes('403') ||
+            event.reason.includes('401'))) {
+          isAuthError = true;
+        }
+        
+        // Check if we've had multiple failed connection attempts
+        // This is especially important for catching 403 errors from Django
+        const hasMultipleFailedAttempts = 
+          socketRef.current && socketRef.current.reconnectAttempts && 
+          socketRef.current.reconnectAttempts >= MAX_RECONNECTION_ATTEMPTS;
+        
+        // Log detailed information about the connection failure
+        debugLog(`Connection closed with code ${event.code}, reason: "${event.reason}", ` +
+                `isAuthError: ${isAuthError}, hasMultipleFailedAttempts: ${hasMultipleFailedAttempts} ` +
+                `(attempts: ${socketRef.current?.reconnectAttempts || 0}/${MAX_RECONNECTION_ATTEMPTS})`);
+        
+        // If it's an auth error (either by code or by multiple failures)
+        if (isAuthError || hasMultipleFailedAttempts) {
+          const errorMsg = event.reason ? 
+            `Authentication error: ${event.reason}. Please login again.` : 
+            'Your session has expired or is invalid. Please login again.';
+          handleAuthError(errorMsg);
+          return; // Exit early as we're handling the navigation
+        }
         
         // Only set an error message if it's an abnormal closure and not during cleanup
         if (event.code !== 1000 && !isCleanupRef.current) {
@@ -314,6 +400,21 @@ const WebSocketVoice = () => {
       setError(`WebSocket setup error: ${error.message}`);
       return null;
     }
+  };
+  
+  // Helper function to handle authentication errors
+  const handleAuthError = (message) => {
+    debugLog('Authentication error:', message);
+    setError(message);
+    setConnectionStatus('disconnected');
+    
+    // Set a timer to redirect to login page after showing the message
+    setTimeout(() => {
+      // Clear tokens and logout
+      logout();
+      // Navigate to login
+      navigate('/login', { replace: true });
+    }, 3000); // Wait 3 seconds before redirecting so user can see the message
   };
   
   // Handle incoming WebSocket messages
@@ -548,103 +649,111 @@ const WebSocketVoice = () => {
   
   // Function to queue and play audio data
   const queueAndPlayAudio = async (arrayBuffer) => {
+    // Use try-catch to handle errors safely
     try {
-      // Generate unique chunk ID for this audio piece
-      const chunkId = chunkIdCounterRef.current++;
+      // Is this the first audio chunk?
+      const isFirstChunk = pendingChunksRef.current.length === 0 && !isPlayingRef.current;
       
-      // Convert array buffer to a Blob
-      const blob = new Blob([arrayBuffer], { type: 'audio/wav' });
+      if (isFirstChunk && isProcessingRef.current) {
+        debugLog('First audio chunk received, transitioning from processing to playback');
+      }
       
-      // Create a URL for the blob
-      const url = URL.createObjectURL(blob);
+      debugLog(`Processing audio data of length: ${arrayBuffer.byteLength}`);
       
-      // Store metadata about this chunk
-      const chunkMeta = {
-        id: chunkId,
-        url: url,
-        size: blob.size,
-        timestamp: Date.now(),
-        played: false
-      };
-      
-      // Add to our metadata tracking
-      allAudioChunksMetaRef.current.push(chunkMeta);
-      
-      debugLog(`[Chunk ${chunkId}] Created audio blob URL: ${url}, size: ${blob.size} bytes`);
-      
-      // Initialize audio element on first playback
+      // Create audio element if not yet existing
       if (!audioBuffersRef.current.audio) {
-        debugLog(`[Chunk ${chunkId}] Creating new Audio element for playback`);
-        
-        // Create a new audio element
         audioBuffersRef.current.audio = createAudioElement();
       }
       
-      // Get the current audio element reference
-      const audioElement = audioBuffersRef.current.audio;
+      // Create a unique ID for this chunk for tracking
+      const chunkId = chunkIdCounterRef.current++;
       
-      // Add this chunk to the queue
-      pendingChunksRef.current.push({
-        url,
-        id: chunkId
+      // Create blob URL from the audio data
+      const audioBlob = new Blob([arrayBuffer], { type: 'audio/mp3' });
+      const audioUrl = URL.createObjectURL(audioBlob);
+      
+      // Store URL for potential replay from beginning
+      allAudioChunksUrlsRef.current.push(audioUrl);
+      
+      // Store metadata about this chunk
+      allAudioChunksMetaRef.current.push({
+        id: chunkId,
+        url: audioUrl,
+        timestamp: Date.now(),
+        size: arrayBuffer.byteLength,
+        played: false,
+        playedAt: null,
+        duration: null
       });
       
-      debugLog(`[Chunk ${chunkId}] Adding chunk to queue (${pendingChunksRef.current.length - 1} already in queue)`);
+      debugLog(`[Chunk ${chunkId}] Created audio blob URL: ${audioUrl}, size: ${audioBlob.size} bytes`);
       
-      // If this is the first chunk or we're not currently playing, start playback
-      if (pendingChunksRef.current.length === 1 && !isPlayingRef.current) {
-        debugLog(`[Chunk ${chunkId}] Starting initial playback`);
+      // If this is the first chunk, we need to create the Audio element
+      if (isFirstChunk) {
+        debugLog(`[Chunk ${chunkId}] Creating new Audio element for playback`);
+        connectAudioToAnalyzer(audioBuffersRef.current.audio);
+      }
+      
+      // If we're currently playing, queue this chunk
+      if (isPlayingRef.current) {
+        debugLog(`[Chunk ${chunkId}] Adding chunk to queue (${pendingChunksRef.current.length} already in queue)`);
+        pendingChunksRef.current.push({
+          url: audioUrl,
+          id: chunkId
+        });
+      } else {
+        // Otherwise play it immediately
+        debugLog(`[Chunk ${chunkId}] Adding chunk to queue (${pendingChunksRef.current.length} already in queue)`);
+        pendingChunksRef.current.push({
+          url: audioUrl,
+          id: chunkId
+        });
         
-        // Set playing state
-        isPlayingRef.current = true;
-        setIsPlaying(true);
-        
-        // Start the first chunk
-        const firstChunk = pendingChunksRef.current.shift();
-        audioElement.src = firstChunk.url;
-        audioElement.dataset.chunkId = firstChunk.id;
-        
-        // Start visualization if not already started
-        startPlaybackVisualization();
-        
-        // Set watchdog timer based on chunk duration
-        setChunkWatchdog(audioElement, firstChunk.id);
-        
-        try {
-          // Play the audio
-          await audioElement.play();
-          debugLog(`[Chunk ${firstChunk.id}] Started playing first audio chunk`);
-          markChunkAsPlayed(firstChunk.id);
+        // Start playing the first chunk
+        if (pendingChunksRef.current.length === 1) {
+          debugLog(`[Chunk ${chunkId}] Starting initial playback`);
           
-        } catch (error) {
-          debugLog(`[Chunk ${firstChunk.id}] Error playing first chunk:`, error);
-          // Move on to next chunk if there is one
-          if (pendingChunksRef.current.length > 0) {
-            handleNextChunk(audioElement);
-          } else {
-            // No more chunks to play
-            isPlayingRef.current = false;
-            setIsPlaying(false);
+          try {
+            // Make sure audio element is connected to analyzer
+            ensureAudioElementConnected();
             
-            // If processing is complete, update the state
-            if (isProcessingCompleteRef.current) {
+            // Try playing the audio
+            audioBuffersRef.current.audio.src = audioUrl;
+            await audioBuffersRef.current.audio.play();
+            
+            // If play succeeds, update state
+            isPlayingRef.current = true;
+            setIsPlaying(true);
+            setAutoplayFailed(false);
+            autoplayFailedRef.current = false;
+            startPlaybackVisualization();
+            
+            // If this is the first chunk while processing, switch to playback UI
+            if (isProcessingRef.current && isFirstChunk) {
               updateIsProcessing(false);
             }
+          } catch (e) {
+            // Handle play failure - this is where we need better mobile handling
+            debugLog(`[Chunk ${chunkId}] Error playing first chunk:`, e);
+            
+            // Set autoplay failed flags
+            autoplayFailedRef.current = true;
+            setAutoplayFailed(true);
+            
+            // If this is the first chunk while processing, still switch to playback UI
+            if (isProcessingRef.current && isFirstChunk) {
+              updateIsProcessing(false);
+            }
+            
+            // Try to estimate the duration for watchdog timer purposes
+            tryToEstimateAudioDuration(audioUrl, chunkId);
           }
-        }
-      } else {
-        // Already playing, so just queue this chunk
-        debugLog(`[Chunk ${chunkId}] Setting up playback watchdog timer`);
-        
-        // If this is the second chunk and the first chunk is still playing
-        if (pendingChunksRef.current.length === 1 && isPlayingRef.current) {
-          debugLog(`[Chunk ${chunkId}] Already playing, chunk queued for later`);
         }
       }
       
       return true;
-    } catch (e) {
-      debugLog('Error in queueAndPlayAudio:', e);
+    } catch (error) {
+      debugLog('Error queuing audio:', error);
       return false;
     }
   };
@@ -969,6 +1078,27 @@ const WebSocketVoice = () => {
     
     // Clean up audio resources but preserve for replay
     cleanupAudio(true);
+    
+    // Check if we need to navigate (e.g., to a chart or section referenced in the response)
+    if (pendingNavigationRef.current) {
+      debugLog(`Pending navigation request to: ${pendingNavigationRef.current}`);
+      
+      // Use a short delay to allow for UI updates to complete
+      setTimeout(() => {
+        const navigationSuccessful = navigateToUrl(pendingNavigationRef.current);
+        
+        if (navigationSuccessful) {
+          // Clear the pending navigation
+          pendingNavigationRef.current = null;
+          setPendingNavigation(null);
+          debugLog('Navigation completed');
+        } else {
+          debugLog('Navigation failed');
+        }
+      }, 500);
+    } else {
+      debugLog('No pending navigation request');
+    }
   };
   
   // Clean up audio resources
@@ -1638,6 +1768,16 @@ const WebSocketVoice = () => {
   
   // Update the retry connection button click handler
   const handleRetryConnection = () => {
+    // Clear existing error
+    setError(null);
+    
+    // Reset reconnection attempts counter
+    if (socketRef.current) {
+      socketRef.current.reconnectAttempts = 0;
+      debugLog('Reset reconnection attempts counter');
+    }
+    
+    // Start a fresh connection
     setupWebSocket();
   };
   
@@ -1669,8 +1809,24 @@ const WebSocketVoice = () => {
       }
       
       // If we should be connected but the socket is closed, try to reconnect
+      // BUT only try a limited number of times before assuming there's an auth issue
       if (socketRef.current && socketRef.current.readyState === WebSocket.CLOSED && !isCleanupRef.current) {
-        debugLog('WebSocket is closed when it should be open, attempting to reconnect');
+        // Track reconnection attempts
+        if (!socketRef.current.reconnectAttempts) {
+          socketRef.current.reconnectAttempts = 1;
+        } else {
+          socketRef.current.reconnectAttempts++;
+        }
+        
+        // If we've tried too many times, assume there's an auth issue
+        if (socketRef.current.reconnectAttempts > MAX_RECONNECTION_ATTEMPTS) {
+          debugLog(`Too many reconnection attempts (${socketRef.current.reconnectAttempts}/${MAX_RECONNECTION_ATTEMPTS}), possible auth issue`);
+          handleAuthError('Unable to connect to the server. You may need to login again.');
+          clearInterval(checkInterval);
+          return;
+        }
+        
+        debugLog(`WebSocket is closed when it should be open, attempting to reconnect (attempt ${socketRef.current.reconnectAttempts}/${MAX_RECONNECTION_ATTEMPTS})`);
         setupWebSocket();
       }
     }, 2000);
@@ -1678,7 +1834,7 @@ const WebSocketVoice = () => {
     return () => {
       clearInterval(checkInterval);
     };
-  }, [connectionStatus]);
+  }, [connectionStatus, logout, navigate]);
   
   // Custom setIsProcessing to keep ref and state in sync
   const updateIsProcessing = (value) => {
@@ -2499,21 +2655,57 @@ const WebSocketVoice = () => {
 
               {/* Autoplay failed message */}
               {autoplayFailed && (
-                <Alert variant="info" className="autoplay-warning">
-                  <p>Autoplay was blocked by your browser.</p>
+                <Alert 
+                  variant="info" 
+                  className="autoplay-warning mt-3 mb-3"
+                  style={{ 
+                    maxWidth: '95%', 
+                    margin: '10px auto', 
+                    textAlign: 'center',
+                    backgroundColor: '#f8d7da',
+                    color: '#721c24',
+                    border: '1px solid #f5c6cb',
+                    borderRadius: '4px',
+                    padding: '10px 15px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
+                    zIndex: 1000
+                  }}
+                >
+                  <p style={{ fontWeight: 'bold', marginBottom: '10px' }}>Autoplay was blocked by your browser.</p>
                   <div className="d-flex gap-2 mt-2">
                     <Button
                       className="voice-playback__button"
+                      variant="success"
                       onClick={startManualPlayback}
+                      style={{ 
+                        width: '60px', 
+                        height: '60px', 
+                        borderRadius: '50%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}
                     >
-                      <Play size={20} />
+                      <Play size={24} />
                     </Button>
                     {pendingChunksRef.current.length > 0 && (
                       <Button
                         className="voice-playback__button voice-playback__button--stop"
+                        variant="danger"
                         onClick={stopPlayback}
+                        style={{ 
+                          width: '60px', 
+                          height: '60px', 
+                          borderRadius: '50%',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}
                       >
-                        <Square size={20} />
+                        <Square size={24} />
                       </Button>
                     )}
                   </div>
