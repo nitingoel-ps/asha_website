@@ -25,7 +25,9 @@ function AlertsCard({ maxItemsPerCategory = 2 }) {
       try {
         setIsLoading(true);
         const response = await axiosInstance.get('/medication-review/');
-        const transformedData = response.data.notifications.map((item, index) => ({
+        // Add null check and default to empty array if notifications is undefined
+        const notificationsData = response.data?.notifications || [];
+        const transformedData = notificationsData.map((item, index) => ({
           id: index + 1,
           severity: item.severity,
           icon: "⚠️",
@@ -42,6 +44,8 @@ function AlertsCard({ maxItemsPerCategory = 2 }) {
       } catch (err) {
         setError('Failed to fetch medication interactions');
         console.error('Error fetching medication interactions:', err);
+        // Set empty array on error
+        setMedicationInteractions([]);
       } finally {
         setIsLoading(false);
       }
@@ -56,7 +60,9 @@ function AlertsCard({ maxItemsPerCategory = 2 }) {
       try {
         setScreeningsLoading(true);
         const response = await axiosInstance.get('/screening-review/');
-        const transformedData = response.data.screening_recommendations.map((item, index) => ({
+        // Add null check and default to empty array if screening_recommendations is undefined
+        const screeningsData = response.data?.screening_recommendations || [];
+        const transformedData = screeningsData.map((item, index) => ({
           id: index + 1,
           severity: item.priority,
           icon: "📅",
@@ -73,6 +79,8 @@ function AlertsCard({ maxItemsPerCategory = 2 }) {
       } catch (err) {
         setScreeningsError('Failed to fetch screening recommendations');
         console.error('Error fetching screening recommendations:', err);
+        // Set empty array on error
+        setRecommendedScreenings([]);
       } finally {
         setScreeningsLoading(false);
       }
@@ -122,225 +130,231 @@ function AlertsCard({ maxItemsPerCategory = 2 }) {
   const prescriptionCounts = countSeverityLevels(prescriptionRefills);
 
   return (
-    <>
+    <div className="alerts-wrapper">
       {/* Medication Interactions Card */}
-      <div className="card">
-        <div className="card-header alerts-header">
-          <div className="card-title">
-            <span>💊</span> Medication Interactions
-          </div>
-          <div className="category-indicators">
-            {medicationCounts.high > 0 && (
-              <div className="severity-indicator">
-                <span className="count-indicator high-indicator"></span>
-                {medicationCounts.high} High
-              </div>
-            )}
-            {medicationCounts.medium > 0 && (
-              <div className="severity-indicator">
-                <span className="count-indicator medium-indicator"></span>
-                {medicationCounts.medium} Medium
-              </div>
-            )}
-            {medicationCounts.low > 0 && (
-              <div className="severity-indicator">
-                <span className="count-indicator low-indicator"></span>
-                {medicationCounts.low} Low
-              </div>
-            )}
-          </div>
-        </div>
-        <div className="card-body">
-          {isLoading ? (
-            <div className="loading-state">Loading medication interactions...</div>
-          ) : error ? (
-            <div className="error-state">{error}</div>
-          ) : medicationInteractions.length === 0 ? (
-            <div className="empty-state-container">
-              <span className="empty-state-icon">💊</span>
-              <h3>No Medication Interactions</h3>
-              <p>No medication interactions found.</p>
-            </div>
-          ) : (
-            <ul className="alert-list">
-              {medicationInteractions.slice(0, showAllMedications ? undefined : maxItemsPerCategory).map(alert => (
-                <li key={alert.id} className="alert-item">
-                  <div className={`alert-priority ${alert.severity}-priority`}></div>
-                  <div className={`alert-icon ${
-                    alert.severity === "high" ? "danger-icon" : 
-                    alert.severity === "medium" ? "warning-icon" : "info-icon"
-                  }`}>{alert.icon}</div>
-                  <div className="alert-content">
-                    <div className="alert-title">{alert.title}</div>
-                    <div className="alert-description">{alert.description}</div>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-          {!isLoading && !error && medicationInteractions.length > maxItemsPerCategory && (
-            <div className="card-footer">
-              {!showAllMedications && (
-                <div className="more-alerts">
-                  {medicationInteractions.length - maxItemsPerCategory} more
-                </div>
-              )}
-              <button 
-                className="view-all-button"
-                onClick={() => setShowAllMedications(!showAllMedications)}
-              >
-                {showAllMedications ? "Show Less" : "View All"}
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Screenings Card */}
-      <div className="card">
-        <div className="card-header alerts-header">
-          <div className="card-title">
-            <span>🔍</span> Recommended Screenings
-          </div>
-          <div className="category-indicators">
-            {!screeningsLoading && !screeningsError && (
-              <>
-                {screeningCounts.high > 0 && (
-                  <div className="severity-indicator">
-                    <span className="count-indicator high-indicator"></span>
-                    {screeningCounts.high} High
-                  </div>
-                )}
-                {screeningCounts.medium > 0 && (
-                  <div className="severity-indicator">
-                    <span className="count-indicator medium-indicator"></span>
-                    {screeningCounts.medium} Medium
-                  </div>
-                )}
-                {screeningCounts.low > 0 && (
-                  <div className="severity-indicator">
-                    <span className="count-indicator low-indicator"></span>
-                    {screeningCounts.low} Low
-                  </div>
-                )}
-              </>
-            )}
-          </div>
-        </div>
-        <div className="card-body">
-          {screeningsLoading ? (
-            <div className="loading-state">
-              <div className="loading-spinner"></div>
-              <p>Loading screening recommendations...</p>
-            </div>
-          ) : screeningsError ? (
-            <div className="empty-state-container">
-              <span className="empty-state-icon">🔍</span>
-              <h3>Unable to Load Screenings</h3>
-              <p>We don't have any screening recommendations for you right now. Once Asha is done reviewing your records, you will see them here.</p>
-            </div>
-          ) : recommendedScreenings.length === 0 ? (
-            <div className="empty-state-container">
-              <span className="empty-state-icon">🔍</span>
-              <h3>No Screenings Due</h3>
-              <p>You're up to date with your recommended health screenings.</p>
-            </div>
-          ) : (
-            <ul className="alert-list">
-              {recommendedScreenings.slice(0, showAllScreenings ? undefined : maxItemsPerCategory).map(alert => (
-                <li key={alert.id} className="alert-item">
-                  <div className={`alert-priority ${
-                    alert.severity === "high" ? "high-priority" : 
-                    alert.severity === "medium" ? "medium-priority" : "low-priority"
-                  }`}></div>
-                  <div className={`alert-icon ${
-                    alert.severity === "high" ? "danger-icon" : 
-                    alert.severity === "medium" ? "warning-icon" : "info-icon"
-                  }`}>{alert.icon}</div>
-                  <div className="alert-content">
-                    <div className="alert-title">{alert.title}</div>
-                    <div className="alert-description">{alert.description}</div>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-          {!screeningsLoading && !screeningsError && recommendedScreenings.length > maxItemsPerCategory && (
-            <div className="card-footer">
-              {!showAllScreenings && (
-                <div className="more-alerts">
-                  {recommendedScreenings.length - maxItemsPerCategory} more
-                </div>
-              )}
-              <button 
-                className="view-all-button"
-                onClick={() => setShowAllScreenings(!showAllScreenings)}
-              >
-                {showAllScreenings ? "Show Less" : "View All"}
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Prescription Refills Card */}
-      {prescriptionRefills.length > 0 && (
+      <div className="alert-card-container">
         <div className="card">
           <div className="card-header alerts-header">
             <div className="card-title">
-              <span>💊</span> Prescription Refills
+              <span>💊</span> Medication Interactions
             </div>
             <div className="category-indicators">
-              {prescriptionCounts["due-soon"] > 0 && (
+              {medicationCounts.high > 0 && (
                 <div className="severity-indicator">
-                  <span className="count-indicator medium-indicator"></span>
-                  {prescriptionCounts["due-soon"]} Due Soon
+                  <span className="count-indicator high-indicator"></span>
+                  {medicationCounts.high} High
                 </div>
               )}
-              {prescriptionCounts.upcoming > 0 && (
+              {medicationCounts.medium > 0 && (
+                <div className="severity-indicator">
+                  <span className="count-indicator medium-indicator"></span>
+                  {medicationCounts.medium} Medium
+                </div>
+              )}
+              {medicationCounts.low > 0 && (
                 <div className="severity-indicator">
                   <span className="count-indicator low-indicator"></span>
-                  {prescriptionCounts.upcoming} Upcoming
+                  {medicationCounts.low} Low
                 </div>
               )}
             </div>
           </div>
           <div className="card-body">
-            <ul className="alert-list">
-              {prescriptionRefills.slice(0, showAllRefills ? undefined : maxItemsPerCategory).map(alert => (
-                <li key={alert.id} className="alert-item">
-                  <div className={`alert-priority ${
-                    alert.severity === "due-soon" ? "medium-priority" : "low-priority"
-                  }`}></div>
-                  <div className={`alert-icon ${
-                    alert.severity === "due-soon" ? "warning-icon" : "info-icon"
-                  }`}>{alert.icon}</div>
-                  <div className="alert-content">
-                    <div className="alert-title">{alert.title}</div>
-                    <div className="alert-description">{alert.description}</div>
-                  </div>
-                </li>
-              ))}
-            </ul>
-            {prescriptionRefills.length > maxItemsPerCategory && (
+            {isLoading ? (
+              <div className="loading-state">Loading medication interactions...</div>
+            ) : error ? (
+              <div className="error-state">{error}</div>
+            ) : medicationInteractions.length === 0 ? (
+              <div className="empty-state-container">
+                <span className="empty-state-icon">💊</span>
+                <h3>No Medication Interactions</h3>
+                <p>No medication interactions found.</p>
+              </div>
+            ) : (
+              <ul className="alert-list">
+                {medicationInteractions.slice(0, showAllMedications ? undefined : maxItemsPerCategory).map(alert => (
+                  <li key={alert.id} className="alert-item">
+                    <div className={`alert-priority ${alert.severity}-priority`}></div>
+                    <div className={`alert-icon ${
+                      alert.severity === "high" ? "danger-icon" : 
+                      alert.severity === "medium" ? "warning-icon" : "info-icon"
+                    }`}>{alert.icon}</div>
+                    <div className="alert-content">
+                      <div className="alert-title">{alert.title}</div>
+                      <div className="alert-description">{alert.description}</div>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+            {!isLoading && !error && medicationInteractions.length > maxItemsPerCategory && (
               <div className="card-footer">
-                {!showAllRefills && (
+                {!showAllMedications && (
                   <div className="more-alerts">
-                    {prescriptionRefills.length - maxItemsPerCategory} more
+                    {medicationInteractions.length - maxItemsPerCategory} more
                   </div>
                 )}
                 <button 
                   className="view-all-button"
-                  onClick={() => setShowAllRefills(!showAllRefills)}
+                  onClick={() => setShowAllMedications(!showAllMedications)}
                 >
-                  {showAllRefills ? "Show Less" : "View All"}
+                  {showAllMedications ? "Show Less" : "View All"}
                 </button>
               </div>
             )}
           </div>
         </div>
+      </div>
+
+      {/* Screenings Card */}
+      <div className="alert-card-container">
+        <div className="card">
+          <div className="card-header alerts-header">
+            <div className="card-title">
+              <span>🔍</span> Recommended Screenings
+            </div>
+            <div className="category-indicators">
+              {!screeningsLoading && !screeningsError && (
+                <>
+                  {screeningCounts.high > 0 && (
+                    <div className="severity-indicator">
+                      <span className="count-indicator high-indicator"></span>
+                      {screeningCounts.high} High
+                    </div>
+                  )}
+                  {screeningCounts.medium > 0 && (
+                    <div className="severity-indicator">
+                      <span className="count-indicator medium-indicator"></span>
+                      {screeningCounts.medium} Medium
+                    </div>
+                  )}
+                  {screeningCounts.low > 0 && (
+                    <div className="severity-indicator">
+                      <span className="count-indicator low-indicator"></span>
+                      {screeningCounts.low} Low
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          </div>
+          <div className="card-body">
+            {screeningsLoading ? (
+              <div className="loading-state">
+                <div className="loading-spinner"></div>
+                <p>Loading screening recommendations...</p>
+              </div>
+            ) : screeningsError ? (
+              <div className="empty-state-container">
+                <span className="empty-state-icon">🔍</span>
+                <h3>Unable to Load Screenings</h3>
+                <p>We don't have any screening recommendations for you right now. Once Asha is done reviewing your records, you will see them here.</p>
+              </div>
+            ) : recommendedScreenings.length === 0 ? (
+              <div className="empty-state-container">
+                <span className="empty-state-icon">🔍</span>
+                <h3>No Screenings Due</h3>
+                <p>You're up to date with your recommended health screenings.</p>
+              </div>
+            ) : (
+              <ul className="alert-list">
+                {recommendedScreenings.slice(0, showAllScreenings ? undefined : maxItemsPerCategory).map(alert => (
+                  <li key={alert.id} className="alert-item">
+                    <div className={`alert-priority ${
+                      alert.severity === "high" ? "high-priority" : 
+                      alert.severity === "medium" ? "medium-priority" : "low-priority"
+                    }`}></div>
+                    <div className={`alert-icon ${
+                      alert.severity === "high" ? "danger-icon" : 
+                      alert.severity === "medium" ? "warning-icon" : "info-icon"
+                    }`}>{alert.icon}</div>
+                    <div className="alert-content">
+                      <div className="alert-title">{alert.title}</div>
+                      <div className="alert-description">{alert.description}</div>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+            {!screeningsLoading && !screeningsError && recommendedScreenings.length > maxItemsPerCategory && (
+              <div className="card-footer">
+                {!showAllScreenings && (
+                  <div className="more-alerts">
+                    {recommendedScreenings.length - maxItemsPerCategory} more
+                  </div>
+                )}
+                <button 
+                  className="view-all-button"
+                  onClick={() => setShowAllScreenings(!showAllScreenings)}
+                >
+                  {showAllScreenings ? "Show Less" : "View All"}
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Prescription Refills Card */}
+      {prescriptionRefills.length > 0 && (
+        <div className="alert-card-container">
+          <div className="card">
+            <div className="card-header alerts-header">
+              <div className="card-title">
+                <span>💊</span> Prescription Refills
+              </div>
+              <div className="category-indicators">
+                {prescriptionCounts["due-soon"] > 0 && (
+                  <div className="severity-indicator">
+                    <span className="count-indicator medium-indicator"></span>
+                    {prescriptionCounts["due-soon"]} Due Soon
+                  </div>
+                )}
+                {prescriptionCounts.upcoming > 0 && (
+                  <div className="severity-indicator">
+                    <span className="count-indicator low-indicator"></span>
+                    {prescriptionCounts.upcoming} Upcoming
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="card-body">
+              <ul className="alert-list">
+                {prescriptionRefills.slice(0, showAllRefills ? undefined : maxItemsPerCategory).map(alert => (
+                  <li key={alert.id} className="alert-item">
+                    <div className={`alert-priority ${
+                      alert.severity === "due-soon" ? "medium-priority" : "low-priority"
+                    }`}></div>
+                    <div className={`alert-icon ${
+                      alert.severity === "due-soon" ? "warning-icon" : "info-icon"
+                    }`}>{alert.icon}</div>
+                    <div className="alert-content">
+                      <div className="alert-title">{alert.title}</div>
+                      <div className="alert-description">{alert.description}</div>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+              {prescriptionRefills.length > maxItemsPerCategory && (
+                <div className="card-footer">
+                  {!showAllRefills && (
+                    <div className="more-alerts">
+                      {prescriptionRefills.length - maxItemsPerCategory} more
+                    </div>
+                  )}
+                  <button 
+                    className="view-all-button"
+                    onClick={() => setShowAllRefills(!showAllRefills)}
+                  >
+                    {showAllRefills ? "Show Less" : "View All"}
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
       )}
-    </>
+    </div>
   );
 }
 

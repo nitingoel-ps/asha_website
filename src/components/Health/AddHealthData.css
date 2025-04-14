@@ -40,6 +40,7 @@ h3 {
   padding-bottom: 0.5rem;
 }
 
+/* THis is causing an unnecessary underline across the app in different places.
 h3::after {
   content: '';
   position: absolute;
@@ -50,6 +51,7 @@ h3::after {
   background-color: #3498db;
   border-radius: 2px;
 }
+*/
 
 /* Back button styling */
 .back-link {

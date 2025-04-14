@@ -276,6 +276,13 @@
   transform: translateX(-50%) scale(1.1);
 }
 
+/* Hide microphone button on mobile since it's in the bottom navbar */
+@media (max-width: 768px) {
+  .mic-btn {
+    display: none !important;
+  }
+}
+
 .new-chat-btn {
   position: absolute;
   top: 0px; /* Align with the toggle button */
@@ -304,26 +311,30 @@
 /* Mobile-specific fixes */
 @media (max-width: 768px) {
   .ai-chat-container {
-    height: calc(var(--vh, 1vh) * 100 - 56px);
+    height: calc((var(--vh, 1vh) * 100) - 141px); /* Account for 56px top bar and 85px bottom bar */
     padding: 0; /* Remove padding on mobile */
     overflow: hidden; /* Prevent outer container scrolling */
+    margin-top: 56px; /* Add margin to offset the fixed top navigation */
   }
 
   .ai-chat-sidebar {
     display: none;
+    position: fixed; /* Fixed positioning instead of absolute */
+    top: 56px; /* Start right below the top nav bar */
+    left: 0;
+    width: 100%;
+    height: calc(100vh - 141px); /* Full height minus top and bottom bars */
+    max-height: calc(100vh - 141px); /* Ensure it doesn't expand beyond viewport */
+    z-index: 1030; /* Below mobile top bar (1040) but above most content */
+    background: white; /* Move background to base style so it's always visible */
   }
 
   .ai-chat-sidebar.d-block {
     display: block;
-    position: absolute;
-    top: 50px; /* Shift down to avoid overlapping with the button */
-    left: 0;
-    width: 100%;
-    height: calc(100% - 50px); /* Adjust height to account for the button */
-    background: white;
-    z-index: 999;
     overflow-y: auto;
-    padding-top: 10px;
+    padding-top: 0; /* Remove padding to start immediately below the navbar */
+    padding-bottom: 10px; /* Add padding at the bottom for better spacing */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Add shadow for better visual separation */
   }
 
   .ai-chat-main {
@@ -342,11 +353,9 @@
   }
 
   .ai-chat-messages-container {
-    padding: 30px 10px 10px 10px;
+    padding: 10px 10px 95px 10px; /* Increased bottom padding to avoid overlap with bottom nav */
     flex-grow: 1;
     overflow-y: auto;
-    /* Add padding at the bottom to account for fixed input area */
-    padding-bottom: 80px; /* Adjust based on your input field height */
     width: 100%;
     height: 100%;
   }
@@ -355,7 +364,7 @@
     padding: 10px;
     border-top: 1px solid #dee2e6;
     position: fixed; /* Fix to the bottom of the screen */
-    bottom: 0;
+    bottom: 85px; /* Position above the bottom navigation bar */
     left: 0;
     right: 0;
     background: white;
@@ -366,7 +375,7 @@
   }
 
   .ai-chat-message-input-form .form-control {
-    height: calc(2.25em + 1.875rem + 3px); /* 50% bigger */
+    height: calc(2.25em + 1.25rem + 3px); /* Slightly reduced height to fit better */
   }
 
   .ai-chat-message-input-form .btn {
@@ -387,20 +396,6 @@
 
   .ai-chat-message-list {
     gap: 10px;
-  }
-
-  .mic-btn {
-    top: 0px;
-    left: 50%;
-    transform: translateX(-50%);
-    background-color: white; /* Fully opaque for better visibility */
-    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3); /* Stronger shadow for better visibility */
-    width: 45px; /* Slightly larger for better visibility */
-    height: 45px; /* Slightly larger for better visibility */
-  }
-  
-  .mic-btn:hover {
-    transform: translateX(-50%) scale(1.1);
   }
 }
 
@@ -594,4 +589,35 @@
   margin: 0;
   font-weight: 500;
   color: #333;
+}
+
+/* Add styles for top bar buttons in AI Chat view */
+.ai-chat-list-btn, .ai-chat-new-btn {
+  background: none;
+  border: none;
+  color: white;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+  z-index: 1041;
+}
+
+.ai-chat-list-btn {
+  margin-right: 4px;
+}
+
+.ai-chat-new-btn {
+  margin-left: 4px;
+}
+
+.ai-chat-list-btn:hover, .ai-chat-new-btn:hover {
+  opacity: 0.8;
+}
+
+.ai-chat-list-btn svg, .ai-chat-new-btn svg {
+  font-size: 1.4rem;
+  stroke-width: 2px;
 }

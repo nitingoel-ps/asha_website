@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, Button, Row, Col, Badge, Modal, Form, Alert } from 'react-bootstrap';
 import { Plus, Activity, Edit2, MapPin, Trash2, AlertTriangle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -39,6 +39,16 @@ const SymptomsList = ({ symptoms = [], onRefresh }) => {
 
   // Priority values for dropdown
   const priorityValues = Array.from({ length: 10 }, (_, i) => i + 1);
+
+  // Add event listener for the custom event from top nav bar
+  useEffect(() => {
+    const handleOpenAddSymptom = () => {
+      navigate('create');
+    };
+
+    window.addEventListener('openAddSymptom', handleOpenAddSymptom);
+    return () => window.removeEventListener('openAddSymptom', handleOpenAddSymptom);
+  }, [navigate]);
 
   const handleCreateSymptom = () => {
     navigate('create');
@@ -176,20 +186,6 @@ const SymptomsList = ({ symptoms = [], onRefresh }) => {
 
   return (
     <div>
-      <div className="d-flex justify-content-between align-items-center mb-4 symptom-detail-header">
-        <h2 className="mb-0">
-          <Activity size={24} className="me-2" />
-          Symptom Tracking
-        </h2>
-        <Button 
-          variant="primary" 
-          onClick={handleCreateSymptom}
-        >
-          <Plus size={16} className="me-1" />
-          New Symptom
-        </Button>
-      </div>
-
       {symptomArray.length === 0 ? (
         <Card className="text-center p-4 mb-3 empty-state-container">
           <Card.Body>
@@ -199,7 +195,7 @@ const SymptomsList = ({ symptoms = [], onRefresh }) => {
             </p>
             <Button 
               variant="primary" 
-              onClick={handleCreateSymptom}
+              onClick={() => navigate('create')}
             >
               <Plus size={16} className="me-1" />
               Track Your First Symptom

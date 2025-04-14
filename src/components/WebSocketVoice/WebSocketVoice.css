@@ -129,19 +129,19 @@
   top: 50% !important;
   left: 50% !important;
   transform: translate(-50%, -50%) !important;
-  background-color: #0d6efd !important;
-  border-color: #0d6efd !important;
+  background-color: #019ea1 !important;
+  border-color: #019ea1 !important;
   border: none !important;
-  box-shadow: 0 4px 10px rgba(13, 110, 253, 0.3) !important;
+  box-shadow: 0 4px 10px rgba(1, 158, 161, 0.3) !important;
   z-index: 50 !important;
   overflow: hidden !important;
 }
 
 .record-button.btn:hover {
   transform: translate(-50%, -50%) scale(1.05) !important;
-  background-color: #0b5ed7 !important;
-  border-color: #0b5ed7 !important;
-  box-shadow: 0 6px 15px rgba(13, 110, 253, 0.4) !important;
+  background-color: #018b8d !important;
+  border-color: #018b8d !important;
+  box-shadow: 0 6px 15px rgba(1, 158, 161, 0.4) !important;
 }
 
 .record-button.btn:active {
@@ -265,7 +265,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  color: #0d6efd;
+  color: #019ea1;
   position: absolute;
   top: 50%;
   left: 50%;
@@ -365,12 +365,12 @@
 
 .transcription-container::-webkit-scrollbar-thumb,
 .ai-response-container::-webkit-scrollbar-thumb {
-  background-color: rgba(0, 0, 0, 0.2);
-  border-radius: 6px;
+  background-color: rgba(1, 158, 161, 0.2);
+  border-radius: 4px;
 }
 
 .ai-response-container::-webkit-scrollbar-thumb {
-  background-color: rgba(13, 110, 253, 0.2);
+  background-color: rgba(1, 158, 161, 0.2);
 }
 
 /* Transcription container styles */
@@ -402,6 +402,7 @@
 
 .transcription-text.final {
   font-weight: 500;
+  border-left: 4px solid #019ea1;
 }
 
 .transcription-empty {
@@ -426,13 +427,13 @@
   max-height: 200px;
   min-height: 80px;
   overflow-y: auto;
-  border-left: 4px solid #0d6efd;
+  border-left: 4px solid #019ea1;
 }
 
 .ai-response-text {
   font-size: 1.1rem;
   line-height: 1.5;
-  color: #0d6efd;
+  color: #019ea1;
   white-space: pre-wrap;
   word-break: break-word;
 }
@@ -444,12 +445,13 @@
 }
 
 .ai-response-label {
-  font-size: 0.8rem;
-  font-weight: bold;
-  text-transform: uppercase;
-  color: #0d6efd;
-  margin-bottom: 5px;
-  letter-spacing: 0.5px;
+  font-size: 0.9rem;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: #019ea1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 /* Error message styling to minimize space usage */
@@ -735,6 +737,24 @@
   margin-bottom: 15px;
 }
 
+/* Mobile adjustments for error container */
+@media (max-width: 768px) {
+  .error-container {
+    top: 100px; /* Move error container below navbar and connection status */
+    z-index: 60; /* Ensure it's above other elements */
+  }
+  
+  /* Add more spacing below error container */
+  .error-container + .voice-visualization-container {
+    margin-top: 130px !important; /* Increased margin to make room for error messages */
+  }
+  
+  /* When error container is present, adjust visualization margins */
+  .streaming-voice-interface .voice-visualization-container {
+    transition: margin 0.3s ease !important; /* Smooth transition when error appears/disappears */
+  }
+}
+
 /* Add margin to voice controls when error container is present */
 .error-container + .voice-controls {
   margin-top: 10px;
@@ -832,11 +852,18 @@
   font-size: 0.85rem !important;
   color: #555 !important;
   position: absolute !important;
-  top: 15px !important;
+  top: 10px !important; /* Increased from 15px to be visible below top navbar */
   left: 0 !important;
   right: 0 !important;
   justify-content: center !important;
   z-index: 10 !important;
+  background-color: rgba(255, 255, 255, 0.8) !important; /* Add slight background for better visibility */
+  padding: 5px 8px !important;
+  border-radius: 20px !important;
+  width: auto !important;
+  max-width: 90% !important;
+  margin: 0 auto !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
 }
 
 .status-indicator {
@@ -921,13 +948,13 @@
 /* Mobile adjustments with higher specificity */
 @media (max-width: 768px) {
   .streaming-voice-interface .connection-status {
-    top: 15px !important;
+    top: 60px !important; /* Slightly lower on mobile */
+    font-size: 0.8rem !important;
+    padding: 4px 8px !important;
   }
   
   .streaming-voice-interface .voice-visualization-container {
-    height: 220px !important;
-    margin: 30px auto 40px !important;
-    max-width: 90% !important;
+    margin: 85px auto 30px !important; /* Adjust margins for mobile */
   }
   
   .streaming-voice-interface .controls-area {
@@ -936,9 +963,7 @@
   }
   
   .streaming-voice-interface .voice-controls {
-    margin-top: 0px !important;
-    height: 120px !important;
-    min-height: 120px !important;
+    padding: 8px !important;
   }
   
   .streaming-voice-interface .voice-playback__controls {
@@ -1029,89 +1054,66 @@
   }
 }
 
-/* Debug button */
-.debug-info-button {
-  position: absolute;
-  top: 15px;
-  left: 15px;
-  z-index: 20;
-}
-
-.debug-info-button button {
-  font-size: 0.75rem;
-  padding: 2px 8px;
-  opacity: 0.7;
-}
-
-.debug-info-button button:hover {
-  opacity: 1;
-}
-
-@media (max-width: 768px) {
-  .debug-info-button {
-    top: 10px;
-    left: 10px;
-  }
-  
-  .debug-info-button button {
-    font-size: 0.7rem;
-    padding: 1px 6px;
-  }
-}
-
 /* Auto-Send Settings Button */
 .auto-send-settings-button {
-  position: absolute;
-  top: 15px;
-  right: 15px;
-  z-index: 20;
+  display: none; /* Hide the settings button as it will be moved to navbar */
 }
 
-.auto-send-settings-button button {
-  font-size: 0.75rem;
-  padding: 4px 8px;
-  opacity: 0.7;
-  border-radius: 50%;
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
+/* Create a new class for navbar settings button */
+.navbar-settings-button {
+  padding: 0 !important;
+  background: none !important;
+  border: none !important;
+  color: #ffffff !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  position: relative !important;
+  width: 40px !important;
+  height: 40px !important;
 }
 
-.auto-send-settings-button button.active-setting {
-  background-color: rgba(13, 110, 253, 0.1);
-  border-color: rgba(13, 110, 253, 0.3);
-  color: #0d6efd;
-  opacity: 1;
+.navbar-settings-button svg {
+  font-size: 1.25rem !important;
 }
 
-.setting-indicator {
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 8px;
-  height: 8px;
-  background-color: #0d6efd;
-  border-radius: 50%;
-  border: 1px solid white;
+/* Add styles for settings panel to display properly when opened from navbar */
+.mobile-top-bar .auto-send-settings-panel {
+  position: fixed !important;
+  top: 60px !important; /* Position below navbar */
+  right: 5px !important;
+  z-index: 2000 !important; /* Higher z-index to appear above other elements */
 }
 
-.auto-send-settings-button button:hover {
-  opacity: 1;
-  background-color: #e9ecef;
-}
+/* Mobile adjustments */
+@media (max-width: 768px) {
+  .streaming-voice-interface .connection-status {
+    top: 60px !important; /* Slightly lower on mobile */
+    font-size: 0.8rem !important;
+    padding: 4px 8px !important;
+  }
 
-.auto-send-settings-button button.active-setting:hover {
-  background-color: rgba(13, 110, 253, 0.15);
+  .streaming-voice-interface .voice-visualization-container {
+    margin: 85px auto 30px !important; /* Adjust margins for mobile */
+  }
+  
+  /* Make the voice controls fit better on mobile */
+  .streaming-voice-interface .voice-controls {
+    padding: 8px !important;
+  }
+  
+  /* Update settings panel position for mobile */
+  .mobile-top-bar .auto-send-settings-panel {
+    width: 270px !important;
+    top: 58px !important;
+  }
 }
 
 /* Auto-Send Indicator in connection status */
 .auto-send-indicator {
+  color: #019ea1;
   margin-left: 12px;
   font-size: 0.8rem;
-  color: #0d6efd;
   display: flex;
   align-items: center;
 }
@@ -1119,7 +1121,7 @@
 .send-delay-indicator {
   margin-left: 12px;
   font-size: 0.8rem;
-  color: #6c757d;
+  color: #019ea1;
   display: flex;
   align-items: center;
 }
@@ -1127,14 +1129,14 @@
 .indicator-dot {
   width: 6px;
   height: 6px;
-  background-color: #0d6efd;
+  background-color: #019ea1;
   border-radius: 50%;
   margin-right: 5px;
   display: inline-block;
 }
 
 .delay-dot {
-  background-color: #6c757d;
+  background-color: #019ea1;
 }
 
 /* Auto-Send Settings Panel */
@@ -1220,8 +1222,8 @@
 
 /* Form styles for better appearance */
 .form-check-input:checked {
-  background-color: #0d6efd;
-  border-color: #0d6efd;
+  background-color: #019ea1;
+  border-color: #019ea1;
 }
 
 .fw-medium {
@@ -1247,7 +1249,7 @@
   width: 20px;
   height: 20px;
   margin-top: -8px;
-  background-color: #0d6efd;
+  background-color: #019ea1;
   border: 0;
   border-radius: 50%;
   -webkit-appearance: none;
@@ -1273,7 +1275,7 @@
 .form-range::-moz-range-thumb {
   width: 20px;
   height: 20px;
-  background-color: #0d6efd;
+  background-color: #019ea1;
   border: 0;
   border-radius: 50%;
   -moz-appearance: none;
@@ -1379,7 +1381,7 @@
 
 /* Add styles for the current transcription */
 .transcription-text .current {
-  color: #666;
+  color: #019ea1;
   font-style: italic;
 }
 
@@ -1410,11 +1412,11 @@
   display: flex !important;
   justify-content: center !important;
   align-items: center !important;
-  width: 100% !important;
-  max-width: 400px !important; /* Reduced from 600px for better mobile fit */
+  width: 300px !important; /* Fixed width to maintain aspect ratio */
+  height: 300px !important; /* Fixed height to ensure perfect circle */
+  max-width: 400px !important;
   aspect-ratio: 1 / 1 !important; /* Force 1:1 aspect ratio */
-  height: auto !important; /* Let height be determined by aspect ratio */
-  margin: 40px auto 50px !important;
+  margin: 90px auto 20px !important; /* Reduced bottom margin */
   position: relative !important;
   overflow: hidden !important;
   border-radius: 50% !important; /* Make container perfectly circular */
@@ -1422,6 +1424,7 @@
   box-shadow: none !important;
   box-sizing: border-box !important;
   z-index: 5 !important;
+  animation: pulse-idle 2s infinite !important;
 }
 
 /* Canvas element that holds the visualization */
@@ -1446,16 +1449,34 @@
 /* Media query adjustments for mobile */
 @media (max-width: 768px) {
   .streaming-voice-interface .voice-visualization-container {
-    max-width: 300px !important; /* Smaller on mobile */
-    margin: 20px auto 5px !important; /* Adjusted margins for mobile */
+    width: 250px !important; /* Fixed width for mobile */
+    height: 250px !important; /* Fixed height for mobile */
+    margin: 90px auto 10px !important; /* Reduced bottom margin on mobile */
+  }
+  
+  /* Reduce the controls-area top margin to bring it closer to visualization */
+  .streaming-voice-interface .controls-area {
+    margin-top: 0 !important; /* Remove top margin on controls area */
+    min-height: 150px !important; /* Reduce min-height on mobile */
+  }
+  
+  /* Only apply additional margin when there's an error */
+  .error-container + .voice-visualization-container {
+    margin-top: 120px !important; /* Slightly reduced from 130px */
   }
 }
 
 /* Update the small screen breakpoint as well */
 @media (max-width: 576px) {
   .streaming-voice-interface .voice-visualization-container {
-    max-width: 300px !important; /* Even smaller on very small screens */
-    margin: 20px auto 5px !important;
+    width: 220px !important; /* Even smaller on very small screens */
+    height: 220px !important; /* Maintain aspect ratio */
+    margin: 90px auto 10px !important;
+  }
+  
+  /* Make the controls area even smaller on very small screens */
+  .streaming-voice-interface .controls-area {
+    min-height: 120px !important;
   }
 }
 
@@ -1514,10 +1535,72 @@
   flex-direction: column !important;
   align-items: center !important;
   justify-content: center !important;
-  margin-top: 0px !important;
+  margin-top: 20px !important;
   margin-bottom: 30px !important;
   padding: 15px !important;
   position: relative !important;
   z-index: 20 !important;
   min-height: 200px !important;
+}
+
+/* Add specific styles for settings panel when opened from mobile navbar */
+.mobile-top-bar ~ .auto-send-settings-panel {
+  position: fixed !important;
+  top: 56px !important; /* Position just below navbar */
+  right: 10px !important;
+  z-index: 2000 !important; /* Higher z-index than most elements */
+  width: 280px !important;
+  max-width: 90% !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Update button styles for vizualization toggle buttons */
+.viz-toggle-btn.btn-primary {
+  background-color: #019ea1 !important;
+  border-color: #019ea1 !important;
+}
+
+.viz-toggle-btn.btn-outline-primary {
+  color: #019ea1 !important;
+  border-color: #019ea1 !important;
+}
+
+.viz-toggle-btn.btn-outline-primary:hover {
+  background-color: rgba(1, 158, 161, 0.1) !important;
+}
+
+/* Add a light background to the connection indicator for better legibility */
+.connection-status {
+  background-color: rgba(255, 255, 255, 0.85) !important;
+  padding: 5px 10px !important;
+  border-radius: 20px !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Add animation for idle (not recording/playing) state */
+@keyframes pulse-idle {
+  0% {
+    box-shadow: 0 0 0 0 rgba(1, 158, 161, 0.3);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(1, 158, 161, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(1, 158, 161, 0);
+  }
+}
+
+/* Apply the pulse animation to the container by default */
+.streaming-voice-interface .voice-visualization-container {
+  animation: pulse-idle 2s infinite !important;
+}
+
+/* Override with recording animation when recording */
+.streaming-voice-interface .voice-visualization-container.recording {
+  animation: pulse-recording 1.5s infinite !important;
+}
+
+/* Override with playing animation when playing */
+.streaming-voice-interface .voice-visualization-container.playing {
+  animation: pulse-playing 1.5s infinite !important;
 } 

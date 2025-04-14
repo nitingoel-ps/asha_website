@@ -45,6 +45,19 @@
   grid-column: span 3;
 }
 
+/* Ensure consistent card layout and spacing */
+.dashboard-grid > div {
+  display: flex;
+  margin-bottom: 0; /* Remove any potential margin bottom causing inconsistent spacing */
+}
+
+.dashboard-grid > div > .card {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
 .card {
   background: var(--bg-white);
   border-radius: var(--border-radius);
@@ -255,4 +268,19 @@
   color: var(--text-light);
   font-size: 0.9rem;
   margin-top: 0.5rem;
+}
+
+/* Ensure consistent spacing and override any component-specific margins */
+.dashboard-grid .card,
+.dashboard-grid-3x1 .card {
+  margin-bottom: 0;
+}
+
+/* Remove these rules since we're now handling the AlertsCard component structure differently */
+.dashboard-grid-3x1 .alerts-container .card {
+  margin-bottom: 0; /* Changed from 1.5rem */
+}
+
+.dashboard-grid-3x1 .alerts-container .card:last-child {
+  margin-bottom: 0;
 } 

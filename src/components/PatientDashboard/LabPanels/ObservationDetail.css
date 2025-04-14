@@ -167,10 +167,15 @@
   border: 1px solid #e2e8f0;
   border-radius: 8px;
   transition: all 0.2s ease;
+  padding: 16px;
 }
 
 .history-card:hover {
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.history-card .card-body {
+  padding: 0;
 }
 
 .history-card-main {
@@ -186,67 +191,64 @@
   margin-bottom: 8px;
 }
 
-.history-name-container {
-  flex: 1;
-  min-width: 0;
-}
-
-.history-name {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: #2d3748;
-  display: inline-block;
-  margin-right: 8px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.history-value-group {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.history-value {
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: #2d3748;
-}
-
-.history-uom {
-  font-size: 1rem;
-  color: #4a5568;
-}
-
-.history-date {
-  color: #718096;
-  font-size: 0.875rem;
-  margin-top: 4px;
-}
-
-.history-value-container {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 8px;
-  justify-content: flex-end;
-  flex-shrink: 0;
-}
-
-.value-uom-group {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
 .history-main-line {
   display: flex;
   justify-content: space-between;
   align-items: center;
   width: 100%;
   flex-wrap: nowrap;
+  margin-bottom: 4px;
+  gap: 16px;
+}
+
+.history-name-container {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+}
+
+.history-name {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #2d3748;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.history-value-container {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  min-width: fit-content;
+}
+
+.value-uom-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+}
+
+.history-value {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #2d3748;
+  white-space: nowrap;
+}
+
+.history-uom {
+  font-size: 1rem;
+  color: #4a5568;
+  white-space: nowrap;
+}
+
+.history-date {
+  color: #718096;
+  font-size: 0.875rem;
+  text-align: right;
 }
 
 .abnormal-indicator {
@@ -263,8 +265,8 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  background-color: #f8fafc;
-  padding: 12px;
+  background-color: white;
+  padding: 0px;
   border-radius: 6px;
   margin-top: 12px;
 }
@@ -366,7 +368,7 @@
   }
 
   .history-section {
-    padding: 10px;
+    padding: 0px;
   }
 
   .history-section h6 {
@@ -375,7 +377,7 @@
 
   .history-grid {
     grid-template-columns: 1fr;
-    padding: 10px;
+    padding: 0px;
     gap: 15px;
   }
 

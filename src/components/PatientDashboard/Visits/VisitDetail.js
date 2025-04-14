@@ -185,7 +185,7 @@ function VisitDetail({ visit, encounters, onBack }) {
         <div className="visit-header">
           <div className="visit-header-top">
             <h2 className="visit-title">{visit.type}</h2>
-            {!isMobile && encounters.length > 1 && (
+            {encounters.length > 1 && (
               <div className="visit-navigation">
                 <button 
                   className="nav-button"
@@ -196,7 +196,7 @@ function VisitDetail({ visit, encounters, onBack }) {
                   <ChevronLeft size={20} />
                 </button>
                 <span className="visit-nav-info">
-                  Visit {currentVisitIndex + 1} of {encounters.length}
+                  {currentVisitIndex + 1} of {encounters.length}
                 </span>
                 <button 
                   className="nav-button"
@@ -299,29 +299,6 @@ function VisitDetail({ visit, encounters, onBack }) {
 
         {/* Render document viewer with ReactDOM.createPortal */}
         {renderDocumentViewer()}
-
-        {/* Add mobile navigation at the bottom */}
-        {isMobile && encounters.length > 1 && (
-          <div className="mobile-visit-navigation">
-            <button 
-              className="nav-button"
-              onClick={() => navigateVisit('prev')}
-              disabled={!hasPrevVisit}
-            >
-              <ChevronLeft size={20} />
-            </button>
-            <span className="visit-nav-info">
-              {currentVisitIndex + 1} of {encounters.length}
-            </span>
-            <button 
-              className="nav-button"
-              onClick={() => navigateVisit('next')}
-              disabled={!hasNextVisit}
-            >
-              <ChevronRightIcon size={20} />
-            </button>
-          </div>
-        )}
       </div>
     </div>
   );

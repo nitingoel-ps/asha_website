@@ -4,6 +4,7 @@ import { Navbar, Nav, Container } from 'react-bootstrap';
 import { FaBars, FaTimes } from 'react-icons/fa';
 import './Navigation.css';
 import './navbar.css'; // Import our custom navbar styles
+import './loggedout-navbar.css'; // Import specific styles for logged out navbar
 
 function LoggedOutNavbar() {
   const [expanded, setExpanded] = useState(false);
@@ -11,6 +12,9 @@ function LoggedOutNavbar() {
   const navbarRef = useRef(null);
 
   useEffect(() => {
+    // Add body class for proper padding
+    document.body.classList.add('has-loggedout-navbar');
+    
     const handleClickOutside = (event) => {
       if (navbarRef.current && !navbarRef.current.contains(event.target)) {
         setExpanded(false);
@@ -18,7 +22,12 @@ function LoggedOutNavbar() {
     };
 
     document.addEventListener('click', handleClickOutside);
-    return () => document.removeEventListener('click', handleClickOutside);
+    
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+      // Remove body class when component unmounts
+      document.body.classList.remove('has-loggedout-navbar');
+    };
   }, []);
 
   const closeMobileMenu = () => setShowMobileMenu(false);
@@ -30,21 +39,22 @@ function LoggedOutNavbar() {
         ref={navbarRef}
         variant="dark" 
         expand="lg" 
-        className="site-navbar mobile-friendly-navbar"
+        className="site-navbar loggedout-navbar"
         expanded={expanded}
         onToggle={(expanded) => setExpanded(expanded)}
+        fixed="top"
       >
         <Container>
           <Navbar.Brand as={Link} to="/" className="text-white fw-bold" onClick={() => setExpanded(false)}>
-            Aspen Health AI
+            Asha AI
           </Navbar.Brand>
           
-          {/* Replace toggle with custom button for mobile menu - only visible on mobile */}
+          {/* Custom mobile menu button */}
           <button 
-            className="navbar-toggler d-lg-none" 
+            className="loggedout-navbar-toggler d-lg-none" 
             type="button"
             onClick={toggleMobileMenu}
-            aria-controls="mobile-slide-menu"
+            aria-controls="mobile-menu"
             aria-expanded={showMobileMenu}
             aria-label="Toggle navigation"
           >
@@ -54,6 +64,7 @@ function LoggedOutNavbar() {
           {/* Desktop navigation */}
           <Navbar.Collapse id="basic-navbar-nav">
             <Nav className="ms-auto">
+              <Nav.Link as={Link} to="/" className="logged-out-nav-item" onClick={() => setExpanded(false)}>Home</Nav.Link>
               <Nav.Link href="/#features" className="logged-out-nav-item" onClick={() => setExpanded(false)}>Features</Nav.Link>
               <Nav.Link href="/#how-it-works" className="logged-out-nav-item" onClick={() => setExpanded(false)}>How It Works</Nav.Link>
               <Nav.Link as={Link} to="/#waitlist" className="logged-out-nav-item" onClick={() => setExpanded(false)}>Sign Up</Nav.Link>
@@ -63,38 +74,44 @@ function LoggedOutNavbar() {
         </Container>
       </Navbar>
       
-      {/* Mobile slide-in menu */}
-      <div className={`mobile-menu-backdrop ${showMobileMenu ? 'show' : ''}`} onClick={closeMobileMenu} aria-hidden="true" />
-      <div className={`mobile-slide-menu ${showMobileMenu ? 'show' : ''}`}>
-        <div className="mobile-menu-header">
-          <Link to="/" onClick={closeMobileMenu} className="text-decoration-none">
-            <h5 className="mb-0 text-dark">Aspen Health AI</h5>
-          </Link>
-          <button className="mobile-menu-close" onClick={closeMobileMenu} aria-label="Close menu">
-            <FaTimes />
+      {/* Mobile menu overlay - separate from the logged-in mobile menu */}
+      <div className={`loggedout-menu-backdrop ${showMobileMenu ? 'show' : ''}`} onClick={closeMobileMenu} aria-hidden="true" />
+      
+      {/* Mobile dropdown menu for logged out experience */}
+      {showMobileMenu && (
+        <div className="loggedout-mobile-menu show">
+          <div className="loggedout-menu-items">
+            <Link to="/" className="loggedout-menu-item" onClick={closeMobileMenu}>
+              Home
+            </Link>
+            <a href="/#features" className="loggedout-menu-item" onClick={closeMobileMenu}>
+              Features
+            </a>
+            <a href="/#how-it-works" className="loggedout-menu-item" onClick={closeMobileMenu}>
+              How It Works
+            </a>
+            <a href="/#waitlist" className="loggedout-menu-item" onClick={closeMobileMenu}>
+              Sign Up
+            </a>
+            <div className="loggedout-menu-divider"></div>
+            <Link to="/login" className="loggedout-menu-item loggedout-login-item" onClick={closeMobileMenu}>
+              Login
+            </Link>
+          </div>
+          
+          <div className="loggedout-menu-footer">
+            <small>© 2025 Asha AI</small>
+          </div>
+          
+          <button 
+            className="loggedout-close-button" 
+            onClick={closeMobileMenu}
+            aria-label="Close menu"
+          >
+            Close <FaTimes style={{ fontSize: '0.75rem', marginLeft: '0.25rem', verticalAlign: 'middle' }} />
           </button>
         </div>
-        
-        <ul className="mobile-menu-items">
-          <li className="mobile-menu-item">
-            <a href="/#features" className="mobile-menu-link" onClick={closeMobileMenu}>Features</a>
-          </li>
-          <li className="mobile-menu-item">
-            <a href="/#how-it-works" className="mobile-menu-link" onClick={closeMobileMenu}>How It Works</a>
-          </li>
-          <li className="mobile-menu-item">
-            <a href="/#waitlist" className="mobile-menu-link" onClick={closeMobileMenu}>Sign Up</a>
-          </li>
-          <li className="mobile-menu-divider"></li>
-          <li className="mobile-menu-item">
-            <Link to="/login" className="mobile-menu-link" onClick={closeMobileMenu}>Login</Link>
-          </li>
-        </ul>
-        
-        <div className="mobile-menu-footer">
-          <small>© 2023 Aspen Health AI</small>
-        </div>
-      </div>
+      )}
     </>
   );
 }

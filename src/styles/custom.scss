@@ -1,0 +1,49 @@
+// Override Bootstrap's variables
+$primary: #019ea1;
+$theme-colors: (
+  "primary": $primary,
+  "secondary": darken($primary, 10%),
+  "success": #28a745,
+  "info": #17a2b8,
+  "warning": #ffc107,
+  "danger": #dc3545,
+  "light": #f8f9fa,
+  "dark": #343a40
+);
+
+// Button specific overrides
+$btn-font-weight: 500;
+$btn-border-radius: 0.25rem;
+$btn-border-radius-lg: 0.3rem;
+$btn-border-radius-sm: 0.2rem;
+
+// Import Bootstrap and its default variables
+@import "~bootstrap/scss/bootstrap";
+
+// Custom overrides after bootstrap import
+.btn-primary {
+  color: #fff !important;
+  
+  &:hover, &:focus, &:active {
+    color: #fff !important;
+  }
+}
+
+// Make sure all themed buttons have appropriate text contrast
+@each $color, $value in $theme-colors {
+  .btn-#{$color} {
+    @if (lightness($value) < 65) {
+      color: #fff;
+      
+      &:hover, &:focus, &:active {
+        color: #fff;
+      }
+    } @else {
+      color: #212529;
+      
+      &:hover, &:focus, &:active {
+        color: #212529;
+      }
+    }
+  }
+} 

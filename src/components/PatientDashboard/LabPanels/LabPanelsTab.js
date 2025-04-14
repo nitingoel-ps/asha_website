@@ -132,7 +132,7 @@ function LabPanelsTab({ standardPanels }) {
                 <div className="d-flex align-items-center w-100">
                   <FlaskConical size={24} className="me-2" color="#667EEA" />
                   <div className="lp-panel-header-content">
-                    <h5 className="mb-0">{panel.long_name}</h5>
+                    <h5 className="mb-0">{panel.name}</h5>
                   </div>
                   <Badge bg="primary" className="ms-auto lp-observation-count">
                     {panel.observations.length} tests
@@ -152,33 +152,38 @@ function LabPanelsTab({ standardPanels }) {
                         onClick={() => handleObservationClick(observation.id)}
                         className="lp-observation-item"
                       >
-                        <div className="d-flex justify-content-between align-items-start">
-                          <div className="lp-observation-name">
-                            <div className="lp-observation-title">{observation.name}</div>
-                            <div className="lp-observation-subtitle text-muted">
-                              {observation.long_name}
+                        <div className="d-flex flex-column">
+                          <div className="lp-observation-header">
+                            <div className="lp-observation-title">
+                              {observation.name}
+                              {latestObs?.is_normal === false && (
+                                <Badge bg="warning">Out of range</Badge>
+                              )}
                             </div>
-                            {latestObs?.is_normal === false && (
-                              <Badge bg="warning" className="ms-2">
-                                Out of range
-                              </Badge>
+                            {latestObs && (
+                              <div className="lp-observation-value">
+                                <span className="lp-observation-value-number">
+                                  {latestObs.observation_value}
+                                </span>
+                                <span className="lp-observation-value-unit">
+                                  {' '}{observation.uom}
+                                </span>
+                              </div>
                             )}
                           </div>
+                          <div className="lp-observation-subtitle">
+                            {observation.long_name}
+                          </div>
                           {latestObs && (
-                            <div className="text-end">
-                              <div className="lp-observation-value">
-                                {latestObs.observation_value} {observation.uom}
-                              </div>
-                              <small className="text-muted">
-                                {formatDate(latestObs.date)}
-                              </small>
+                            <div className="lp-observation-date">
+                              {formatDate(latestObs.date)}
                             </div>
                           )}
-                        </div>
-                        <div className="lp-reference-range">
-                          <small className="text-muted">
-                            Reference Range: {referenceRange}
-                          </small>
+                          <div className="lp-reference-range">
+                            <small className="text-muted">
+                              Reference Range: {referenceRange}
+                            </small>
+                          </div>
                         </div>
                       </ListGroup.Item>
                     );

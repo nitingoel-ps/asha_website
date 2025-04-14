@@ -231,482 +231,349 @@
   margin-left: auto;
 }
 
-/* Mobile-specific styles */
-@media (max-width: 991.98px) {
-  /* Reset main nav items spacing on mobile */
-  .main-nav-item {
-    padding: 0.75rem 1rem !important;
-  }
-  
-  /* Reset mx-auto on mobile */
-  .main-nav-items {
-    margin-right: 0 !important;
-    margin-left: 0 !important;
-    width: 100%;
-  }
-  
-  .mobile-nav {
-    padding-top: 0.5rem;
-    padding-bottom: 0.5rem;
-  }
-
-  .mobile-nav .nav-item {
-    padding: 0.75rem 1rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    transition: background-color 0.3s;
-  }
-  
-  /* More subtle hover effect for mobile menu items */
-  .mobile-nav .nav-item:hover {
-    background-color: rgba(255, 255, 255, 0.05); /* More subtle background highlight */
-  }
-
-  /* Improved parent menu item with submenu */
-  .mobile-nav-parent {
-    display: flex;
-    align-items: center;
-    padding: 0.75rem 1rem;
-    color: rgba(255, 255, 255, 0.85);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    cursor: pointer;
-    user-select: none;
-    transition: background-color 0.2s ease;
-  }
-  
-  /* Create a consistent flex layout for parent item */
-  .mobile-nav-parent-content {
-    display: flex;
-    align-items: center;
-    flex-grow: 1;
-  }
-
-  /* Ensure icon in parent content is properly aligned */
-  .mobile-nav-parent-content .nav-icon {
-    margin-right: 0.5rem;
-    position: relative; /* Ensures proper alignment */
-    top: 0;
-  }
-  
-  .mobile-nav-parent:hover,
-  .mobile-nav-parent.active {
-    background-color: rgba(255, 255, 255, 0.1);
-    color: #fff;
-  }
-
-  /* Submenu arrow icon with animation */
-  .submenu-arrow {
-    margin-left: auto;
-    transition: transform 0.3s ease;
-    color: rgba(255, 255, 255, 0.7); /* Make arrow slightly more subtle */
-    font-size: 0.9rem; /* Make arrow smaller */
-  }
-  
-  .submenu-arrow.rotated {
-    transform: rotate(90deg);
-  }
-
-  /* Container for submenu items */
-  .mobile-submenu {
-    background-color: rgba(0, 0, 0, 0.15); /* Lighter background */
-  }
-  
-  /* Submenu items */
-  .mobile-nav-subitem {
-    padding-left: 2.5rem !important;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    transition: background-color 0.3s;
-  }
-  
-  .mobile-nav-subitem:hover {
-    background-color: rgba(255, 255, 255, 0.05); /* More subtle highlight */
-  }
-
-  /* Add extra space at the bottom of the mobile menu */
-  .navbar-collapse {
-    max-height: 85vh;
-    overflow-y: auto;
-    padding-bottom: 1rem;
-  }
-
-  .user-profile-dropdown {
-    margin: 10px 0;
-    color: rgba(255, 255, 255, 0.85) !important; /* Slightly dimmer on mobile */
-  }
-  
-  /* Enhance visibility of dropdown elements on mobile */
-  .dropdown-menu {
-    background-color: rgba(33, 37, 41, 0.9); /* Slightly more transparent */
-    border-color: rgba(255, 255, 255, 0.1);
-  }
-  
-  .dropdown-item {
-    color: rgba(255, 255, 255, 0.75);
-  }
-  
-  .dropdown-item:hover, 
-  .dropdown-item:focus {
-    background-color: rgba(255, 255, 255, 0.05); /* More subtle background */
-    color: white;
-  }
-  
-  .dropdown-divider {
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-  }
-
-  .user-dropdown-menu .dropdown-menu {
-    background-color: #343a40; /* Dark background for mobile */
-    border-color: rgba(255, 255, 255, 0.1);
-  }
-  
-  .user-dropdown-menu .dropdown-item {
-    color: rgba(255, 255, 255, 0.85); /* Light text for dark background */
-  }
-  
-  .user-dropdown-menu .dropdown-item:hover,
-  .user-dropdown-menu .dropdown-item:focus {
-    background-color: rgba(255, 255, 255, 0.1); /* Subtle highlight */
-    color: #ffffff;
-  }
-  
-  .user-dropdown-menu .dropdown-item .nav-icon {
-    color: rgba(255, 255, 255, 0.8); /* Light icon for dark background */
-  }
-
-  /* Mobile slide-in menu */
-  .mobile-slide-menu {
-    position: fixed;
-    top: 20px; /* Add some space from the top of the screen */
-    right: -100%;
-    width: 80%;
-    max-width: 320px;
-    /* Change from fixed height to auto height with max constraints */
-    height: auto;
-    max-height: calc(100vh - 40px); /* Subtract some space for top and bottom margin */
-    background-color: #ffffff;
-    z-index: 1050;
-    transition: right 0.3s ease;
-    box-shadow: -2px 0 5px rgba(0, 0, 0, 0.2);
-    overflow-y: auto;
-    border-radius: 10px; /* Add rounded corners */
-  }
-  
-  .mobile-menu-backdrop {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    z-index: 1040;
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.3s ease;
-    /* Hide by default on desktop */
-    display: none;
-  }
-
-  /* Make mobile menu components visible on mobile only */
-  .mobile-slide-menu, 
-  .mobile-menu-backdrop {
-    display: block;
-  }
-
-  /* Remove default navbar collapse on mobile, but use !important */
-  .navbar-collapse.collapse:not(.show) {
-    display: none !important;
-  }
-
-  .navbar-collapse.d-none.d-lg-flex {
-    display: none !important;
-  }
-
-  /* Ensure navbar toggle is visible */
-  .navbar-toggler {
-    border-color: rgba(255, 255, 255, 0.5);
-    padding: 0.5rem;
-  }
-
-  /* Remove default navbar collapse on mobile */
-  .navbar-collapse {
-    display: none !important;
-  }
-
-  /* Mobile menu header styling */
-  .mobile-menu-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 1rem;
-    border-bottom: 1px solid #e5e5e5;
-    position: relative;
-    min-height: 60px; /* Ensure consistent header height */
-  }
-
-  .mobile-menu-close {
-    background: none;
-    border: none;
-    font-size: 1.5rem;
-    color: #333;
-    cursor: pointer;
-    padding: 0;
-    width: 30px;
-    height: 30px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  /* User profile section in mobile menu */
-  .mobile-user-profile {
-    display: flex;
-    align-items: center;
-    padding: 1.5rem 1rem;
-    background-color: #f8f9fa;
-    border-bottom: 1px solid #e5e5e5;
-    min-height: 80px; /* Ensure consistent profile section height */
-  }
-
-  .mobile-user-profile .user-avatar,
-  .mobile-user-profile .user-avatar-fallback {
-    width: 40px;
-    height: 40px;
-    border-color: rgba(0, 0, 0, 0.1);
-  }
-
-  .mobile-user-profile .user-avatar-fallback {
-    background-color: #e9ecef;
-    color: #495057;
-  }
-
-  /* Mobile menu items */
-  .mobile-menu-items {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-  }
-
-  .mobile-menu-item {
-    padding: 0;
-    border-bottom: 1px solid #e5e5e5;
-  }
-
-  .mobile-menu-link {
-    display: flex;
-    align-items: center;
-    padding: 1rem;
-    color: #333;
-    text-decoration: none;
-    transition: background-color 0.2s ease;
-  }
-
-  .mobile-menu-link:hover,
-  .mobile-menu-link:focus {
-    background-color: #f8f9fa;
-    text-decoration: none;
-    color: #212529;
-  }
-
-  .mobile-menu-icon {
-    margin-right: 0.75rem;
-    font-size: 1.25rem;
-    color: #495057;
-    min-width: 20px;
-    text-align: center;
-  }
-
-  /* Divider in mobile menu */
-  .mobile-menu-divider {
-    height: 1px;
-    background-color: #e5e5e5;
-    margin: 0.5rem 0;
-  }
-
-  /* Footer section in mobile menu */
-  .mobile-menu-footer {
-    padding: 1rem;
-    text-align: center;
-    color: #6c757d;
-    font-size: 0.875rem;
-    border-top: 1px solid #e5e5e5;
-    margin-top: 0.5rem;
-    min-height: 50px; /* Ensure consistent footer height */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  /* Fix mobile menu button behavior */
-  .mobile-menu-link.w-100 {
-    width: 100%;
-  }
-
-  .mobile-menu-link.text-start {
-    text-align: start;
-  }
-
-  .mobile-menu-link.border-0 {
-    border: 0;
-  }
-
-  .mobile-menu-link.bg-transparent {
-    background-color: transparent;
-  }
-}
-
-/* Desktop dropdown enhancement */
-@media (min-width: 992px) {
-  /* Ensure main nav items are centered */
-  .navbar-collapse {
-    display: flex;
-    justify-content: space-between;
-  }
-  
-  /* Add subtle transition effect for main nav items */
-  .main-nav-item {
-    position: relative;
-    transition: color 0.2s ease;
-  }
-  
-  /* More subtle underline effect */
-  .main-nav-item::after {
-    content: '';
-    position: absolute;
-    width: 0;
-    height: 2px;
-    bottom: -3px; /* Position it slightly below the text */
-    left: 50%;
-    background-color: rgba(255, 255, 255, 0.7); /* Semi-transparent white for underline */
-    transition: all 0.3s ease;
-    opacity: 0;
-    transform: translateX(-50%);
-  }
-  
-  /* Slightly thinner underline that appears more gradually */
-  .main-nav-item:hover::after {
-    width: 50%; /* Not as wide as before */
-    opacity: 0.7; /* Not fully opaque */
-  }
-  
-  /* User dropdown styling */
-  .navbar-nav .dropdown-menu {
-    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
-    border: none;
-    border-radius: 0.25rem;
-  }
-
-  .navbar-nav .dropdown-item {
-    padding: 0.5rem 1.5rem;
-    transition: background-color 0.2s ease, color 0.2s ease;
-  }
-  
-  /* More subtle hover effect for dropdown items */
-  .navbar-nav .dropdown-item:hover {
-    background-color: rgba(0, 0, 0, 0.05); /* Very light gray */
-  }
-  
-  /* Make dropdown icons consistent with nav icons */
-  .dropdown-item .nav-icon {
-    color: #212529; /* Darker for dropdown items against light background */
-  }
-
-  /* User dropdown styling improvements */
-  .user-dropdown-menu .dropdown-menu {
-    margin-top: 8px; /* Add a bit more space between the toggle and menu */
-    min-width: 200px; /* Ensure enough width for items */
-    box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.15); /* Subtle shadow */
-    border-radius: 0.25rem;
-  }
-
-  /* User dropdown positioning refinements */
-  .user-dropdown-menu .dropdown-menu {
-    min-width: 220px;
-    right: 0;
-    left: auto;
-    margin-top: 8px;
-  }
-
-  /* Force proper display of navbar collapse on desktop */
-  .navbar-collapse.d-none.d-lg-flex {
-    display: flex !important;
-  }
-
-  /* Explicitly hide mobile components on desktop */
-  .mobile-slide-menu,
-  .mobile-menu-backdrop {
-    display: none !important;
-  }
-}
-
-/* Mobile slide-in menu - Base styling */
-.mobile-slide-menu {
+/* Mobile Navigation Styles */
+/* These are base styles that apply to the elements regardless of screen size */
+.mobile-top-bar {
   position: fixed;
-  top: 20px; /* Add some space from the top of the screen */
-  right: -100%;
-  width: 80%;
-  max-width: 320px;
-  /* Change from fixed height to auto height with max constraints */
-  height: auto;
-  max-height: calc(100vh - 40px); /* Subtract some space for top and bottom margin */
-  background-color: #ffffff;
-  z-index: 1050;
-  transition: right 0.3s ease;
-  box-shadow: -2px 0 5px rgba(0, 0, 0, 0.2);
-  overflow-y: auto;
-  border-radius: 10px; /* Add rounded corners */
-}
-
-.mobile-slide-menu.show {
+  top: 0;
+  left: 0;
   right: 0;
+  height: 56px;
+  background-color: #019ea1;
+  color: white;
+  display: flex;
+  align-items: center;
+  padding: 0 1rem;
+  z-index: 1040;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
+.mobile-top-back-button {
+  background: none;
+  border: none;
+  color: white;
+  padding: 8px;
+  margin-right: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+  z-index: 1041; /* Ensure button is above other elements */
+}
+
+.mobile-top-back-button:hover {
+  opacity: 0.8;
+}
+
+.mobile-top-back-button svg {
+  font-size: 1.5rem;
+}
+
+.mobile-page-title {
+  font-size: 1.2rem;
+  font-weight: 500;
+  flex: 1;
+  text-align: center;
+  margin: 0;
+  padding: 0;
+  color: white;
+  position: relative;
+  z-index: 1041; /* Ensure title is above other elements */
+}
+
+/* When back button is present, adjust title */
+.mobile-top-back-button + .mobile-page-title {
+  margin-left: -32px; /* Adjust this value to center the title properly */
+}
+
+/* Ensure only one top bar is visible */
+.mobile-top-bar ~ .mobile-top-bar {
+  display: none;
+}
+
+.mobile-bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 85px; /* Using the updated 85px height */
+  background-color: #019ea1;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 0.5rem;
+  z-index: 1030;
+  box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.mobile-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: rgba(255, 255, 255, 0.85);
+  text-decoration: none;
+  font-size: 0.8rem;
+  padding: 0.5rem 0.25rem;
+  border: none;
+  background: none;
+  cursor: pointer;
+  transition: color 0.2s ease;
+  flex: 1;
+  max-width: 80px;
+}
+
+.mobile-nav-item svg {
+  font-size: 1.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.mobile-nav-item span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+  text-align: center;
+}
+
+.mobile-nav-item:hover,
+.mobile-nav-item:focus,
+.mobile-nav-item.active {
+  color: white;
+  text-decoration: none;
+}
+
+/* Mobile Menu Styles */
 .mobile-menu-backdrop {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
+  right: 0;
+  bottom: 85px; /* Stop above the bottom navigation bar */
   background-color: rgba(0, 0, 0, 0.5);
   z-index: 1040;
   opacity: 0;
   visibility: hidden;
-  transition: opacity 0.3s ease;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+  pointer-events: none;
+  display: none; /* Hide by default */
 }
 
 .mobile-menu-backdrop.show {
   opacity: 1;
   visibility: visible;
+  pointer-events: auto;
+  display: block; /* Show when .show class is applied */
 }
 
-/* Desktop styles - Hide mobile components */
-@media (min-width: 992px) {
-  .mobile-slide-menu,
-  .mobile-menu-backdrop {
-    display: none !important;
+.mobile-slide-menu {
+  position: fixed;
+  bottom: 85px; /* Position it above the bottom nav bar */
+  left: 0;
+  right: 0;
+  background-color: white;
+  border-radius: 16px; /* Round all corners */
+  max-height: 70vh; /* Limit the height to leave space for the nav bar */
+  overflow-y: auto;
+  z-index: 1050;
+  transform: translateY(30%);
+  opacity: 0;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  visibility: hidden;
+  display: none; /* Hide by default */
+  box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.1); /* Add shadow for better separation */
+  margin: 0 10px; /* Add some margin on the sides */
+}
+
+.mobile-slide-menu.show {
+  transform: translateY(0);
+  visibility: visible;
+  opacity: 1;
+  display: block; /* Show when .show class is applied */
+}
+
+.mobile-menu-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  border-bottom: 1px solid #eee;
+}
+
+.mobile-menu-close {
+  background: none;
+  border: none;
+  padding: 0.5rem;
+  color: #666;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mobile-menu-close:hover {
+  color: #333;
+}
+
+.mobile-menu-items {
+  padding: 0.5rem 0;
+}
+
+.mobile-menu-link {
+  display: flex;
+  align-items: center;
+  padding: 1rem;
+  color: #333;
+  text-decoration: none;
+  transition: background-color 0.2s ease;
+  width: 100%;
+  border: none;
+  background: none;
+  text-align: left;
+}
+
+.mobile-menu-link:hover,
+.mobile-menu-link:focus {
+  background-color: #f8f9fa;
+  color: var(--bs-primary, #0d6efd);
+  text-decoration: none;
+}
+
+.mobile-menu-icon {
+  font-size: 1.25rem;
+  margin-right: 1rem;
+  color: #666;
+  min-width: 24px;
+  text-align: center;
+}
+
+.mobile-menu-link:hover .mobile-menu-icon {
+  color: var(--bs-primary, #0d6efd);
+}
+
+/* Define consistent media query breakpoints */
+/* Mobile - anything below 768px */
+@media (max-width: 768px) {
+  body {
+    padding-top: 56px;
+    padding-bottom: 85px; /* Match our navbar height */
   }
   
-  /* ...rest of existing desktop styles... */
-}
-
-/* Mobile-specific styles */
-@media (max-width: 991.98px) {
-  /* ...existing mobile styles... */
+  .content-area {
+    padding-top: 1rem;
+    padding-bottom: 5.5rem;
+  }
   
-  /* Ensure standard Bootstrap navbar collapse is hidden on mobile */
+  /* Mobile-specific styles */
+  .mobile-top-bar,
+  .mobile-bottom-nav {
+    display: flex; /* Ensure these are visible on mobile */
+  }
+  
+  /* Make mobile menu components available on mobile but still respect their show/hide state */
+  .mobile-menu-backdrop, 
+  .mobile-slide-menu {
+    /* Remove display: block to not override the visibility settings */
+    /* The .show class will control visibility instead */
+    display: none;
+  }
+  
+  .mobile-menu-backdrop.show,
+  .mobile-slide-menu.show {
+    display: block;
+  }
+  
+  /* Remove default navbar collapse on mobile */
   .navbar-collapse {
     display: none !important;
   }
-  
-  /* Ensure mobile menu is visible */
-  .navbar-toggler {
-    display: block !important;
+}
+
+/* Tablet - between 769px and 991px */
+@media (min-width: 769px) and (max-width: 991px) {
+  body {
+    padding-top: 56px;
+    padding-bottom: 85px;
   }
   
-  /* Fix any display issues with mobile menu - ensure it's properly shown */
-  .mobile-slide-menu,
-  .mobile-menu-backdrop {
-    display: block !important;
+  .content-area {
+    padding-top: 1rem;
+    padding-bottom: 5.5rem;
   }
-  
-  /* Other mobile menu styles remain unchanged */
-  /* ...existing code... */
+}
+
+/* Desktop - anything above 992px */
+@media (min-width: 992px) {
+  /* Hide mobile elements on desktop */
+  .mobile-top-bar,
+  .mobile-bottom-nav,
+  .mobile-menu-backdrop,
+  .mobile-slide-menu {
+    display: none;
+  }
+}
+
+.mobile-top-add-button {
+  background: none;
+  border: none;
+  color: white;
+  padding: 8px;
+  margin-left: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+  z-index: 1041; /* Ensure button is above other elements */
+}
+
+.mobile-top-add-button:hover {
+  opacity: 0.8;
+}
+
+.mobile-top-add-button svg {
+  font-size: 1.5rem;
+}
+
+/* Adjust the title margin when add button is present */
+.mobile-top-add-button + .mobile-page-title,
+.mobile-page-title:has(+ .mobile-top-add-button) {
+  margin-right: -32px; /* Adjust this value to center the title properly */
+}
+
+/* Special styling for the microphone icon in the mobile bottom nav */
+.microphone-nav-item {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.microphone-icon {
+  font-size: 1.8rem !important; /* Make it bigger than other icons */
+  background-color: #20c0c3; /* Lighter shade of the navbar's teal color (#019ea1) */
+  color: white;
+  border-radius: 50%;
+  padding: 10px;
+  margin-bottom: 0.25rem;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2); /* Add subtle shadow for depth */
+  /*margin-top: -15px;  Pull it up slightly to stand out */
+  transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.microphone-nav-item:hover .microphone-icon,
+.microphone-nav-item:focus .microphone-icon {
+  transform: scale(1.05);
+  background-color: #18b7ba; /* Slightly darker on hover but still lighter than navbar */
+}
+
+/* Adjust the position of other elements if needed due to the special microphone size */
+.mobile-nav-item.microphone-nav-item {
+  margin-top: -10px; /* Adjust this value to align the microphone icon nicely */
 }

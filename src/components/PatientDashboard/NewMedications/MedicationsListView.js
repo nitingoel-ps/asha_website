@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, Button, ButtonGroup, Modal, Form, Spinner, Alert } from 'react-bootstrap';
 import axiosInstance from '../../../utils/axiosInstance';
@@ -7,6 +7,7 @@ import './MedicationsListView.css';
 export function MedicationsListView({ medications, loading, error, refreshMedications }) {
   const [viewType, setViewType] = useState('active');
   const navigate = useNavigate();
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   
   // State for the new medication form
   const [showAddModal, setShowAddModal] = useState(false);
@@ -22,6 +23,24 @@ export function MedicationsListView({ medications, loading, error, refreshMedica
   const [formError, setFormError] = useState(null);
   
   console.log("MedicationsListView: Rendered with medications:", medications?.list?.length);
+
+  // Add resize listener
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Add event listener for add medication
+  useEffect(() => {
+    const handleAddMedicationEvent = () => {
+      setShowAddModal(true);
+    };
+    window.addEventListener('openAddMedication', handleAddMedicationEvent);
+    return () => window.removeEventListener('openAddMedication', handleAddMedicationEvent);
+  }, []);
 
   // Function to get any field from past_medications if it's not available
   const getLatestFromPastMedications = (medication, fieldName) => {
@@ -158,36 +177,38 @@ export function MedicationsListView({ medications, loading, error, refreshMedica
 
   return (
     <div className="medications-list-container">
-      <div className="medications-header">
-        <div className="d-flex justify-content-between align-items-center mb-3">
-          <h2>Medications</h2>
-          <Button 
-            variant="success"
-            size="sm"
-            onClick={handleAddMedication}
-            className="add-medication-btn"
-          >
-            Add Medication
-          </Button>
+      {!isMobile && (
+        <div className="medications-header">
+          <div className="d-flex justify-content-between align-items-center mb-3">
+            <h2>Medications</h2>
+            <Button 
+              variant="success"
+              size="sm"
+              onClick={handleAddMedication}
+              className="add-medication-btn"
+            >
+              Add Medication
+            </Button>
+          </div>
         </div>
-        
-        <ButtonGroup className="w-100 mb-3">
-          <Button 
-            variant={viewType === 'active' ? 'primary' : 'outline-primary'}
-            onClick={() => setViewType('active')}
-            className="flex-grow-1"
-          >
-            Active ({activeMeds.length})
-          </Button>
-          <Button 
-            variant={viewType === 'inactive' ? 'primary' : 'outline-primary'}
-            onClick={() => setViewType('inactive')}
-            className="flex-grow-1"
-          >
-            Past ({inactiveMeds.length})
-          </Button>
-        </ButtonGroup>
-      </div>
+      )}
+      
+      <ButtonGroup className="w-100 mb-3">
+        <Button 
+          variant={viewType === 'active' ? 'primary' : 'outline-primary'}
+          onClick={() => setViewType('active')}
+          className="flex-grow-1"
+        >
+          Active ({activeMeds.length})
+        </Button>
+        <Button 
+          variant={viewType === 'inactive' ? 'primary' : 'outline-primary'}
+          onClick={() => setViewType('inactive')}
+          className="flex-grow-1"
+        >
+          Past ({inactiveMeds.length})
+        </Button>
+      </ButtonGroup>
 
       <div className="medications-list">
         {loading ? (

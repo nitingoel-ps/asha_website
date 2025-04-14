@@ -135,9 +135,9 @@ const HistoryItem = ({ value }) => (
                                 <span className="abnormal-indicator">⚠ Abnormal</span>
                             )}
                         </div>
-                        <div className="history-date">{formatDate(value.date)}</div>
                     </div>
                 </div>
+                <div className="history-date">{formatDate(value.date)}</div>
             </div>
             <div className="history-details">
                 <div className="detail-row">
@@ -213,13 +213,13 @@ return (
                 <div className="graph-container">
                     <ObservationGraph data={graphData} />
                 </div>
-
-                <div className="history-section">
-                    <h6 className="mb-3">Observation History</h6>
-                    {renderHistory()}
-                </div>
             </Card.Body>
         </Card>
+
+        <div className="history-section">
+            <h5 className="mb-3">Observation History</h5>
+            {renderHistory()}
+        </div>
     </div>
 );
 }

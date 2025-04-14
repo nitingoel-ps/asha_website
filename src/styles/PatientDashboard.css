@@ -1,5 +1,4 @@
 .dashboard-container {
-  min-height: calc(100vh - 60px);
   width: 100%;
   display: flex;
   position: relative;
@@ -83,15 +82,6 @@
   overflow-y: auto;
 }
 
-.back-button {
-  margin-bottom: 15px;
-  margin-top: 15px;
-  padding: 8px 16px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
 /* Remove any existing transition effects on route changes */
 .fade-enter,
 .fade-enter-active,
@@ -104,6 +94,7 @@
 @media (min-width: 768px) {
   .dashboard-container {
     display: flex;
+    min-height: calc(100vh - 60px);
   }
 
   .nav-menu {
@@ -116,10 +107,6 @@
 
   .content-area {
     flex: 1;
-  }
-
-  .back-button {
-    display: none;
   }
 
   .nav-item {
@@ -137,11 +124,13 @@
 /* Mobile-specific styles */
 @media (max-width: 767px) {
   .dashboard-container {
-    margin-top: 56px;
-    height: calc(100vh - 56px);
+    margin-top: 56px; /* Height of mobile-top-bar */
+    height: calc(100vh - 116px) !important; /* 100vh - top bar (56px) - bottom nav (60px) */
     position: fixed;
     width: 100%;
-    overflow-y: hidden; /* Changed from auto */
+    overflow-y: hidden;
+    top: 56px; /* Start after the top bar */
+    bottom: 60px; /* Explicitly set bottom position to match bottom nav height */
   }
   
   .nav-menu {
@@ -149,27 +138,29 @@
     height: auto;
     position: relative;
     top: 0;
-    padding-bottom: 100px; /* Add padding at bottom to ensure last items are visible */
+    padding-bottom: 100px;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
   }
 
   .content-area {
     width: 100%;
-    height: calc(100vh - 56px);
+    height: 100%;
     position: absolute;
     top: 0;
     left: 0;
-    overflow: hidden; /* Changed from auto */
+    right: 0;
+    bottom: 0;
+    overflow: hidden;
     background: white;
     display: none;
-    padding: 0;
+    padding: 16px;
   }
   
   .dashboard-container.tab-active .content-area {
     display: block;
     overflow-y: auto;
-    -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS devices */
+    -webkit-overflow-scrolling: touch;
   }
 
   .dashboard-container.tab-active .nav-menu {
@@ -197,17 +188,12 @@
     border-top: 1px solid #F0F0F0;
   }
 
-  .back-button {
-    margin-bottom: 5px;
-    margin-top: 5px;
-    padding: 4px 12px;
-  }
-
   .tab-content-wrapper {
     position: relative;
-    height: 100%;  /* Changed from auto */
+    height: 100%;
     min-height: 100%;
-    overflow-y: hidden;  /* Changed from visible */
+    overflow-y: hidden;
     width: 100%;
+    padding: 0;
   }
 }

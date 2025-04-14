@@ -1,21 +1,182 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Navbar, Nav, Container, NavDropdown, Image } from 'react-bootstrap';
-import { FaHome, FaSignOutAlt, FaTachometerAlt, FaCog, FaRobot, FaPlusCircle, FaBars, FaHeartbeat } from 'react-icons/fa';
+import { FaHome, FaSignOutAlt, FaTachometerAlt, FaCog, FaRobot, FaPlusCircle, FaBars, FaHeartbeat, FaMicrophone, FaEllipsisH, FaChevronLeft, FaPlus, FaKeyboard, FaBell, FaUserCircle, FaComments, FaRegComments } from 'react-icons/fa';
 import { PiUserSound } from "react-icons/pi";
+import { FiEdit, FiList } from "react-icons/fi";
 
 import { useAuth } from '../../context/AuthContext';
-import { useNavigate } from "react-router-dom";
 import MobileMenu from './MobileMenu';
 import './navbar.css'; // Import custom navbar styles
+
+// Create a custom event bus for AI Chat actions
+export const aiChatEvents = {
+  TOGGLE_CHAT_LIST: 'ai-chat-toggle-list',
+  NEW_CHAT: 'ai-chat-new-chat'
+};
 
 function LoggedInNavbar() {
   const { logout, user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [expanded, setExpanded] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const navbarRef = useRef(null);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+  const [showVoiceSettings, setShowVoiceSettings] = useState(false);
+
+  // Get page title based on current route
+  const getPageTitle = () => {
+    const path = location.pathname;
+    const pathSegments = path.split('/').filter(Boolean);
+    
+    // If we're in the root
+    if (path === '/') return 'Home';
+    
+    // If we're in the patient dashboard
+    if (pathSegments[0] === 'patient-dashboard') {
+      // If we're at the root of patient-dashboard
+      if (pathSegments.length === 1) return 'Records';
+      
+      // Special case for observation URLs
+      if (pathSegments[1] === 'observation' && pathSegments[2]) {
+        return 'Observation';
+      }
+      
+      // If we're in a section
+      const section = pathSegments[1];
+      const isDetail = pathSegments.length > 2;
+      
+      // Map sections to their titles
+      const titleMap = {
+        'vital-signs': {
+          base: 'Vital Signs',
+          detail: 'Vital Sign Details'
+        },
+        'immunizations': {
+          base: 'Immunizations',
+          detail: 'Immunization Details'
+        },
+        'visits': {
+          base: 'Visits',
+          detail: 'Visit Details'
+        },
+        'medical-reports': {
+          base: 'Medical Reports',
+          detail: 'Report Details'
+        },
+        'lab-panels': {
+          base: 'Lab Panels',
+          detail: 'Lab Results'
+        },
+        'med': {
+          base: 'Medications',
+          detail: 'Medication Details'
+        },
+        'health-priorities': {
+          base: 'Health Priorities',
+          detail: 'Priority Details'
+        },
+        'symptoms': {
+          base: 'Symptoms',
+          detail: 'Symptom Details'
+        }
+      };
+
+      if (titleMap[section]) {
+        return isDetail ? titleMap[section].detail : titleMap[section].base;
+      }
+      return 'Records';
+    }
+    
+    // AI Chat routes
+    if (path.includes('/ai-chat')) return 'Chat with Asha';
+    
+    // Other routes
+    if (path.includes('add-health-data')) return 'Add Records';
+    if (path.includes('websocket-voice')) return 'Talk to Asha';
+    return 'Asha AI';
+  };
+
+  // Check if we should show back button
+  const shouldShowBackButton = () => {
+    const pathSegments = location.pathname.split('/').filter(Boolean);
+    // Show back button for any patient-dashboard route except the root
+    return pathSegments.length >= 2 && pathSegments[0] === 'patient-dashboard';
+  };
+
+  // Check if we're on the AI Chat page
+  const isAIChatPage = () => {
+    return location.pathname.includes('/ai-chat');
+  };
+
+  // Check if we're on the AI Voice page
+  const isAIVoicePage = () => {
+    return location.pathname.includes('/websocket-voice') || 
+           location.pathname.includes('/ai-voice');
+  };
+
+  const handleBack = () => {
+    const pathSegments = location.pathname.split('/').filter(Boolean);
+    
+    // Special case for observation URLs - use browser history
+    if (pathSegments[1] === 'observation' && pathSegments[2]) {
+      window.history.back();
+      return;
+    }
+    
+    // If we're in a detail view (more than 2 segments)
+    if (pathSegments.length > 2) {
+      // Go back to the section list
+      navigate(`/patient-dashboard/${pathSegments[1]}`);
+    } else {
+      // Go back to main dashboard
+      navigate('/patient-dashboard');
+    }
+  };
+
+  // Function to handle switching between voice and text chat
+  const handleVoiceTextToggle = () => {
+    const pathSegments = location.pathname.split('/').filter(Boolean);
+    
+    // If we're on the voice page, navigate to text chat
+    if (isAIVoicePage()) {
+      // Check if we have a session_id in the URL query params
+      const urlParams = new URLSearchParams(window.location.search);
+      const sessionId = urlParams.get('session_id');
+      
+      // If we have a session ID, navigate to that specific chat
+      if (sessionId) {
+        navigate(`/ai-chat/${sessionId}`);
+      } else {
+        navigate('/ai-chat');
+      }
+    } 
+    // If we're on any other page, navigate to voice chat
+    else {
+      // If we're on the AI Chat page with a session ID, pass it to the voice page
+      if (isAIChatPage() && pathSegments.length > 1) {
+        const chatSessionId = pathSegments[1];
+        navigate(`/websocket-voice?session_id=${chatSessionId}`);
+      } else {
+        navigate('/websocket-voice');
+      }
+    }
+  };
+
+  // Function to handle AI Chat list toggle
+  const handleToggleChatList = () => {
+    // Dispatch custom event that ChatWindow will listen for
+    const event = new CustomEvent(aiChatEvents.TOGGLE_CHAT_LIST);
+    window.dispatchEvent(event);
+  };
+  
+  // Function to handle new chat button
+  const handleNewChat = () => {
+    // Dispatch custom event that ChatWindow will listen for
+    const event = new CustomEvent(aiChatEvents.NEW_CHAT);
+    window.dispatchEvent(event);
+  };
 
   useEffect(() => {
     const handleResize = () => setWindowWidth(window.innerWidth);
@@ -43,11 +204,10 @@ function LoggedInNavbar() {
   };
 
   const closeMenu = () => setExpanded(false);
-  const toggleMobileMenu = () => {
-    setShowMobileMenu(prevState => !prevState);
-    console.log("Toggling mobile menu, new state:", !showMobileMenu); // Add for debugging
-  };
+  const toggleMobileMenu = () => setShowMobileMenu(prev => !prev);
   const closeMobileMenu = () => setShowMobileMenu(false);
+
+  const isMobile = windowWidth < 992;
 
   // Get first name or username for display
   const displayName = user?.first_name || user?.username || "User";
@@ -64,95 +224,176 @@ function LoggedInNavbar() {
     return "U";
   };
 
+  const getAddButtonConfig = () => {
+    const pathSegments = location.pathname.split('/').filter(Boolean);
+    if (pathSegments.length !== 2 || pathSegments[0] !== 'patient-dashboard') return null;
+
+    const section = pathSegments[1];
+    const configs = {
+      'med': {
+        action: () => {
+          // We'll emit a custom event that the medications component will listen for
+          const event = new CustomEvent('openAddMedication');
+          window.dispatchEvent(event);
+        }
+      },
+      'symptoms': {
+        action: () => {
+          const event = new CustomEvent('openAddSymptom');
+          window.dispatchEvent(event);
+        }
+      },
+      'vital-signs': {
+        action: () => {
+          const event = new CustomEvent('openAddVital');
+          window.dispatchEvent(event);
+        }
+      }
+      // Add more sections as needed
+    };
+
+    return configs[section] || null;
+  };
+
+  const isVoicePage = () => {
+    return location.pathname.includes('/websocket-voice') || location.pathname.includes('/ai-voice');
+  };
+
   return (
     <>
-      <Navbar 
-        ref={navbarRef}
-        className="navbar mobile-friendly-navbar" 
-        variant="dark" 
-        expand="lg"
-        expanded={expanded}
-      >
-        <Container>
-          {/* Brand on left */}
-          <Navbar.Brand as={Link} to="/" onClick={closeMenu}>
-            <FaHome className="nav-icon" /> ASHA AI
-          </Navbar.Brand>
-          
-          {/* Mobile menu toggle button */}
-          <button 
-            className="navbar-toggler" 
-            type="button"
-            onClick={toggleMobileMenu}
-            aria-controls="mobile-slide-menu"
-            aria-expanded={showMobileMenu}
-            aria-label="Toggle navigation"
-          >
-            <FaBars />
-          </button>
-          
-          {/* Desktop navigation - hidden on mobile via CSS */}
-          <Navbar.Collapse id="basic-navbar-nav" className="d-none d-lg-flex">
-            {/* Main navigation items - centered on desktop */}
-            <Nav className="main-nav-items mx-auto">
-              <Nav.Link as={Link} to="/patient-dashboard" onClick={closeMenu} className="main-nav-item">
-                <FaHeartbeat className="main-nav-icon" /> Health Records
-              </Nav.Link>
-              
-              <Nav.Link as={Link} to="/add-health-data" onClick={closeMenu} className="main-nav-item">
-                <FaPlusCircle className="main-nav-icon" /> Add Health Data
-              </Nav.Link>
-              
-              <Nav.Link as={Link} to="/websocket-voice" onClick={closeMenu} className="main-nav-item">
-                <PiUserSound className="main-nav-icon" /> Talk to AI
-              </Nav.Link>
-            </Nav>
+      {/* Desktop Navbar */}
+      {!isMobile && (
+        <Navbar className="navbar mobile-friendly-navbar" variant="dark" expand="lg">
+          <Container>
+            <Navbar.Brand as={Link} to="/">
+              <FaHome className="nav-icon" /> ASHA AI
+            </Navbar.Brand>
+            <Navbar.Collapse id="basic-navbar-nav">
+              <Nav className="main-nav-items mx-auto">
+                <Nav.Link as={Link} to="/patient-dashboard" className="main-nav-item">
+                  <FaHeartbeat className="main-nav-icon" /> Health Records
+                </Nav.Link>
+                <Nav.Link as={Link} to="/add-health-data" className="main-nav-item">
+                  <FaPlusCircle className="main-nav-icon" /> Add Health Data
+                </Nav.Link>
+                <Nav.Link as={Link} to="/websocket-voice" className="main-nav-item">
+                  <FaMicrophone className="main-nav-icon" /> Talk to AI
+                </Nav.Link>
+              </Nav>
+              <Nav className="user-nav-section">
+                <NavDropdown 
+                  title={<span className="user-name">{user?.first_name || user?.username || "User"}</span>}
+                  id="user-dropdown"
+                  align="end"
+                >
+                  <NavDropdown.Item as={Link} to="/configuration">
+                    <FaCog className="nav-icon" /> Configuration
+                  </NavDropdown.Item>
+                  <NavDropdown.Divider />
+                  <NavDropdown.Item onClick={handleLogout}>
+                    <FaSignOutAlt className="nav-icon" /> Logout
+                  </NavDropdown.Item>
+                </NavDropdown>
+              </Nav>
+            </Navbar.Collapse>
+          </Container>
+        </Navbar>
+      )}
+
+      {/* Mobile Layout */}
+      {isMobile && (
+        <>
+          {/* Top Bar */}
+          <div className="mobile-top-bar">
+            {shouldShowBackButton() && (
+              <button className="mobile-top-back-button" onClick={handleBack}>
+                <FaChevronLeft />
+              </button>
+            )}
             
-            {/* User profile on right - with improved hover effect */}
-            <Nav className="user-nav-section">
-              <NavDropdown 
-                title={
-                  <div className="user-profile-dropdown">
-                    {user?.profile_image ? (
-                      <Image 
-                        src={user.profile_image} 
-                        roundedCircle 
-                        className="user-avatar" 
-                        alt={displayName}
-                      />
-                    ) : (
-                      <div className="user-avatar-fallback">
-                        {getInitials()}
-                      </div>
-                    )}
-                    <span className="user-name ms-2">{displayName}</span>
-                  </div>
-                } 
-                id="user-dropdown"
-                align="end"
-                className="user-dropdown-menu"
-                menuVariant="light"
+            {isAIChatPage() && (
+              <button className="ai-chat-list-btn" onClick={handleToggleChatList}>
+                <FiList />
+              </button>
+            )}
+            
+            <div className="mobile-page-title">{getPageTitle()}</div>
+            
+            {getAddButtonConfig() && (
+              <button 
+                className="mobile-top-add-button"
+                onClick={getAddButtonConfig().action}
+                aria-label="Add new item"
               >
-                <NavDropdown.Item as={Link} to="/configuration" onClick={closeMenu}>
-                  <FaCog className="nav-icon" /> Configuration
-                </NavDropdown.Item>
-                <NavDropdown.Divider />
-                <NavDropdown.Item onClick={() => { closeMenu(); handleLogout(); }}>
-                  <FaSignOutAlt className="nav-icon" /> Logout
-                </NavDropdown.Item>
-              </NavDropdown>
-            </Nav>
-          </Navbar.Collapse>
-        </Container>
-      </Navbar>
-      
-      {/* Mobile slide-in menu */}
-      <MobileMenu 
-        show={showMobileMenu} 
-        onClose={closeMobileMenu} 
-        user={user} 
-        onLogout={handleLogout}
-      />
+                <FaPlus />
+              </button>
+            )}
+            
+            {isAIChatPage() && (
+              <button className="ai-chat-new-btn" onClick={handleNewChat}>
+                <FiEdit />
+              </button>
+            )}
+            
+            {isVoicePage() && (
+              <button
+                className="mobile-top-add-button"
+                onClick={() => {
+                  if (window.voiceSettingsHandlers) {
+                    window.voiceSettingsHandlers.toggleSettings();
+                  }
+                }}
+              >
+                <FaCog />
+              </button>
+            )}
+          </div>
+
+          {/* Bottom Navigation Bar */}
+          <div className="mobile-bottom-nav">
+            <Link to="/" className="mobile-nav-item">
+              <FaHome />
+              <span>Home</span>
+            </Link>
+            <Link to="/patient-dashboard" className="mobile-nav-item">
+              <FaHeartbeat />
+              <span>Records</span>
+            </Link>
+            <button 
+              className="mobile-nav-item microphone-nav-item" 
+              onClick={handleVoiceTextToggle}
+            >
+              {isAIVoicePage() ? (
+                <>
+                  <FaKeyboard className="microphone-icon" />
+                  <span>Chat</span>
+                </>
+              ) : (
+                <>
+                  <FaMicrophone className="microphone-icon" />
+                  <span>Voice</span>
+                </>
+              )}
+            </button>
+            <Link to="/add-health-data" className="mobile-nav-item">
+              <FaPlusCircle />
+              <span>Add</span>
+            </Link>
+            <button className="mobile-nav-item" onClick={toggleMobileMenu}>
+              <FaEllipsisH />
+              <span>More</span>
+            </button>
+          </div>
+
+          {/* Mobile Menu (Slide-in) */}
+          <MobileMenu 
+            show={showMobileMenu} 
+            onClose={closeMobileMenu} 
+            user={user} 
+            onLogout={handleLogout}
+          />
+        </>
+      )}
     </>
   );
 }

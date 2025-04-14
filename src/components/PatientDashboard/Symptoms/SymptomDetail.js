@@ -485,18 +485,9 @@ const SymptomDetail = () => {
     <div className="symptom-detail-container">
       {/* Header Section - Refactored for better responsiveness */}
       <div className="symptom-detail-header mb-4">
-        <div className="d-flex align-items-center mb-2">
-          <Button 
-            variant="outline-secondary" 
-            className="me-2 back-button"
-            onClick={() => navigate('/patient-dashboard/symptoms')}
-          >
-            <ArrowLeft size={16} />
-          </Button>
-          <h2 className="mb-0 symptom-title">
-            {symptom.name ? symptom.name : '[No Name Available]'}
-          </h2>
-        </div>
+        <h2 className="mb-0 symptom-title">
+          {symptom.name ? symptom.name : '[No Name Available]'}
+        </h2>
         
         <div className="symptom-metadata mt-2">
           {symptom.body_location && (

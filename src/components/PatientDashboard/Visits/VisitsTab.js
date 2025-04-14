@@ -35,7 +35,6 @@ const VisitsList = React.memo(({ encounters, onVisitClick }) => {
 
   return (
     <div className="visits-grid-container">
-      <h2 className="mb-4">Clinical Visits</h2>
       {groupedEncounters.map(({ year, visits }) => (
         <div key={year} className="year-section">
           <YearHeader year={year} />

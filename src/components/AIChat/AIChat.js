@@ -35,34 +35,55 @@ function AIChat() {
 
   // Handle URL-based session selection - only when sessions load or URL changes
   useEffect(() => {
-    if (sessionId && sessions.length > 0 && !loading) {
-      // Skip if we've already processed this session ID
-      if (processedSessionIdRef.current === sessionId) {
-        console.log('Already processed session ID:', sessionId);
-        return;
-      }
-      
-      console.log('Selecting session from URL parameter:', sessionId);
-      const sessionFromUrl = sessions.find(s => 
-        s.id === sessionId || s.id === parseInt(sessionId)
-      );
-      
-      if (sessionFromUrl) {
-        console.log('Found session matching URL parameter:', sessionFromUrl);
-        // Only update if it's different from the current selection
-        if (!selectedSession || selectedSession.id !== sessionFromUrl.id) {
-          console.log('Setting selected session from URL');
-          setSelectedSession(sessionFromUrl);
-          // Mark this session ID as processed
-          processedSessionIdRef.current = sessionId;
+    if (sessions.length > 0 && !loading) {
+      if (sessionId) {
+        // Skip if we've already processed this session ID
+        if (processedSessionIdRef.current === sessionId) {
+          console.log('Already processed session ID:', sessionId);
+          return;
         }
-      } else {
-        console.log('No session found matching URL parameter');
-        // If session not found, redirect to base chat URL
-        navigate('/ai-chat', { replace: true });
+        
+        console.log('Selecting session from URL parameter:', sessionId);
+        const sessionFromUrl = sessions.find(s => 
+          s.id === sessionId || s.id === parseInt(sessionId)
+        );
+        
+        if (sessionFromUrl) {
+          console.log('Found session matching URL parameter:', sessionFromUrl);
+          // Only update if it's different from the current selection
+          if (!selectedSession || selectedSession.id !== sessionFromUrl.id) {
+            console.log('Setting selected session from URL');
+            setSelectedSession(sessionFromUrl);
+            // Mark this session ID as processed
+            processedSessionIdRef.current = sessionId;
+          }
+        } else {
+          console.log('No session found matching URL parameter');
+          // If session not found, redirect to base chat URL
+          navigate('/ai-chat', { replace: true });
+        }
+      } else if (!selectedSession && sessions.length > 0) {
+        // No session ID in URL, and no session selected yet - select most recent session
+        console.log('No session ID in URL, selecting most recent session');
+        
+        // Sort sessions by creation date (newest first)
+        const sortedSessions = [...sessions].sort((a, b) => {
+          const dateA = a.created_at ? new Date(a.created_at) : new Date(0);
+          const dateB = b.created_at ? new Date(b.created_at) : new Date(0);
+          return dateB - dateA;
+        });
+        
+        const mostRecentSession = sortedSessions[0];
+        console.log('Selected most recent session:', mostRecentSession);
+        
+        setSelectedSession(mostRecentSession);
+        
+        // Update URL to include the selected session ID
+        processedSessionIdRef.current = mostRecentSession.id.toString();
+        navigate(`/ai-chat/${mostRecentSession.id}`, { replace: true });
       }
     }
-  }, [sessionId, sessions, loading]); // Only depend on sessionId, sessions, and loading
+  }, [sessionId, sessions, loading, selectedSession, navigate]);
 
   // Handle the initial message after sessions are loaded and not loading
   useEffect(() => {

@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import './WebSocketVoice.css';
 
 // Visualization configuration - centralized customization
@@ -29,25 +29,25 @@ const visualizationConfig = {
       ripple: 'rgba(255, 100, 100, ${opacity})'
     },
     
-    // Colors - Playing state (blue theme)
+    // Colors - Playing state (teal theme instead of blue)
     playingColors: {
-      outerStart: 'rgba(130, 180, 255, 0.9)',
-      outerMiddle: 'rgba(65, 130, 234, 0.85)',
-      outerEnd: 'rgba(13, 110, 253, 0.8)',
-      innerStart: 'rgba(160, 200, 255, 0.95)',
-      innerEnd: 'rgba(0, 123, 255, 0.2)',
-      highlight: 'rgba(200, 230, 255, 0.4)',
-      ripple: 'rgba(100, 150, 255, ${opacity})'
+      outerStart: 'rgba(130, 230, 230, 0.9)',
+      outerMiddle: 'rgba(65, 190, 194, 0.85)',
+      outerEnd: 'rgba(1, 158, 161, 0.8)',
+      innerStart: 'rgba(160, 240, 240, 0.95)',
+      innerEnd: 'rgba(1, 158, 161, 0.2)',
+      highlight: 'rgba(200, 250, 250, 0.4)',
+      ripple: 'rgba(32, 192, 195, ${opacity})'
     },
     
-    // Colors - Idle state
+    // Colors - Idle state (teal theme instead of blue)
     idleColors: {
-      outerStart: 'rgba(130, 180, 255, 0.9)',
-      outerMiddle: 'rgba(65, 130, 234, 0.6)',
-      outerEnd: 'rgba(13, 110, 253, 0.3)',
-      innerStart: 'rgba(160, 200, 255, 0.7)',
-      innerEnd: 'rgba(0, 123, 255, 0.1)',
-      highlight: 'rgba(200, 230, 255, 0.3)'
+      outerStart: 'rgba(130, 230, 230, 0.9)',
+      outerMiddle: 'rgba(65, 190, 194, 0.6)',
+      outerEnd: 'rgba(1, 158, 161, 0.3)',
+      innerStart: 'rgba(160, 240, 240, 0.7)',
+      innerEnd: 'rgba(1, 158, 161, 0.1)',
+      highlight: 'rgba(200, 250, 250, 0.3)'
     }
   },
   // Add configurations for other visualization types if needed
@@ -64,6 +64,12 @@ const VoiceVisualization = ({
 }) => {
   const canvasRef = useRef(null);
   const animationRef = useRef(null);
+  const [hasActiveAnalyser, setHasActiveAnalyser] = useState(false);
+  
+  // Update active analyzer state when references change
+  useEffect(() => {
+    setHasActiveAnalyser(!!audioAnalyserRef?.current);
+  }, [audioAnalyserRef]);
   
   // Drawing functions for different visualization types
   const drawVisualizer = (analyser, canvas, dataArray, bufferLength, mode) => {
@@ -80,8 +86,8 @@ const VoiceVisualization = ({
     const offsetX = (width - size) / 2;
     const offsetY = (height - size) / 2;
 
-    if (!analyser && !isPlaying && !isRecording) {
-      // Draw idle state with a pulsing 3D circle
+    // Draw idle state ONLY when not recording/playing AND no active analyzer/audio data
+    if (!isRecording && !isPlaying && !hasActiveAnalyser) {
       drawIdleCircle(ctx, offsetX, offsetY, size);
       return;
     }
@@ -172,7 +178,7 @@ const VoiceVisualization = ({
     const barGap = 2;
     const scaleFactor = 2.5;
     
-    ctx.fillStyle = isRecording ? 'rgba(220, 53, 69, 0.7)' : 'rgba(0, 123, 255, 0.7)';
+    ctx.fillStyle = isRecording ? 'rgba(220, 53, 69, 0.7)' : 'rgba(1, 158, 161, 0.7)';
     
     // Use actual dataArray if available, otherwise simulate with current audio level
     if (dataArray && bufferLength) {
@@ -329,7 +335,7 @@ const VoiceVisualization = ({
   const drawWaveVisualizer = (ctx, width, height, dataArray, bufferLength) => {
     const centerY = height / 2;
     
-    ctx.strokeStyle = isRecording ? 'rgba(220, 53, 69, 0.8)' : 'rgba(0, 123, 255, 0.8)';
+    ctx.strokeStyle = isRecording ? 'rgba(220, 53, 69, 0.8)' : 'rgba(1, 158, 161, 0.8)';
     ctx.lineWidth = 3;
     ctx.beginPath();
     
@@ -391,7 +397,7 @@ const VoiceVisualization = ({
     const dpr = window.devicePixelRatio || 1;
     
     // Debug log DPR
-    console.log('Device Pixel Ratio:', dpr);
+    //console.log('Device Pixel Ratio:', dpr);
     
     // Step 1: Set inline styles on the canvas to make it fill the container
     canvas.style.width = '100%';
@@ -425,7 +431,7 @@ const VoiceVisualization = ({
     const safeHeight = Math.max(displayHeight, 100);
     
     // Debug log to see actual dimensions
-    console.log('Voice Visualization dimensions:', {
+    /*console.log('Voice Visualization dimensions:', {
       container: {
         width: container.clientWidth,
         height: container.clientHeight,
@@ -449,7 +455,7 @@ const VoiceVisualization = ({
         }
       },
       dpr: dpr
-    });
+    });*/
     
     // Step 4: Set the canvas size attributes accounting for device pixel ratio
     // Add a maximum size limit to prevent excessive canvas dimensions

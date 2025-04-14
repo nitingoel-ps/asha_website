@@ -1,13 +1,12 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Form, Button, Spinner } from 'react-bootstrap';
-import { FiMenu, FiPlus, FiMic } from 'react-icons/fi';
+import { FiMenu, FiPlus, FiMic, FiSend, FiEdit, FiList } from 'react-icons/fi';
 import { useNavigate, useParams } from 'react-router-dom';
 import axiosInstance from '../../utils/axiosInstance';
 import MessageList from './MessageList';
 import ChatList from './ChatList';
 import { processStreamingContent, isActivityMessage } from './MessageUtils';
-import { FiSend, FiEdit } from 'react-icons/fi';
-import { PiListMagnifyingGlassThin } from "react-icons/pi";
+import { aiChatEvents } from '../../components/Navigation/LoggedInNavbar';
 
 
 function ChatWindow({ session, onSessionCreated, sessions = [], onSelectSession, onDeleteSession, onRenameSession, loading, onChatComplete }) {
@@ -51,6 +50,29 @@ function ChatWindow({ session, onSessionCreated, sessions = [], onSelectSession,
       }
     }
   }, [session, sessions]);
+
+  // Listen for mobile top bar events
+  useEffect(() => {
+    // Handle toggle chat list event from mobile top bar
+    const handleToggleChatList = () => {
+      setIsChatListVisible(!isChatListVisible);
+    };
+    
+    // Handle new chat event from mobile top bar
+    const handleNewChat = () => {
+      handleNewChatClick();
+    };
+    
+    // Add event listeners
+    window.addEventListener(aiChatEvents.TOGGLE_CHAT_LIST, handleToggleChatList);
+    window.addEventListener(aiChatEvents.NEW_CHAT, handleNewChat);
+    
+    // Clean up
+    return () => {
+      window.removeEventListener(aiChatEvents.TOGGLE_CHAT_LIST, handleToggleChatList);
+      window.removeEventListener(aiChatEvents.NEW_CHAT, handleNewChat);
+    };
+  }, [isChatListVisible]); // Include isChatListVisible to update the toggle function when it changes
 
   // Sync the ref with state whenever messages change
   useEffect(() => {
@@ -371,18 +393,34 @@ function ChatWindow({ session, onSessionCreated, sessions = [], onSelectSession,
     // Update on mount
     updateMobileViewportHeight();
     
-    // Add resize listener
+    // Add resize and orientation change listeners
     window.addEventListener('resize', updateMobileViewportHeight);
-    return () => window.removeEventListener('resize', updateMobileViewportHeight);
+    window.addEventListener('orientationchange', updateMobileViewportHeight);
+    
+    return () => {
+      window.removeEventListener('resize', updateMobileViewportHeight);
+      window.removeEventListener('orientationchange', updateMobileViewportHeight);
+    };
   }, []);
 
-  const handleNewChat = async () => {
-    // If we have no messages in the current session, don't create a new one
-    if (session && messages.length === 0) {
-      console.log('Current session is empty, not creating a new one');
-      return; // Just reuse the current empty session
+  // Add function to handle the new chat button click
+  const handleNewChatClick = () => {
+    if (sessions.length > 0 && onSelectSession) {
+      // For simplicity, just redirect to base chat path
+      // The parent component will handle creating a new chat
+      navigate('/ai-chat');
+      // If we're in mobile view, hide the chat list
+      setIsChatListVisible(false);
+      
+      // Create new session if onSessionCreated is provided
+      if (onSessionCreated) {
+        handleNewChatRequest();
+      }
     }
-    
+  };
+
+  // Function to create a new chat session
+  const handleNewChatRequest = async () => {
     try {
       setIsLoading(true);
       const response = await axiosInstance.post('/chat-sessions/', {
@@ -390,13 +428,8 @@ function ChatWindow({ session, onSessionCreated, sessions = [], onSelectSession,
       });
       const newSession = response.data;
       
-      // Mark that we've processed URL changes to prevent loops
-      urlSessionProcessedRef.current = true;
-      
+      // Call the callback to update the parent component
       onSessionCreated(newSession);
-      
-      // Update URL to reflect the new session - parent component will handle this
-      // We don't need to navigate here as the parent will do it
     } catch (error) {
       console.error('Error creating new chat session:', error);
     } finally {
@@ -414,18 +447,19 @@ function ChatWindow({ session, onSessionCreated, sessions = [], onSelectSession,
     }
   };
 
+  const handleToggleChat = (session) => {
+    // If selecting a session, close the chat list
+    if (session) {
+      setIsChatListVisible(false);
+      onSelectSession(session);
+    }
+  };
+
   return (
     <div className="ai-chat-window">
+      {/* Microphone button - only visible on desktop/tablet */}
       <Button
-        className="d-md-none toggle-chat-list-btn"
-        onClick={() => setIsChatListVisible(!isChatListVisible)}
-      >
-        <PiListMagnifyingGlassThin size={20} />
-      </Button>
-      
-      {/* Updated microphone button to match keyboard button styling */}
-      <Button
-        className="mic-btn"
+        className="mic-btn d-none d-md-flex"
         onClick={handleMicrophoneClick}
         aria-label="Switch to voice chat"
         variant="link"
@@ -433,27 +467,36 @@ function ChatWindow({ session, onSessionCreated, sessions = [], onSelectSession,
         <FiMic size={24} />
       </Button>
       
-      <Button
-        className="d-md-none new-chat-btn"
-        onClick={handleNewChat}
-      >
-        <FiEdit size={20} />
-      </Button>
       <div className={`ai-chat-sidebar ${isChatListVisible ? 'd-block' : 'd-none'}`}>
         <ChatList
           sessions={sessions}
           selectedSession={session}
-          onSelectSession={(session) => {
-            setIsChatListVisible(false);
-            onSelectSession(session);
-          }}
+          onSelectSession={handleToggleChat}
           onDeleteSession={onDeleteSession}
           onRenameSession={onRenameSession}
           loading={loading}
         />
       </div>
       <div className="ai-chat-messages-container">
-        <MessageList messages={messages} />
+        {loading && !session ? (
+          <div className="text-center p-5">
+            <Spinner animation="border" />
+            <p className="mt-3">Loading your most recent conversation...</p>
+          </div>
+        ) : !session && sessions.length === 0 ? (
+          <div className="text-center p-5">
+            <p>Welcome to AI Chat! Start a new conversation to begin.</p>
+            <Button 
+              variant="primary" 
+              onClick={handleNewChatClick}
+              className="mt-3"
+            >
+              <FiPlus className="me-2" /> New Chat
+            </Button>
+          </div>
+        ) : (
+          <MessageList messages={messages} />
+        )}
         <div ref={messageEndRef} />
       </div>
       <Form ref={formRef} onSubmit={handleSend} className="ai-chat-message-input-form">
@@ -464,11 +507,11 @@ function ChatWindow({ session, onSessionCreated, sessions = [], onSelectSession,
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             placeholder="Type your message..."
-            disabled={isLoading}
+            disabled={isLoading || !session}
           />
           <Button 
             type="submit" 
-            disabled={isLoading || !newMessage.trim()} 
+            disabled={isLoading || !newMessage.trim() || !session} 
             className="ms-2"
             onClick={() => console.log('Send button clicked')}
           >
