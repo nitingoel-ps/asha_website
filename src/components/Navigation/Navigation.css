@@ -1,13 +1,19 @@
+/* 
+   NOTE: Logged out navbar styles have been moved to loggedout-navbar.css
+   The styles below for .site-navbar are maintained for backward compatibility 
+   but will be deprecated in favor of the more specific styles in loggedout-navbar.css
+*/
+
 /* Logged Out Navbar - Landing Page */
 .site-navbar {
   background-color: #00CED1 !important;
   backdrop-filter: blur(10px);
-  padding: 1rem 0;
-  position: fixed;
+  padding: 0.75rem 0;
+  position: fixed !important;
   top: 0;
   left: 0;
   right: 0;
-  z-index: 9999;
+  z-index: 1030;
   width: 100%;
 }
 
