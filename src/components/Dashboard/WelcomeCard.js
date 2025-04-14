@@ -45,15 +45,7 @@ function WelcomeCard({ user }) {
           </div>
         </div>
       </div>
-      
-      <div className="quick-actions">
-        {quickActions.map((action, index) => (
-          <Link key={index} to={action.link} className="action-card">
-            <div className="action-icon">{action.icon}</div>
-            <div className="action-title">{action.title}</div>
-          </Link>
-        ))}
-      </div>
+
     </div>
   );
 }
