@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Container, Row, Col, Card, Form, Button, Alert } from 'react-bootstrap';
-import { FaKey } from 'react-icons/fa';
+import { FaKey, FaArrowRight } from 'react-icons/fa';
 import axiosInstance from '../utils/axiosInstance';
 
 function InvitationCodeEntry() {
@@ -17,6 +17,8 @@ function InvitationCodeEntry() {
 
     try {
       await axiosInstance.post('/validate/registration-code/', { code });
+      
+      // Always redirect to the new registration flow
       navigate(`/register?code=${code}`);
     } catch (error) {
       setError('Invalid invitation code. Please try again.');
@@ -35,7 +37,7 @@ function InvitationCodeEntry() {
         <Col md={6}>
           <Card>
             <Card.Body className="text-center">
-              <FaKey className="mb-4" size={40} />
+              <FaKey className="mb-4" size={40} color="#00a19a" />
               <h2 className="mb-4">Registration Code Required</h2>
               <p className="mb-4">
                 Please enter your invitation code to register. If you don't have one,
@@ -43,7 +45,7 @@ function InvitationCodeEntry() {
               </p>
               
               <Form onSubmit={handleSubmit}>
-                <Form.Group className="mb-3">
+                <Form.Group className="mb-4">
                   <Form.Control
                     type="text"
                     placeholder="Enter your invitation code"
@@ -52,6 +54,7 @@ function InvitationCodeEntry() {
                     required
                   />
                 </Form.Group>
+                
                 {error && <Alert variant="danger">{error}</Alert>}
                 <Button 
                   type="submit" 
@@ -59,7 +62,9 @@ function InvitationCodeEntry() {
                   className="w-100"
                   disabled={isValidating}
                 >
-                  {isValidating ? 'Validating...' : 'Validate Code'}
+                  {isValidating ? 'Validating...' : (
+                    <span>Continue <FaArrowRight className="ms-1" /></span>
+                  )}
                 </Button>
               </Form>
             </Card.Body>

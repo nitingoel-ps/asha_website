@@ -1,0 +1,246 @@
+/* RegistrationFlow.css */
+:root {
+  --primary-color: #00a19a;
+  --primary-light: #e6f7f6;
+  --border-color: #ddd;
+  --text-dark: #333;
+  --text-gray: #666;
+  --text-light: #999;
+  --bg-light: #f8f8f8;
+  --error-color: #dc3545;
+  --success-color: #28a745;
+  --warning-color: #ffc107;
+}
+
+.registration-flow-container {
+  max-width: 650px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+.registration-card {
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.registration-card .card-body {
+  padding: 30px;
+}
+
+/* Progress Bar Styles */
+.progress-container {
+  margin-bottom: 30px;
+}
+
+.progress-bar {
+  height: 4px;
+  background-color: #e9e9e9;
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.progress-fill {
+  height: 100%;
+  background-color: var(--primary-color);
+  transition: width 0.3s ease;
+}
+
+.progress-steps {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--text-light);
+}
+
+.progress-steps .step {
+  color: var(--text-light);
+}
+
+.progress-steps .step.active {
+  color: var(--primary-color);
+  font-weight: 600;
+}
+
+/* Step Container */
+.step-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.step-heading {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin: 0 0 5px 0;
+}
+
+.step-description {
+  color: var(--text-gray);
+  font-size: 14px;
+  margin: 0 0 15px 0;
+}
+
+/* Form Controls */
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-label {
+  font-weight: 500;
+  margin-bottom: 5px;
+  display: block;
+}
+
+.form-hint {
+  font-size: 12px;
+  color: var(--text-light);
+  margin-top: 5px;
+}
+
+.form-check-label {
+  color: var(--text-gray);
+  font-size: 14px;
+}
+
+.form-control:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 0.2rem rgba(0, 161, 154, 0.25);
+}
+
+/* Button Styles */
+.btn-primary {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+.btn-primary:hover, .btn-primary:focus {
+  background-color: #00847e;
+  border-color: #00847e;
+}
+
+.btn-outline-secondary {
+  color: var(--text-dark);
+  border-color: var(--border-color);
+  background-color: white;
+}
+
+/* Link styling */
+.text-link {
+  color: var(--primary-color);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.text-link:hover {
+  text-decoration: underline;
+}
+
+/* Additional UI elements */
+.terms-reminder {
+  background-color: var(--primary-light);
+  border: 1px solid #cceae9;
+  border-radius: 6px;
+  padding: 12px;
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.terms-icon {
+  color: var(--primary-color);
+  font-weight: bold;
+}
+
+.terms-text {
+  font-size: 14px;
+  color: var(--text-dark);
+  margin: 0;
+}
+
+.review-info {
+  background-color: var(--bg-light);
+  border-radius: 6px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.review-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.review-item:last-child {
+  border-bottom: none;
+}
+
+.review-label {
+  font-size: 14px;
+  color: var(--text-gray);
+}
+
+.review-value {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-dark);
+}
+
+.text-center {
+  text-align: center;
+}
+
+/* Success Step Styles */
+.success-icon {
+  margin: 20px auto;
+  text-align: center;
+  animation: success-pulse 2s ease-in-out;
+}
+
+@keyframes success-pulse {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .registration-card .card-body {
+    padding: 20px;
+  }
+}
+
+@media (max-width: 576px) {
+  .registration-flow-container {
+    padding: 10px;
+  }
+  
+  .registration-card {
+    box-shadow: none;
+    border: none;
+  }
+  
+  .registration-card .card-body {
+    padding: 15px 10px;
+  }
+  
+  .btn-group {
+    flex-direction: column;
+  }
+  
+  .btn-group .btn {
+    margin-bottom: 10px;
+  }
+} 

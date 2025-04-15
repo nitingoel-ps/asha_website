@@ -23,6 +23,7 @@ import LoadingSpinner from './components/LoadingSpinner';
 import AIVoice from './components/AIVoice/AIVoice';
 import WebSocketVoice from './components/WebSocketVoice/WebSocketVoice';
 import Appointments from './components/Appointments/Appointments';
+import RegistrationFlow from './components/NewRegistration/RegistrationFlow';
 
 import './theme.css';
 
@@ -42,7 +43,8 @@ function AppContent() {
       {isAuthenticated ? <LoggedInNavbar /> : <LoggedOutNavbar />}
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/register" element={<Register />} />
+        <Route path="/old-register" element={<Register />} />
+        <Route path="/register" element={<RegistrationFlow />} />
         <Route path="/login" element={<Login />} />
         <Route
           path="/add-providers"
