@@ -1,15 +1,21 @@
 import React, { useEffect, useState } from "react";
 import axiosInstance from "../utils/axiosInstance";
-import { useNavigate } from "react-router-dom";
-import { Container, Card, Button, Form, Table, Alert, Collapse } from "react-bootstrap";
+import { useNavigate, useLocation } from "react-router-dom";
+import { Container, Card, Button, Form, Table, Alert, Collapse, Tabs, Tab, Row, Col } from "react-bootstrap";
 import { format, parseISO, formatDistanceToNow } from "date-fns";
 import './AddProviders.css';
-import { FaCheck, FaSpinner, FaTimes } from 'react-icons/fa';
+import { FaCheck, FaSpinner, FaTimes, FaSync, FaTrash, FaCircle, FaPlus, FaExclamationTriangle } from 'react-icons/fa';
 import { isMobileDevice } from '../utils/deviceDetector';
+
+// Create a custom event bus for Provider Connections page
+export const providerConnectionsEvents = {
+  ADD_NEW_CONNECTION: 'provider-connections-add-new'
+};
 
 function AddProviders() {
   const [message, setMessage] = useState("");
   const navigate = useNavigate();
+  const location = useLocation();
   const [providers, setProviders] = useState([]); // To store the list of providers
   const [selectedProvider, setSelectedProvider] = useState(""); // To store the selected provider
   const [connections, setConnections] = useState([]); // To store existing connections
@@ -25,6 +31,9 @@ function AddProviders() {
   const [pollingTimers, setPollingTimers] = useState({});
   const [expandedProviders, setExpandedProviders] = useState(new Set());
   const [expandedTasks, setExpandedTasks] = useState(new Set());
+  // Add state for active tab
+  const [activeTab, setActiveTab] = useState('connected');
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 992);
 
   const EXPECTED_TASKS = [
     { id: 'fetch_data', display: 'Downloading Medical Records' },
@@ -281,6 +290,58 @@ function AddProviders() {
     }
   };
 
+  // Function to get status message and icon for a connection
+  const getConnectionStatusInfo = (connection) => {
+    const status = connection.last_fetch_status;
+    const lastFetchedAt = connection.last_fetched_at;
+    
+    // Find the in-progress task for this connection if it exists
+    const progress = refreshProgress[connection.id];
+    
+    if (status === "PENDING" || (progress && progress.overall_status === 'PENDING')) {
+      // Determine which task is in progress
+      let currentTaskDisplay = "Processing...";
+      
+      if (progress && progress.tasks) {
+        for (const expectedTask of EXPECTED_TASKS) {
+          const task = progress.tasks.find(t => t.task === expectedTask.id);
+          if (task && (task.status === 'PENDING' || task.status === 'IN_PROGRESS')) {
+            currentTaskDisplay = `${expectedTask.display}...`;
+            break;
+          }
+        }
+      }
+      
+      return {
+        icon: <FaSpinner className="connection-status-icon spinning" />,
+        text: currentTaskDisplay,
+        className: "provider-status-pending"
+      };
+    } else if (status === "ERROR") {
+      return {
+        icon: <FaExclamationTriangle className="connection-status-icon" />,
+        text: "Processing Failed, please try again",
+        className: "provider-status-error"
+      };
+    } else {
+      // SUCCESS or any other status
+      if (!lastFetchedAt) {
+        return {
+          icon: <FaCircle className="connection-status-icon" />,
+          text: "Unknown last fetch time",
+          className: "provider-status-unknown"
+        };
+      }
+      
+      const lastFetchedTime = parseISO(lastFetchedAt);
+      return {
+        icon: <FaCircle className="connection-status-icon" />,
+        text: `Last fetched ${formatDistanceToNow(lastFetchedTime)} ago`,
+        className: "provider-status-success"
+      };
+    }
+  };
+
   const getStatusDisplay = (status, lastFetchedAt) => {
     if (status !== "SUCCESS") {
       return status; // Show the status if it's not SUCCESS
@@ -479,81 +540,154 @@ function AddProviders() {
       return newSet;
     });
   };
+  
+  // Handler for switching to Add New tab
+  const handleSwitchToAddNew = () => {
+    setActiveTab('addNew');
+  };
 
-  return (
-    <Container className="providers-container">
-      <h2 className="mb-4">Connect to Providers</h2>
+  // Function to listen for the custom add new connection event
+  useEffect(() => {
+    const handleAddNewConnection = () => {
+      handleSwitchToAddNew();
+    };
 
-      {/* Display Current Connections */}
-      <Card className="card">
-        <Card.Body>
-          <Card.Title>Current Connections</Card.Title>
-          {loadingConnections ? (
-            <p>Loading connections...</p>
-          ) : errorConnections ? (
-            <p className="text-danger">{errorConnections}</p>
-          ) : connections.length === 0 ? (
-            <p>No connections found.</p>
-          ) : (
-            <Table striped bordered hover>
-              <thead><tr>
-                <th>Provider</th>
-                <th>Patient Name</th>
-                <th>Status</th>
-                <th>Action</th>
-              </tr></thead>
-              <tbody>
-                {connections.map((connection) => (<React.Fragment key={connection.id}>
-                  <tr>
-                    <td>
-                      <div 
-                        className="provider-name-toggle"
-                        onClick={() => toggleProviderProgress(connection.id)}
-                        role="button"
+    // Listen for the add new connection event
+    window.addEventListener(providerConnectionsEvents.ADD_NEW_CONNECTION, handleAddNewConnection);
+
+    return () => {
+      window.removeEventListener(providerConnectionsEvents.ADD_NEW_CONNECTION, handleAddNewConnection);
+    };
+  }, []);
+
+  // Set the mobile page title
+  useEffect(() => {
+    if (window.setMobilePageTitle) {
+      window.setMobilePageTitle("Provider Connections");
+    }
+
+    // Add mobile action button (+ button in header)
+    if (window.setMobileActionButton) {
+      window.setMobileActionButton({
+        icon: "plus",
+        action: () => {
+          // Dispatch custom event
+          const event = new CustomEvent(providerConnectionsEvents.ADD_NEW_CONNECTION);
+          window.dispatchEvent(event);
+        }
+      });
+    }
+
+    // Handle window resize
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 992);
+    };
+
+    window.addEventListener('resize', handleResize);
+    
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      
+      // Clear mobile page title and action button when component unmounts
+      if (window.setMobilePageTitle) {
+        window.setMobilePageTitle(null);
+      }
+      if (window.setMobileActionButton) {
+        window.setMobileActionButton(null);
+      }
+    };
+  }, []);
+
+  // Render connection cards
+  const renderConnectionCards = () => {
+    if (loadingConnections) {
+      return <p>Loading connections...</p>;
+    }
+    
+    if (errorConnections) {
+      return <p className="text-danger">{errorConnections}</p>;
+    }
+    
+    if (connections.length === 0) {
+      return (
+        <div className="no-connections-message">
+          <p>You don't have any connections yet.</p>
+          <Button 
+            variant="primary" 
+            className="add-connection-btn"
+            onClick={handleSwitchToAddNew}
+          >
+            <FaPlus className="me-2" />
+            Add Your First Connection
+          </Button>
+        </div>
+      );
+    }
+    
+    return (
+      <Row className="connection-cards-container">
+        {connections.map(connection => {
+          const statusInfo = getConnectionStatusInfo(connection);
+          const isPending = connection.last_fetch_status === "PENDING";
+          
+          return (
+            <Col xs={12} md={6} lg={4} key={connection.id} className="mb-3">
+              <Card className="connection-card">
+                <Card.Header className="d-flex justify-content-between align-items-center">
+                  <div 
+                    className="connection-title"
+                    onClick={() => toggleProviderProgress(connection.id)}
+                  >
+                    {connection.provider}
+                  </div>
+                  <div className="connection-actions">
+                    {isPending ? (
+                      <span className="action-icon refresh-pending">
+                        <FaSpinner className="spinning" />
+                      </span>
+                    ) : (
+                      <button 
+                        className="action-icon-btn"
+                        onClick={() => handleConnectProvider(connection.id)}
+                        disabled={isPending}
                       >
-                        {connection.provider}
-                        <span className="toggle-indicator">
-                          {expandedProviders.has(connection.id) ? '▼' : '▶'}
-                        </span>
-                      </div>
-                    </td>
-                    <td>{connection.patient_name}</td>
-                    <td>{getStatusDisplay(connection.last_fetch_status, connection.last_fetched_at)}</td>
-                    <td>
-                      {connection.last_fetch_status === "PENDING" ? (
-                        <span className="task-progress-pulse">
-                          <FaSpinner className="task-spinner me-1" />
-                          In Progress...
-                        </span>
-                      ) : (
-                        <Button
-                          variant="primary"
-                          onClick={() => handleConnectProvider(connection.id)}
-                        >
-                          Refresh
-                        </Button>
-                      )}
-                    </td>
-                  </tr>
-                  <tr className="progress-row">
-                    <td colSpan="4" className="p-0">
-                      <Collapse in={expandedProviders.has(connection.id)}>
-                        <div>
-                          <RefreshProgress providerId={connection.id} />
-                        </div>
-                      </Collapse>
-                    </td>
-                  </tr>
-                </React.Fragment>))}
-              </tbody>
-            </Table>
-          )}
-          </Card.Body>
-        </Card>
+                        <FaSync />
+                      </button>
+                    )}
+                    <button className="action-icon-btn">
+                      <FaTrash />
+                    </button>
+                  </div>
+                </Card.Header>
+                <Card.Body
+                  onClick={() => toggleProviderProgress(connection.id)} 
+                  className="connection-card-body"
+                >
+                  <div className={`provider-connection-status ${statusInfo.className}`}>
+                    {statusInfo.icon}
+                    <span>{statusInfo.text}</span>
+                  </div>
+                </Card.Body>
+                <Collapse in={expandedProviders.has(connection.id)}>
+                  <div className="connection-details">
+                    <RefreshProgress providerId={connection.id} />
+                  </div>
+                </Collapse>
+              </Card>
+            </Col>
+          );
+        })}
+      </Row>
+    );
+  };
 
-      {/* Connect to a New Provider */}
-      <Card className="card">
-        <Card.Body>
+  // Render the add new connection UI
+  const renderAddNewConnection = () => {
+    return (
+      <>
+        {/* Connect to a New Provider */}
+        <Card className="card">
+          <Card.Body>
             <Card.Title>Connect to a Provider</Card.Title>
             <Card.Text>
               Please select a provider to connect your health data.
@@ -573,7 +707,7 @@ function AddProviders() {
                 ))}
               </Form.Control>
             </Form.Group>
-            <Button variant="primary" onClick={() => handleConnectProvider(selectedProvider)}>
+            <Button variant="primary" onClick={() => handleConnectProvider(selectedProvider)} className="mt-3">
               Connect Provider
             </Button>
           </Card.Body>
@@ -665,6 +799,54 @@ function AddProviders() {
             )}
           </Card.Body>
         </Card>
+      </>
+    );
+  };
+
+  return (
+    <Container className="providers-container">
+      <div className="provider-header">
+        {!isMobile && <h2>Provider Connections</h2>}
+        {!isMobile && connections.length > 0 && (
+          <Button 
+            variant="primary" 
+            className="add-another-connection-btn"
+            onClick={handleSwitchToAddNew}
+          >
+            <FaPlus className="me-2" />
+            Add Another Connection
+          </Button>
+        )}
+      </div>
+
+      <Tabs 
+        activeKey={activeTab} 
+        onSelect={(key) => setActiveTab(key)} 
+        className="provider-tabs"
+      >
+        <Tab eventKey="connected" title="Connected">
+          <div className="connected-tab-content">
+            {renderConnectionCards()}
+            {isMobile && connections.length > 0 && (
+              <div className="text-center mt-3 mobile-only">
+                <Button 
+                  variant="primary" 
+                  className="add-another-connection-btn"
+                  onClick={handleSwitchToAddNew}
+                >
+                  <FaPlus className="me-2" />
+                  Add Another Connection
+                </Button>
+              </div>
+            )}
+          </div>
+        </Tab>
+        <Tab eventKey="addNew" title="Add New">
+          <div className="add-new-tab-content">
+            {renderAddNewConnection()}
+          </div>
+        </Tab>
+      </Tabs>
     </Container>
   );
 }

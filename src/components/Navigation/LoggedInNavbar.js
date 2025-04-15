@@ -24,9 +24,32 @@ function LoggedInNavbar() {
   const navbarRef = useRef(null);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
   const [showVoiceSettings, setShowVoiceSettings] = useState(false);
+  const [customPageTitle, setCustomPageTitle] = useState(null);
+  const [mobileActionButton, setMobileActionButton] = useState(null);
+
+  // Expose the setMobilePageTitle function to window for other components to use
+  useEffect(() => {
+    window.setMobilePageTitle = (title) => {
+      setCustomPageTitle(title);
+    };
+
+    window.setMobileActionButton = (config) => {
+      setMobileActionButton(config);
+    };
+
+    return () => {
+      window.setMobilePageTitle = null;
+      window.setMobileActionButton = null;
+    };
+  }, []);
 
   // Get page title based on current route
   const getPageTitle = () => {
+    // If a custom title is set, use it
+    if (customPageTitle) {
+      return customPageTitle;
+    }
+    
     const path = location.pathname;
     const pathSegments = path.split('/').filter(Boolean);
     
@@ -95,6 +118,7 @@ function LoggedInNavbar() {
     // Other routes
     if (path.includes('add-health-data')) return 'Add Records';
     if (path.includes('websocket-voice')) return 'Talk to Asha';
+    if (path.includes('add-providers')) return 'Provider Connections';
     return 'Asha AI';
   };
 
@@ -178,6 +202,13 @@ function LoggedInNavbar() {
     window.dispatchEvent(event);
   };
 
+  // Function to handle mobile action button click
+  const handleMobileActionClick = () => {
+    if (mobileActionButton && mobileActionButton.action) {
+      mobileActionButton.action();
+    }
+  };
+
   useEffect(() => {
     const handleResize = () => setWindowWidth(window.innerWidth);
     window.addEventListener('resize', handleResize);
@@ -259,6 +290,22 @@ function LoggedInNavbar() {
     return location.pathname.includes('/websocket-voice') || location.pathname.includes('/ai-voice');
   };
 
+  // Render dynamic mobile action button based on icon name
+  const renderMobileActionButton = () => {
+    if (!mobileActionButton) return null;
+    
+    switch(mobileActionButton.icon) {
+      case 'plus':
+        return <FaPlus />;
+      case 'edit':
+        return <FiEdit />;
+      case 'cog':
+        return <FaCog />;
+      default:
+        return <FaPlus />;
+    }
+  };
+
   return (
     <>
       {/* Desktop Navbar */}
@@ -319,14 +366,25 @@ function LoggedInNavbar() {
             
             <div className="mobile-page-title">{getPageTitle()}</div>
             
-            {getAddButtonConfig() && (
+            {/* Render custom action button if available, else fallback to the page-specific one */}
+            {mobileActionButton ? (
               <button 
                 className="mobile-top-add-button"
-                onClick={getAddButtonConfig().action}
-                aria-label="Add new item"
+                onClick={handleMobileActionClick}
+                aria-label="Action button"
               >
-                <FaPlus />
+                {renderMobileActionButton()}
               </button>
+            ) : (
+              getAddButtonConfig() && (
+                <button 
+                  className="mobile-top-add-button"
+                  onClick={getAddButtonConfig().action}
+                  aria-label="Add new item"
+                >
+                  <FaPlus />
+                </button>
+              )
             )}
             
             {isAIChatPage() && (
