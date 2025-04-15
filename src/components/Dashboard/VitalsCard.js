@@ -20,7 +20,7 @@ function VitalsCard() {
         if (systolic >= 130 || diastolic >= 85) return "warning";
         return "normal";
       
-      case "Pulse":
+      case "Pulse Rate":
         const pulse = Number(reading);
         if (pulse > 100 || pulse < 50) return "alert";
         if (pulse > 90 || pulse < 60) return "warning";
@@ -65,7 +65,7 @@ function VitalsCard() {
         });
 
         // Convert to array and filter the vitals we want to display
-        const vitalsToShow = ["Blood Pressure", "Pulse", "Oxygen Saturation", "Weight", "Body Mass Index"];
+        const vitalsToShow = ["Blood Pressure", "Pulse Rate", "Oxygen Saturation", "Weight", "Body Mass Index"];
         const processedVitals = vitalsToShow
           .map(vitalName => {
             const vital = vitalMap.get(vitalName);
@@ -76,7 +76,7 @@ function VitalsCard() {
               value: vital.reading,
               unit: vital.units_of_measure ? vital.units_of_measure.replace('[', '').replace(']', '') : '',
               icon: vitalName === "Blood Pressure" ? "❤️" :
-                    vitalName === "Pulse" ? "📈" :
+                    vitalName === "Pulse Rate" ? "📈" :
                     vitalName === "Oxygen Saturation" ? "🫁" :
                     vitalName === "Weight" ? "⚖️" : "📊",
               date: new Date(vital.date_taken).toLocaleDateString(),

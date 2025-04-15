@@ -348,27 +348,27 @@ function VitalSignsTab() {
 
   const keyVitals = {
     "Blood Pressure": {
-      data: vitals.filter(v => v.vital_sign === "Blood Pressure"),
+      data: vitals.filter(v => v.vital_sign_type === "Blood Pressure"),
       icon: "❤️"
     },
     "Pulse": {
-      data: vitals.filter(v => v.vital_sign === "Pulse"),
+      data: vitals.filter(v => v.vital_sign_type === "Pulse Rate"),
       icon: "📈"
     },
     "Oxygen Saturation": {
-      data: vitals.filter(v => v.vital_sign === "Oxygen Saturation"),
+      data: vitals.filter(v => v.vital_sign_type === "Oxygen Saturation"),
       icon: "🫁"
     },
     "Height": {
-      data: vitals.filter(v => v.vital_sign === "Height"),
+      data: vitals.filter(v => v.vital_sign_type === "Height"),
       icon: "📏"
     },
     "Weight": {
-      data: vitals.filter(v => v.vital_sign === "Weight"),
+      data: vitals.filter(v => v.vital_sign_type === "Weight"),
       icon: "⚖️"
     },
     "Body Mass Index": {
-      data: vitals.filter(v => v.vital_sign === "Body Mass Index"),
+      data: vitals.filter(v => v.vital_sign_type === "Body Mass Index"),
       icon: "📊"
     }
   };
