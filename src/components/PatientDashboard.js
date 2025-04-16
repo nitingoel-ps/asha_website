@@ -23,6 +23,7 @@ import VoiceTab from "./PatientDashboard/VoiceTab";
 import LabPanelsTab from './PatientDashboard/LabPanels/LabPanelsTab';
 import ObservationDetail from './PatientDashboard/LabPanels/ObservationDetail';
 import SymptomsTab from './PatientDashboard/Symptoms/SymptomsTab';
+import { ConnectionProvider } from "../context/ConnectionContext";
 
 function PatientDashboard() {
   const location = useLocation();
@@ -257,85 +258,87 @@ function PatientDashboard() {
 
   // Update the Routes section
   return (
-    <div className={`dashboard-container ${activeTab ? 'tab-active' : ''}`}>
-      {(!activeTab || !isMobile) && <NavigationMenu />}
-      {(activeTab || !isMobile) && (
-        <div className="content-area">
-          <div className="tab-content-wrapper">
-            <Routes>
-              {console.log("PatientDashboard: Rendering routes")}
-              <Route index element={
-                isMobile ? null : <Navigate to="med" replace />
-              } />
-              <Route path="dashboard-summary" element={
-                <SummaryTab 
-                  vitals={patientData?.vitals}
-                  overallSummary={patientData?.overall_summary}
-                  medications={patientData?.medication_requsts}
-                  diagnosticReports={patientData?.diagnostic_reports}
-                  charts={patientData?.important_charts}
-                  keyInsights={patientData?.key_insights}
+    <ConnectionProvider>
+      <div className={`dashboard-container ${activeTab ? 'tab-active' : ''}`}>
+        {(!activeTab || !isMobile) && <NavigationMenu />}
+        {(activeTab || !isMobile) && (
+          <div className="content-area">
+            <div className="tab-content-wrapper">
+              <Routes>
+                {console.log("PatientDashboard: Rendering routes")}
+                <Route index element={
+                  isMobile ? null : <Navigate to="med" replace />
+                } />
+                <Route path="dashboard-summary" element={
+                  <SummaryTab 
+                    vitals={patientData?.vitals}
+                    overallSummary={patientData?.overall_summary}
+                    medications={patientData?.medication_requsts}
+                    diagnosticReports={patientData?.diagnostic_reports}
+                    charts={patientData?.important_charts}
+                    keyInsights={patientData?.key_insights}
+                  />
+                } />
+                <Route path="summary" element={
+                  <ChatTab 
+                    suggestedQuestions={patientData?.suggested_questions?.research_topics || []}
+                    chatMessages={chatMessages}
+                    setChatMessages={setChatMessages}
+                    isThinking={isThinking}
+                    setIsThinking={setIsThinking}
+                    selectedPersona={selectedPersona}
+                    setSelectedPersona={setSelectedPersona}
+                  />
+                } />
+                <Route path="vital-signs" element={<VitalSignsTab />} />
+                <Route 
+                  path="immunizations/*" 
+                  element={
+                    <React.Suspense fallback={<div>Loading...</div>}>
+                      <NewImmunizationsTab immunizations={patientData?.immunizations} />
+                    </React.Suspense>
+                  } 
                 />
-              } />
-              <Route path="summary" element={
-                <ChatTab 
-                  suggestedQuestions={patientData?.suggested_questions?.research_topics || []}
-                  chatMessages={chatMessages}
-                  setChatMessages={setChatMessages}
-                  isThinking={isThinking}
-                  setIsThinking={setIsThinking}
-                  selectedPersona={selectedPersona}
-                  setSelectedPersona={setSelectedPersona}
+                <Route 
+                  path="visits/*" 
+                  element={
+                    <VisitsTab encounters={memoizedEncounters || []} />
+                  } 
                 />
-              } />
-              <Route path="vital-signs" element={<VitalSignsTab />} />
-              <Route 
-                path="immunizations/*" 
-                element={
-                  <React.Suspense fallback={<div>Loading...</div>}>
-                    <NewImmunizationsTab immunizations={patientData?.immunizations} />
-                  </React.Suspense>
-                } 
-              />
-              <Route 
-                path="visits/*" 
-                element={
-                  <VisitsTab encounters={memoizedEncounters || []} />
-                } 
-              />
-              <Route 
-                path="medical-reports/*" 
-                element={
-                    <MedicalReportsTab diagnosticReports={patientData?.diagnostic_reports} />
-                } 
-              />
-              <Route 
-                path="med/*" 
-                element={
-                  <React.Suspense fallback={<div>Loading...</div>}>
-                    {console.log("PatientDashboard: Rendering medications new route")}
-                    <NewMedicationsTab />
-                  </React.Suspense>
-                } 
-              />
-              <Route path="voice" element={
-                <VoiceTab 
-                  messages={voiceMessages} 
-                  setMessages={setVoiceMessages}
+                <Route 
+                  path="medical-reports/*" 
+                  element={
+                      <MedicalReportsTab diagnosticReports={patientData?.diagnostic_reports} />
+                  } 
                 />
-              } />
-              <Route path="lab-panels" element={
-                <LabPanelsTab standardPanels={patientData?.all_observations?.standard_panels} />
-              } />
-              <Route path="observation/:observationId" element={
-                <ObservationDetail standardPanels={patientData?.all_observations?.standard_panels} />
-              } />
-              <Route path="symptoms/*" element={<SymptomsTab />} />
-            </Routes>
+                <Route 
+                  path="med/*" 
+                  element={
+                    <React.Suspense fallback={<div>Loading...</div>}>
+                      {console.log("PatientDashboard: Rendering medications new route")}
+                      <NewMedicationsTab />
+                    </React.Suspense>
+                  } 
+                />
+                <Route path="voice" element={
+                  <VoiceTab 
+                    messages={voiceMessages} 
+                    setMessages={setVoiceMessages}
+                  />
+                } />
+                <Route path="lab-panels" element={
+                  <LabPanelsTab standardPanels={patientData?.all_observations?.standard_panels} />
+                } />
+                <Route path="observation/:observationId" element={
+                  <ObservationDetail standardPanels={patientData?.all_observations?.standard_panels} />
+                } />
+                <Route path="symptoms/*" element={<SymptomsTab />} />
+              </Routes>
+            </div>
           </div>
-        </div>
-      )}
-    </div>
+        )}
+      </div>
+    </ConnectionProvider>
   );
 }
 

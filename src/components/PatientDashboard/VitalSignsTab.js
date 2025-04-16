@@ -17,6 +17,10 @@ import {
 } from "react-icons/fa";
 import axiosInstance from "../../utils/axiosInstance";
 import BloodPressureInput from './BloodPressureInput';
+import EmptyStateMessage from '../Common/EmptyStateMessage';
+import { ConnectionProvider, useConnection } from "../../context/ConnectionContext";
+import '../Common/EmptyStateMessage.css';
+import { Link } from "react-router-dom";
 
 // Unit conversion functions
 const convertHeight = (value, fromUnit, toUnit) => {
@@ -210,6 +214,40 @@ const getUnit = (vitalType) => {
   }
 };
 
+// Add a specialized empty state component for Vital Signs
+const VitalSignsEmptyState = () => {
+  const { connectionStatus } = useConnection();
+  
+  return (
+    <div className="empty-state-container text-center p-4">
+      <h4 className="mb-3">No Vital Signs Available</h4>
+      
+      <p className="text-muted mb-4">
+        {connectionStatus === 'no-connections' 
+          ? "You don't have any vital signs data yet. You can either connect to your healthcare providers to import your data, or manually record your own vital signs."
+          : "No vital signs were found in your health data. You can manually record your own vital signs."}
+      </p>
+      
+      <div className="d-flex flex-column flex-md-row justify-content-center gap-3">
+        {connectionStatus === 'no-connections' && (
+          <Link to="/add-providers">
+            <Button variant="primary">
+              Connect Provider
+            </Button>
+          </Link>
+        )}
+        
+        <Button 
+          variant="primary" 
+          onClick={() => window.dispatchEvent(new Event('openAddVital'))}
+        >
+          Add Vital Signs
+        </Button>
+      </div>
+    </div>
+  );
+};
+
 function VitalSignsTab() {
   const [vitals, setVitals] = useState([]);
   const [selectedVital, setSelectedVital] = useState(null);
@@ -306,19 +344,6 @@ function VitalSignsTab() {
     }
   }, [selectedVital, displayUnit]);
 
-  const fetchVitalSigns = async () => {
-    try {
-      setIsLoading(true);
-      const response = await axiosInstance.get("/vital-signs/");
-      setVitals(response.data.vital_signs || []);
-      setIsLoading(false);
-    } catch (error) {
-      console.error("Error fetching vital signs:", error);
-      setVitals([]);
-      setIsLoading(false);
-    }
-  };
-
   // Handle responsive layout
   useEffect(() => {
     const handleResize = () => {
@@ -345,6 +370,31 @@ function VitalSignsTab() {
       return () => clearTimeout(timer);
     }
   }, [selectedVital, isLoading]);
+
+  const fetchVitalSigns = async () => {
+    try {
+      setIsLoading(true);
+      const response = await axiosInstance.get("/vital-signs/");
+      setVitals(response.data.vital_signs || []);
+      setIsLoading(false);
+    } catch (error) {
+      console.error("Error fetching vital signs:", error);
+      setVitals([]);
+      setIsLoading(false);
+    }
+  };
+
+  // Check if we have vital signs data
+  const hasVitals = vitals && vitals.length > 0;
+
+  // If no data and we're done loading, return empty state handler
+  if (!hasVitals && !isLoading) {
+    return (
+      <ConnectionProvider>
+        <VitalSignsEmptyState />
+      </ConnectionProvider>
+    );
+  }
 
   const keyVitals = {
     "Blood Pressure": {

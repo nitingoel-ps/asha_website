@@ -3,6 +3,9 @@ import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { Row, Col } from 'react-bootstrap';
 import VisitCard from './VisitCard';
 import VisitDetail from './VisitDetail';
+import EmptyStateMessage from '../../Common/EmptyStateMessage';
+import { ConnectionProvider } from '../../../context/ConnectionContext';
+import '../../Common/EmptyStateMessage.css';
 import './VisitsTab.css';
 
 // Add YearHeader component
@@ -73,6 +76,18 @@ function VisitsTab({ encounters }) {
     const visitId = location.pathname.split('/').pop();
     return encounters.find(v => v.id === visitId);
   }, [encounters, location.pathname]);
+
+  // Check if we have visits data
+  const hasVisits = encounters && encounters.length > 0;
+
+  // If no data, return empty state handler
+  if (!hasVisits) {
+    return (
+      <ConnectionProvider>
+        <EmptyStateMessage section="visits" />
+      </ConnectionProvider>
+    );
+  }
 
   return (
     <div className="h-100 d-flex flex-column">

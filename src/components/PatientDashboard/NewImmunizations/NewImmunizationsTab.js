@@ -2,6 +2,9 @@ import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { ImmunizationsListView } from './ImmunizationsListView';
 import { ImmunizationDetailView } from './ImmunizationDetailView';
+import EmptyStateMessage from '../../Common/EmptyStateMessage';
+import { ConnectionProvider } from '../../../context/ConnectionContext';
+import '../../Common/EmptyStateMessage.css';
 
 export function NewImmunizationsTab({ immunizations }) {
   const groupedImmunizations = React.useMemo(() => {
@@ -31,6 +34,18 @@ export function NewImmunizationsTab({ immunizations }) {
     
     return groups;
   }, [immunizations]);
+
+  // Check if we have immunization data
+  const hasImmunizations = immunizations && immunizations.length > 0;
+
+  // If no data, return empty state handler
+  if (!hasImmunizations) {
+    return (
+      <ConnectionProvider>
+        <EmptyStateMessage section="immunizations" />
+      </ConnectionProvider>
+    );
+  }
 
   return (
     <Routes>

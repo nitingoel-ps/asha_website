@@ -76,6 +76,22 @@ export const ConnectionProvider = ({ children }) => {
           "insights": {
             message: "Connect to your healthcare providers to receive personalized health insights and suggested action items based on your medical history.",
             action: "Connect Provider"
+          },
+          "immunizations": {
+            message: "Connect to your healthcare providers to see your immunization history, including vaccines received and those that may be due.",
+            action: "Connect Provider"
+          },
+          "visits": {
+            message: "Connect to your healthcare providers to see your visit history, including details of past appointments and doctor notes.",
+            action: "Connect Provider"
+          },
+          "medical-reports": {
+            message: "Connect to your healthcare providers to access your medical reports and test results from previous appointments.",
+            action: "Connect Provider"
+          },
+          "lab-panels": {
+            message: "Connect to your healthcare providers to see your lab test results organized by panel type with trends and interpretations.",
+            action: "Connect Provider"
           }
         };
         
@@ -116,6 +132,26 @@ export const ConnectionProvider = ({ children }) => {
           "insights": {
             heading: "No Health Priorities",
             message: "We'll analyze your health data and provide personalized priorities as more information becomes available.",
+            action: null
+          },
+          "immunizations": {
+            heading: "No Immunizations Found",
+            message: "No immunization records were found in your health data.",
+            action: null
+          },
+          "visits": {
+            heading: "No Visits Found",
+            message: "No visit or appointment records were found in your health data.",
+            action: null
+          },
+          "medical-reports": {
+            heading: "No Medical Reports Found",
+            message: "No medical reports or diagnostic results were found in your health data.",
+            action: null
+          },
+          "lab-panels": {
+            heading: "No Lab Panels Found",
+            message: "No laboratory test results were found in your health data.",
             action: null
           }
         };

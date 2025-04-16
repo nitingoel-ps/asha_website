@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Card, ListGroup, Badge, Accordion, Form, InputGroup } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import { FlaskConical, Search } from 'lucide-react';
+import EmptyStateMessage from '../../Common/EmptyStateMessage';
+import { ConnectionProvider } from '../../../context/ConnectionContext';
+import '../../Common/EmptyStateMessage.css';
 import './LabPanelsTab.css';
 
 function LabPanelsTab({ standardPanels }) {
@@ -89,8 +92,16 @@ function LabPanelsTab({ standardPanels }) {
     setSearchTerm('');
   };
 
-  if (!standardPanels || standardPanels.length === 0) {
-    return <div>No lab panels available</div>;
+  // Check if we have lab panels data
+  const hasLabPanels = standardPanels && standardPanels.length > 0;
+
+  // If no data, return empty state handler
+  if (!hasLabPanels) {
+    return (
+      <ConnectionProvider>
+        <EmptyStateMessage section="lab-panels" />
+      </ConnectionProvider>
+    );
   }
 
   return (

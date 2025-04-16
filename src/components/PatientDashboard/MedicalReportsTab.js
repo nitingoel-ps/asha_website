@@ -3,6 +3,9 @@ import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { Card, Container } from 'react-bootstrap';
 import MedicalReportCard from './MedicalReports/MedicalReportCard';
 import MedicalReportDetail from './MedicalReports/MedicalReportDetail';
+import EmptyStateMessage from '../Common/EmptyStateMessage';
+import { ConnectionProvider } from '../../context/ConnectionContext';
+import '../Common/EmptyStateMessage.css';
 import './MedicalReportsTab.css';
 
 // Separate YearGroupView component
@@ -47,18 +50,34 @@ function MedicalReportsTab({ diagnosticReports }) {
   }, [navigate]);
 
   const groupedReports = useMemo(() => {
+    if (!diagnosticReports?.list?.length) {
+      return {};
+    }
+    
     return diagnosticReports.list.reduce((acc, report) => {
       const year = new Date(report.report_date).getFullYear();
       if (!acc[year]) acc[year] = [];
       acc[year].push(report);
       return acc;
     }, {});
-  }, [diagnosticReports.list]);
+  }, [diagnosticReports?.list]);
 
   const currentReport = useMemo(() => {
     const reportId = location.pathname.split('/').pop();
-    return diagnosticReports.list.find(r => r.id.toString() === reportId);
-  }, [diagnosticReports.list, location.pathname]);
+    return diagnosticReports?.list?.find(r => r.id.toString() === reportId);
+  }, [diagnosticReports?.list, location.pathname]);
+
+  // Check if we have reports data
+  const hasReports = diagnosticReports?.list && diagnosticReports.list.length > 0;
+
+  // If no data, return empty state handler
+  if (!hasReports) {
+    return (
+      <ConnectionProvider>
+        <EmptyStateMessage section="medical-reports" />
+      </ConnectionProvider>
+    );
+  }
 
   return (
     <Routes>
