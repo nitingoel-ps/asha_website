@@ -77,7 +77,7 @@ const VerificationModal = ({
         <Button 
           type="submit"
           variant="info"
-          style={{ backgroundColor: '#00CED1', borderColor: '#00CED1' }}
+          style={{ backgroundColor: '#019ea1', borderColor: '#019ea1' }}
           disabled={verifying}
           className="w-100"
         >
@@ -205,7 +205,7 @@ function LoggedOutHome() {
                     of your healthcare journey with our secure and intelligent platform.
                   </p>
                   <div className="hero-buttons fade-in">
-                    <Button variant="info" as={Link} to="/login" size="lg" style={{ backgroundColor: '#00CED1', borderColor: '#00CED1' }}>
+                    <Button variant="info" as={Link} to="/login" size="lg" style={{ backgroundColor: '#019ea1', borderColor: '#019ea1' }}>
                       Get Started
                     </Button>
                     <Button variant="outline-light" href="#features" size="lg">
@@ -562,7 +562,7 @@ function LoggedOutHome() {
                   size="lg" 
                   type="submit"
                   className="px-5 w-100"
-                  style={{ backgroundColor: '#00CED1', borderColor: '#00CED1' }}
+                  style={{ backgroundColor: '#019ea1', borderColor: '#019ea1' }}
                   disabled={isSubmitting}
                 >
                   {isSubmitting ? 'Joining...' : 'Join Waitlist'}

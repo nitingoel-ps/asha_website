@@ -6,7 +6,7 @@
 
 /* Logged Out Navbar - Landing Page */
 .site-navbar {
-  background-color: #00CED1 !important;
+  background-color: #019ea1 !important;
   backdrop-filter: blur(10px);
   padding: 0.75rem 0;
   position: fixed !important;
@@ -94,7 +94,7 @@ body {
   }
 
   .site-navbar .navbar-collapse {
-    background-color: #00CED1;
+    background-color: #019ea1;
   }
 }
 

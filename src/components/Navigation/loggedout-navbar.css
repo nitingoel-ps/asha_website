@@ -10,7 +10,7 @@ body.has-loggedout-navbar {
 
 /* Base navbar style for logged out experience */
 .loggedout-navbar {
-  background-color: #00CED1 !important;
+  background-color: #019ea1 !important;
   backdrop-filter: blur(10px);
   padding: 0.75rem 0; /* Reduced padding to match previous size */
   position: fixed !important; /* Ensure the navbar is fixed */
@@ -149,18 +149,18 @@ body.has-loggedout-navbar {
 
 .loggedout-menu-item:hover {
   background-color: #f9f9f9;
-  color: #00CED1;
+  color: #019ea1;
   text-decoration: none;
 }
 
 /* Special styling for login item */
 .loggedout-login-item {
-  color: #00CED1;
+  color: #019ea1;
   font-weight: 600;
 }
 
 .loggedout-login-item:hover {
-  background-color: rgba(0, 206, 209, 0.05);
+  background-color: rgba(1, 158, 161, 0.05);
 }
 
 /* Menu divider */
