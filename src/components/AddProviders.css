@@ -783,7 +783,7 @@
 
 .providers-container .provider-logo {
   max-height: 50px;
-  max-width: 120px;
+  max-width: 200px;
   object-fit: contain;
 }
 
@@ -862,7 +862,7 @@
   
   .providers-container .provider-logo {
     max-height: 50px;
-    max-width: 120px;
+    max-width: 200px;
   }
   
   .providers-container .provider-ehr-badge {
