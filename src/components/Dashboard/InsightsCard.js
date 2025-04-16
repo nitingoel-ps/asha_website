@@ -34,8 +34,8 @@ function InsightsCard() {
     navigate(`/health-priorities/${id}`);
   };
 
-  const handleViewAllClick = () => {
-    navigate('/health-priorities');
+  const toggleShowAllPriorities = () => {
+    setShowAllPriorities(prev => !prev);
   };
 
   useEffect(() => {
@@ -75,64 +75,64 @@ function InsightsCard() {
         </div>
       </div>
       <div className="card-body">
-        <div className="insights-list">
-          {loading ? (
-            <div className="loading-insights">
-              <div className="loading-spinner"></div>
-              <p>Loading health priorities...</p>
-            </div>
-          ) : error ? (
-            <div className="empty-state-container">
-              <span className="empty-state-icon">💡</span>
-              <h3>Unable to Load Health Priorities</h3>
-              <p>{error}</p>
-            </div>
-          ) : healthPriorities.length > 0 ? (
-            <>
-              {healthPriorities.slice(0, showAllPriorities ? undefined : maxItemsToShow).map(priority => (
-                <div 
-                  key={priority.id} 
-                  className={`insight-item ${expandedPriorities[priority.id] ? 'expanded' : ''}`}
-                  onClick={() => handlePriorityClick(priority.id)}
-                >
-                  <div className="insight-header">
-                    <div className="insight-icon">💡</div>
-                    <div className="insight-title">{priority.title}</div>
-                  </div>
-                  {expandedPriorities[priority.id] && (
-                    <div className="insight-content">
-                      {priority.content}
-                    </div>
-                  )}
-                  {expandedPriorities[priority.id] && (
-                    <div className="review-actions-link" onClick={(e) => navigateToDetailPage(priority.id, e)}>
-                      Suggested Actions →
-                    </div>
-                  )}
+        {loading ? (
+          <div className="loading-insights">
+            <div className="loading-spinner"></div>
+            <p>Loading health priorities...</p>
+          </div>
+        ) : error ? (
+          <div className="empty-state-container">
+            <span className="empty-state-icon">💡</span>
+            <h3>Unable to Load Health Priorities</h3>
+            <p>{error}</p>
+          </div>
+        ) : healthPriorities.length === 0 ? (
+          <div className="empty-state-container">
+            <span className="empty-state-icon">💡</span>
+            <h3>No Health Priorities Available</h3>
+            <p>We'll analyze your health data and provide personalized priorities as more information becomes available.</p>
+          </div>
+        ) : (
+          <div className="insights-list">
+            {healthPriorities.slice(0, showAllPriorities ? undefined : maxItemsToShow).map(priority => (
+              <div 
+                key={priority.id} 
+                className={`insight-item ${expandedPriorities[priority.id] ? 'expanded' : ''}`}
+                onClick={() => handlePriorityClick(priority.id)}
+              >
+                <div className="insight-header">
+                  <div className="insight-icon">💡</div>
+                  <div className="insight-title">{priority.title}</div>
                 </div>
-              ))}
-              <div className="card-footer">
-                {!showAllPriorities && healthPriorities.length > maxItemsToShow && (
-                  <div className="more-alerts">
-                    {healthPriorities.length - maxItemsToShow} more
+                {expandedPriorities[priority.id] && (
+                  <div className="insight-content">
+                    {priority.content}
                   </div>
                 )}
-                <button 
-                  className="view-all-button"
-                  onClick={handleViewAllClick}
-                >
-                  View All Priorities
-                </button>
+                {expandedPriorities[priority.id] && (
+                  <div className="review-actions-link" onClick={(e) => navigateToDetailPage(priority.id, e)}>
+                    Suggested Actions →
+                  </div>
+                )}
               </div>
-            </>
-          ) : (
-            <div className="empty-state-container">
-              <span className="empty-state-icon">💡</span>
-              <h3>No Health Priorities Available</h3>
-              <p>We'll analyze your health data and provide personalized priorities as more information becomes available.</p>
-            </div>
-          )}
-        </div>
+            ))}
+          </div>
+        )}
+        {!loading && !error && healthPriorities.length > maxItemsToShow && (
+          <div className="card-footer">
+            {!showAllPriorities && (
+              <div className="more-alerts">
+                {healthPriorities.length - maxItemsToShow} more
+              </div>
+            )}
+            <button 
+              className="view-all-button"
+              onClick={toggleShowAllPriorities}
+            >
+              {showAllPriorities ? "Show Less" : "View All"}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
