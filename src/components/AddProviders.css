@@ -605,6 +605,7 @@
 /* Override Bootstrap tab spacing for mobile */
 .providers-container .tab-content {
   margin-top: 0 !important;
+  background-color: #ffffff;  
 }
 
 .providers-container .tab-pane {
@@ -632,6 +633,7 @@
   .providers-container .tab-content {
     margin-top: 0 !important;
     padding-top: 0 !important;
+    overflow-x: hidden;
   }
   
   .providers-container .tab-pane {
@@ -855,12 +857,12 @@
   }
   
   .providers-container .provider-logo-container {
-    height: 40px;
+    height: 50px;
   }
   
   .providers-container .provider-logo {
-    max-height: 40px;
-    max-width: 100px;
+    max-height: 50px;
+    max-width: 120px;
   }
   
   .providers-container .provider-ehr-badge {
@@ -884,4 +886,66 @@
 .providers-container .clear-search-btn {
   font-size: 0.875rem;
   padding: 0.25rem 0.75rem;
+}
+
+/* New full-width search section styling */
+.providers-container .search-section {
+  padding: 0 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.providers-container .search-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  color: #2c3e50;
+}
+
+.providers-container .search-description {
+  font-size: 1rem;
+  color: #6c757d;
+  margin-bottom: 1.5rem;
+}
+
+/* Override Bootstrap tab spacing for mobile with full-width layout */
+.providers-container .tab-content {
+  margin-top: 0 !important;
+}
+
+.providers-container .tab-pane {
+  padding-top: 0.5rem !important;
+  margin: 0 !important;
+  background-color: #f8f9fa; /* Light background to differentiate the area */
+}
+
+.providers-container .connected-tab-content,
+.providers-container .add-new-tab-content {
+  padding-top: 0.5rem;
+}
+
+/* Mobile-specific styles for the new layout */
+@media (max-width: 768px) {
+  .providers-container .tab-pane {
+    padding: 0 !important;
+    background-color: transparent;
+  }
+  
+  .providers-container .search-section {
+    padding: 0;
+  }
+  
+  .providers-container .search-title {
+    font-size: 1.25rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .providers-container .search-description {
+    font-size: 0.9rem;
+    margin-bottom: 1.25rem;
+  }
+  
+  .providers-container .provider-result-card {
+    border-radius: 12px;
+    margin-bottom: 1rem;
+  }
 }

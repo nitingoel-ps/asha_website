@@ -671,103 +671,101 @@ function AddProviders() {
   // Render the add new connection UI (updated to search instead of dropdown)
   const renderAddNewConnection = () => {
     return (
-      <Card className="search-card">
-        <Card.Body>
-          <Card.Title>Search Healthcare Providers</Card.Title>
-          <Card.Text>
-            Search for your healthcare provider by name to connect your health data.
-          </Card.Text>
-          <Form onSubmit={handleSearch}>
-            <Form.Group className="mb-3">
-              <Form.Label>Provider Name</Form.Label>
-              <div className="search-input-container">
-                <Form.Control
-                  type="text"
-                  placeholder="Enter provider name"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-                <Button 
-                  type="submit" 
-                  variant="primary" 
-                  disabled={isSearching || !searchQuery.trim()} 
-                  className="search-button"
-                >
-                  {isSearching ? <FaSpinner className="spinning" /> : <FaSearch />}
-                </Button>
-              </div>
-            </Form.Group>
-          </Form>
-
-          {searchError && (
-            <Alert variant="danger" className="mt-3">
-              {searchError}
-            </Alert>
-          )}
-
-          {searchResults.length > 0 && (
-            <div className="search-results mt-4">
-              <div className="search-results-header">
-                <h5>Search Results</h5>
-                <Button 
-                  variant="outline-secondary" 
-                  size="sm"
-                  onClick={handleClearSearch}
-                  className="clear-search-btn"
-                >
-                  Clear Search
-                </Button>
-              </div>
-              <div className="search-results-container">
-                <Row>
-                  {searchResults.map((provider) => (
-                    <Col xs={12} sm={6} lg={4} key={provider.id} className="mb-3">
-                      <Card className="provider-result-card">
-                        <Card.Body>
-                          <div className="provider-card-content">
-                            <div className="provider-card-header">
-                              {provider.brand_logo && (
-                                <div className="provider-logo-container">
-                                  <img 
-                                    src={provider.brand_logo} 
-                                    alt={`${provider.name} logo`}
-                                    className="provider-logo"
-                                    onError={(e) => e.target.style.display = 'none'}
-                                  />
-                                </div>
-                              )}
-                              {provider.EHR_system && (
-                                <div className="provider-ehr-badge">
-                                  {provider.EHR_system}
-                                </div>
-                              )}
-                            </div>
-                            <div className="provider-info">
-                              <Card.Title className="provider-result-name">{provider.name}</Card.Title>
-                              {provider.managing_org_name && (
-                                <div className="provider-managing-org">
-                                  {provider.managing_org_name}
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                          <Button
-                            variant="primary"
-                            className="provider-connect-btn w-100 mt-3"
-                            onClick={() => handleConnectProvider(provider.id)}
-                          >
-                            Connect
-                          </Button>
-                        </Card.Body>
-                      </Card>
-                    </Col>
-                  ))}
-                </Row>
-              </div>
+      <div className="search-section">
+        <h3 className="search-title">Search Healthcare Providers</h3>
+        <p className="search-description">
+          Search for your healthcare provider by name to connect your health data.
+        </p>
+        <Form onSubmit={handleSearch}>
+          <Form.Group className="mb-3">
+            <Form.Label>Provider Name</Form.Label>
+            <div className="search-input-container">
+              <Form.Control
+                type="text"
+                placeholder="Enter provider name"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              <Button 
+                type="submit" 
+                variant="primary" 
+                disabled={isSearching || !searchQuery.trim()} 
+                className="search-button"
+              >
+                {isSearching ? <FaSpinner className="spinning" /> : <FaSearch />}
+              </Button>
             </div>
-          )}
-        </Card.Body>
-      </Card>
+          </Form.Group>
+        </Form>
+
+        {searchError && (
+          <Alert variant="danger" className="mt-3">
+            {searchError}
+          </Alert>
+        )}
+
+        {searchResults.length > 0 && (
+          <div className="search-results mt-4">
+            <div className="search-results-header">
+              <h5>Search Results</h5>
+              <Button 
+                variant="outline-secondary" 
+                size="sm"
+                onClick={handleClearSearch}
+                className="clear-search-btn"
+              >
+                Clear Search
+              </Button>
+            </div>
+            <div className="search-results-container">
+              <Row>
+                {searchResults.map((provider) => (
+                  <Col xs={12} sm={6} lg={4} key={provider.id} className="mb-3">
+                    <Card className="provider-result-card">
+                      <Card.Body>
+                        <div className="provider-card-content">
+                          <div className="provider-card-header">
+                            {provider.brand_logo && (
+                              <div className="provider-logo-container">
+                                <img 
+                                  src={provider.brand_logo} 
+                                  alt={`${provider.name} logo`}
+                                  className="provider-logo"
+                                  onError={(e) => e.target.style.display = 'none'}
+                                />
+                              </div>
+                            )}
+                            {provider.EHR_system && (
+                              <div className="provider-ehr-badge">
+                                {provider.EHR_system}
+                              </div>
+                            )}
+                          </div>
+                          <div className="provider-info">
+                            <Card.Title className="provider-result-name">{provider.name}</Card.Title>
+                            {provider.managing_org_name && (
+                              <div className="provider-managing-org">
+                                {provider.managing_org_name}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        <Button
+                          variant="primary"
+                          className="provider-connect-btn w-100 mt-3"
+                          onClick={() => handleConnectProvider(provider.id)}
+                        >
+                          Connect
+                        </Button>
+                      </Card.Body>
+                    </Card>
+                  </Col>
+                ))}
+              </Row>
+            </div>
+          </div>
+        )}
+      </div>
     );
   };
 
