@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { Button, Card, Container, Spinner } from "react-bootstrap";
-import { Activity, Pill, FileText, Clipboard, Microscope, Syringe, MessageCircle, BarChart2, Heart, Calendar, ArrowLeft, Mic, FlaskConical, Target } from "lucide-react";
+import { Activity, Pill, FileText, Clipboard, Microscope, Syringe, MessageCircle, BarChart2, Heart, Calendar, ArrowLeft, Mic, FlaskConical } from "lucide-react";
 import ConditionsTab from "./PatientDashboard/ConditionsTab";
 import ChartsTab from "./PatientDashboard/ChartsTab";
 import ProceduresTab from "./PatientDashboard/ProceduresTab";
@@ -22,8 +22,6 @@ import { NewImmunizationsTab } from "./PatientDashboard/NewImmunizations/NewImmu
 import VoiceTab from "./PatientDashboard/VoiceTab";
 import LabPanelsTab from './PatientDashboard/LabPanels/LabPanelsTab';
 import ObservationDetail from './PatientDashboard/LabPanels/ObservationDetail';
-import HealthPrioritiesTab from './PatientDashboard/HealthPriorities/HealthPrioritiesTab';
-import HealthPriorityDetail from './PatientDashboard/HealthPriorities/HealthPriorityDetail';
 import SymptomsTab from './PatientDashboard/Symptoms/SymptomsTab';
 
 function PatientDashboard() {
@@ -133,10 +131,6 @@ function PatientDashboard() {
         base: 'Lab Panels',
         detail: 'Lab Results'
       },
-      'health-priorities': {
-        base: 'Health Priorities',
-        detail: 'Priority Details'
-      },
       'symptoms': {
         base: 'Symptoms',
         detail: 'Symptom Details'
@@ -217,12 +211,6 @@ function PatientDashboard() {
   const NavigationMenu = () => (
     <div className="nav-menu">
       <div 
-        className={`nav-item ${activeTab === "health-priorities" ? "active" : ""}`} 
-        onClick={() => handleTabChange("health-priorities")}
-      >
-        <Target size={16} /> Health Priorities
-      </div>
-      <div 
         className={`nav-item ${activeTab === "med" ? "active" : ""}`} 
         onClick={() => handleTabChange("med")}
       >
@@ -277,7 +265,7 @@ function PatientDashboard() {
             <Routes>
               {console.log("PatientDashboard: Rendering routes")}
               <Route index element={
-                isMobile ? null : <Navigate to="health-priorities" replace />
+                isMobile ? null : <Navigate to="med" replace />
               } />
               <Route path="dashboard-summary" element={
                 <SummaryTab 
@@ -341,12 +329,6 @@ function PatientDashboard() {
               } />
               <Route path="observation/:observationId" element={
                 <ObservationDetail standardPanels={patientData?.all_observations?.standard_panels} />
-              } />
-              <Route path="health-priorities" element={
-                <HealthPrioritiesTab focusAreas={patientData?.focus_areas || []} />
-              } />
-              <Route path="health-priorities/:priorityId" element={
-                <HealthPriorityDetail focusAreas={patientData?.focus_areas || []} />
               } />
               <Route path="symptoms/*" element={<SymptomsTab />} />
             </Routes>

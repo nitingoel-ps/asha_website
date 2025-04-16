@@ -24,6 +24,8 @@ import AIVoice from './components/AIVoice/AIVoice';
 import WebSocketVoice from './components/WebSocketVoice/WebSocketVoice';
 import Appointments from './components/Appointments/Appointments';
 import RegistrationFlow from './components/NewRegistration/RegistrationFlow';
+import HealthPriorities from './components/HealthPriorities/HealthPriorities';
+import HealthPriorityDetail from './components/HealthPriorities/HealthPriorityDetail';
 
 import './theme.css';
 
@@ -69,6 +71,22 @@ function AppContent() {
               <PatientDashboard />
             </PrivateRoute>
           } 
+        />
+        <Route 
+          path="/health-priorities" 
+          element={
+            <PrivateRoute>
+              <HealthPriorities />
+            </PrivateRoute>
+          }
+        />
+        <Route 
+          path="/health-priorities/:priorityId" 
+          element={
+            <PrivateRoute>
+              <HealthPriorityDetail />
+            </PrivateRoute>
+          }
         />
         <Route path="/my-documents" element={<MyDocuments />} />
         <Route path="/registration" element={<InvitationCodeEntry />} />

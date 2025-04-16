@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { FaTimes, FaCog, FaSignOutAlt, FaUser, FaBell, FaQuestionCircle, FaInfoCircle } from 'react-icons/fa';
+import { FaTimes, FaCog, FaSignOutAlt, FaUser, FaBell, FaQuestionCircle, FaInfoCircle, FaHeartbeat, FaTachometerAlt } from 'react-icons/fa';
 import './navbar.css';
 
 const MobileMenu = ({ show, onClose, user, onLogout }) => {
@@ -56,6 +56,16 @@ const MobileMenu = ({ show, onClose, user, onLogout }) => {
         </div>
         
         <div className="mobile-menu-items">
+          <Link to="/health-priorities" className="mobile-menu-link" onClick={handleLinkClick}>
+            <FaHeartbeat className="mobile-menu-icon" />
+            <span>Health Priorities</span>
+          </Link>
+          
+          <Link to="/patient-dashboard" className="mobile-menu-link" onClick={handleLinkClick}>
+            <FaTachometerAlt className="mobile-menu-icon" />
+            <span>Health Records</span>
+          </Link>
+          
           <Link to="/profile" className="mobile-menu-link" onClick={handleLinkClick}>
             <FaUser className="mobile-menu-icon" />
             <span>Profile</span>

@@ -37,6 +37,7 @@
   align-items: center;
   gap: 0.75rem;
   margin-bottom: 0.5rem;
+  flex-wrap: wrap;
 }
 
 .insight-icon {
@@ -54,6 +55,7 @@
 .insight-title {
   font-weight: 500;
   color: var(--text);
+  flex-grow: 1;
 }
 
 .insight-content {
@@ -141,4 +143,64 @@
     padding-left: 0;
     margin-top: 0.5rem;
   }
+} 
+
+/* New styles for priority badges */
+.priority-badge {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.badge-success {
+  background-color: rgba(40, 167, 69, 0.15);
+  color: #28a745;
+}
+
+.badge-warning {
+  background-color: rgba(255, 193, 7, 0.15);
+  color: #d39e00;
+}
+
+.badge-secondary {
+  background-color: rgba(108, 117, 125, 0.15);
+  color: #6c757d;
+}
+
+.badge-danger {
+  background-color: rgba(220, 53, 69, 0.15);
+  color: #dc3545;
+}
+
+.badge-info {
+  background-color: rgba(23, 162, 184, 0.15);
+  color: #17a2b8;
+}
+
+/* New style for expand button */
+.insight-expand {
+  font-size: 0.8rem;
+  color: var(--primary);
+  text-align: right;
+  padding-top: 0.5rem;
+  cursor: pointer;
+}
+
+.insight-expand:hover {
+  text-decoration: underline;
+}
+
+.review-actions-link {
+  font-size: 0.9rem;
+  color: var(--primary);
+  text-align: right;
+  padding-top: 0.5rem;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.review-actions-link:hover {
+  text-decoration: underline;
 } 

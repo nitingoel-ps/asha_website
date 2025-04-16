@@ -306,6 +306,47 @@ function LoggedInNavbar() {
     }
   };
 
+  const renderMainNav = () => (
+    <Nav className="ms-auto">
+      <Nav.Link 
+        as={Link} 
+        to="/health-priorities" 
+        className={`nav-item ${location.pathname.includes('/health-priorities') ? 'active' : ''}`}
+        onClick={closeMenu}
+      >
+        <FaHeartbeat className="nav-icon" />
+        <span className="nav-text">Health Priorities</span>
+      </Nav.Link>
+      <Nav.Link 
+        as={Link} 
+        to="/patient-dashboard" 
+        className={`nav-item ${location.pathname.includes('/patient-dashboard') ? 'active' : ''}`}
+        onClick={closeMenu}
+      >
+        <FaTachometerAlt className="nav-icon" />
+        <span className="nav-text">Records</span>
+      </Nav.Link>
+      <Nav.Link 
+        as={Link} 
+        to="/ai-chat" 
+        className={`nav-item ${isAIChatPage() ? 'active' : ''}`}
+        onClick={closeMenu}
+      >
+        <FaComments className="nav-icon" />
+        <span className="nav-text">Chat</span>
+      </Nav.Link>
+      <Nav.Link 
+        as={Link} 
+        to="/websocket-voice" 
+        className={`nav-item ${isAIVoicePage() ? 'active' : ''}`}
+        onClick={closeMenu}
+      >
+        <PiUserSound className="nav-icon" />
+        <span className="nav-text">Voice</span>
+      </Nav.Link>
+    </Nav>
+  );
+
   return (
     <>
       {/* Desktop Navbar */}
@@ -317,6 +358,9 @@ function LoggedInNavbar() {
             </Navbar.Brand>
             <Navbar.Collapse id="basic-navbar-nav">
               <Nav className="main-nav-items mx-auto">
+                <Nav.Link as={Link} to="/health-priorities" className="main-nav-item">
+                  <FaHeartbeat className="main-nav-icon" /> Health Priorities
+                </Nav.Link>
                 <Nav.Link as={Link} to="/patient-dashboard" className="main-nav-item">
                   <FaHeartbeat className="main-nav-icon" /> Health Records
                 </Nav.Link>
