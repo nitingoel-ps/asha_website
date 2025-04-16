@@ -13,7 +13,45 @@ function AppointmentDetail() {
   const [editData, setEditData] = useState(null);
   const [saving, setSaving] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const navigate = useNavigate();
+
+  // Set up mobile title and edit action button
+  useEffect(() => {
+    // Set mobile page title
+    if (window.setMobilePageTitle) {
+      window.setMobilePageTitle("Appointment Details");
+    }
+
+    // Set mobile action button (edit button)
+    if (window.setMobileActionButton && !isEditing) {
+      window.setMobileActionButton({
+        icon: 'edit',
+        action: () => setIsEditing(true)
+      });
+    } else if (window.setMobileActionButton && isEditing) {
+      // Remove action button while in editing mode
+      window.setMobileActionButton(null);
+    }
+
+    // Check for mobile screen size
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    window.addEventListener('resize', handleResize);
+    
+    return () => {
+      // Clean up when component unmounts
+      if (window.setMobilePageTitle) {
+        window.setMobilePageTitle(null);
+      }
+      if (window.setMobileActionButton) {
+        window.setMobileActionButton(null);
+      }
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [isEditing]);
 
   useEffect(() => {
     const getAppointmentDetails = async () => {
@@ -191,26 +229,34 @@ function AppointmentDetail() {
   };
 
   return (
-    <Container className="appointment-detail-page py-4">
+    <Container className="appointment-detail-page py-3">
       <div className="d-flex align-items-center mb-4">
-        <Button 
-          variant="link" 
-          className="p-0 me-3 back-button" 
-          onClick={() => navigate('/appointments')}
-        >
-          ← Back to Appointments
-        </Button>
-        <h1>Appointment Details</h1>
-        {!isEditing ? (
+        {/* Only show the back button on non-mobile screens */}
+        {!isMobile && (
           <Button 
-            variant="outline-primary"
-            className="ms-auto"
-            onClick={() => setIsEditing(true)}
+            variant="link" 
+            className="p-0 me-3 back-button" 
+            onClick={() => navigate('/appointments')}
           >
-            Edit Appointment
+            ← Back to Appointments
           </Button>
+        )}
+        
+        {/* Only show the h1 title on non-mobile screens */}
+        {!isMobile && <h1>Appointment Details</h1>}
+        
+        {!isEditing ? (
+          !isMobile && (
+            <Button 
+              variant="outline-primary"
+              className="ms-auto"
+              onClick={() => setIsEditing(true)}
+            >
+              Edit Appointment
+            </Button>
+          )
         ) : (
-          <div className="ms-auto">
+          <div className={`${isMobile ? 'w-100 mt-2' : 'ms-auto'}`}>
             <Button 
               variant="outline-secondary"
               className="me-2"

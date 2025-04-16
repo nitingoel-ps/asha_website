@@ -95,6 +95,12 @@
     padding-top: 0 !important; /* No top padding needed */
   }
   
+  /* For Appointments */
+  .appointments-tabs {
+    margin-top: 0 !important;
+    padding-top: 0 !important; /* No top padding needed */
+  }
+  
   /* For MedicationsListView */
   .medications-tabs {
     margin-top: 0 !important;
@@ -105,7 +111,8 @@
   .container .app-button-tabs,
   .providers-container .app-button-tabs,
   .medications-list-container .app-button-tabs,
-  .health-priorities-container .app-button-tabs {
-    margin-top: 0 !important; /* Remove top margin when inside containers */
+  .health-priorities-container .app-button-tabs,
+  .appointments-page .app-button-tabs {
+    margin-top: 0px !important; /* Remove top margin when inside containers */
   }
 } 

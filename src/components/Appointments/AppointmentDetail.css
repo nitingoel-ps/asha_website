@@ -9,6 +9,8 @@
   color: var(--primary);
   text-decoration: none;
   font-weight: 500;
+  padding: 0 !important;
+  margin-right: 1rem;
 }
 
 .back-button:hover {
@@ -20,6 +22,7 @@
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  margin-bottom: 1.25rem;
 }
 
 .card-header {
@@ -140,8 +143,19 @@
   box-shadow: 0 0 0 0.2rem rgba(var(--primary-rgb), 0.25);
 }
 
-/* Responsive styles */
+/* Appointment times and duration */
+.appointment-datetime, 
+.appointment-duration {
+  margin-bottom: 0.5rem;
+  color: var(--text-light);
+}
+
+/* Edit mode buttons for mobile */
 @media (max-width: 768px) {
+  .appointment-detail-page {
+    padding-top: 60px !important;
+  }
+  
   .appointment-title {
     font-size: 1.3rem;
   }
@@ -156,5 +170,70 @@
 
   .edit-section {
     padding-bottom: 1rem;
+  }
+  
+  /* Remove padding from button container on mobile */
+  .appointment-detail-page .d-flex {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+  
+  /* Edit buttons in full width on mobile when editing */
+  .appointment-detail-page .w-100 {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 1rem;
+  }
+  
+  .appointment-detail-page .w-100 .btn {
+    flex: 1;
+    margin: 0 0.25rem;
+  }
+  
+  /* Add more top padding when editing on mobile */
+  .appointment-detail-page form {
+    padding-top: 0.5rem;
+  }
+  
+  /* Ensure cards don't overlap with the navbar */
+  .appointment-detail-page .card:first-of-type {
+    margin-top: 0.5rem;
+  }
+  
+  /* Additional top spacing for mobile */
+  .appointment-detail-page .row {
+    margin-top: 0.5rem;
+  }
+  
+  /* Fix back button alignment */
+  .back-button {
+    align-self: flex-start;
+  }
+  
+  /* Ensure cards stack nicely on mobile */
+  .card {
+    margin-bottom: 1rem;
+  }
+  
+  .card .card-header {
+    padding-top: 10px !important;
+  }
+  
+  /* Improve readability of form controls on mobile */
+  .form-control {
+    font-size: 1rem;
+    height: auto;
+    padding: 0.625rem 0.75rem;
+  }
+  
+  /* Make checkboxes more tappable on mobile */
+  .form-check {
+    padding-left: 1.75rem;
+  }
+  
+  .form-check-input {
+    width: 1.25rem;
+    height: 1.25rem;
+    margin-left: -1.75rem;
   }
 } 

@@ -5,39 +5,9 @@
   margin: 0;
 }
 
-/* Tabs styling */
-.nav-tabs {
-  border-bottom: 2px solid var(--border-color);
-  margin-bottom: 2rem;
-}
-
-.nav-tabs .nav-link {
-  color: var(--text-light);
-  border: none;
-  padding: 0.75rem 1.5rem;
-  font-weight: 500;
-  position: relative;
-}
-
-.nav-tabs .nav-link:hover {
-  border: none;
-  color: var(--primary);
-}
-
-.nav-tabs .nav-link.active {
-  color: var(--primary);
-  background: none;
-  border: none;
-}
-
-.nav-tabs .nav-link.active::after {
-  content: '';
-  position: absolute;
-  bottom: -2px;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background-color: var(--primary);
+/* Apply button tabs classes are now in shared TabStyling.css */
+.appointments-tabs {
+  margin-top: 20px;
 }
 
 /* Appointments list styling */
@@ -155,17 +125,12 @@
   margin-top: 0.5rem;
 }
 
-.appointments-page .status-badge {
-  font-size: 0.85rem;
-  padding: 0.5rem 0.75rem;
-  margin: 1.25rem 1.5rem;
-  display: inline-block;
-}
-
 /* Empty state styling */
 .appointments-page .no-appointments {
   background: var(--bg-light);
   border-radius: var(--border-radius);
+  padding: 2rem 1rem;
+  text-align: center;
 }
 
 .appointments-page .no-appointments p {
@@ -174,16 +139,33 @@
   font-size: 1.1rem;
 }
 
+/* Tab content styling */
+.appointments-page .tab-content {
+  padding-top: 1rem;
+}
+
 /* Responsive styles */
 @media (max-width: 768px) {
+  .appointments-page {
+    padding-top: 0.5rem !important;
+  }
+
   .appointments-page h1 {
     font-size: 1.75rem;
   }
+  
+  /* Override button tabs for appointments on mobile */
+  .appointments-tabs {
+    margin-top: 1.25 rem !important; 
+    margin-bottom: 0.75rem;
+  }
 
+  /* Adjust appointment items for mobile */
   .appointments-page .appointment-date {
-    width: 100%;
-    padding: 1rem 0.5rem;
+    width: 80px;
+    padding: 0.75rem 0.5rem;
     min-height: 80px;
+    border-radius: var(--border-radius) 0 0 var(--border-radius);
   }
 
   .appointments-page .appointment-date .date {
@@ -195,16 +177,48 @@
   }
 
   .appointments-page .appointment-details {
-    padding: 1rem;
+    padding: 0.75rem 1rem;
+  }
+  
+  .appointments-page .appointment-details h4 {
+    font-size: 1.1rem;
+    margin-bottom: 0.25rem;
   }
 
-  .appointments-page .status-badge {
-    margin: 0 1rem 1rem;
-    display: block;
-    text-align: center;
+  /* Adjust layout for mobile */
+  .appointment-item .row {
+    flex-direction: row !important;
+    flex-wrap: wrap;
+  }
+  
+  .appointment-item .col-md-3 {
+    width: 80px !important;
+    flex: 0 0 80px !important;
+  }
+  
+  .appointment-item .col-md-7 {
+    width: calc(100% - 80px) !important;
+    flex: 0 0 calc(100% - 80px) !important;
+  }
+  
+  .appointment-item .col-md-2 {
+    width: 100% !important;
+    flex: 0 0 100% !important;
+    text-align: left !important;
   }
 
-  .nav-tabs .nav-link {
-    padding: 0.5rem 1rem;
+  /* Tab content mobile adjustments */
+  .appointments-page .tab-content {
+    padding-top: 0.5rem;
+    background-color: white;
+  }
+  
+  /* Improve no appointments message on mobile */
+  .appointments-page .no-appointments {
+    padding: 1.5rem 1rem;
+  }
+  
+  .appointments-page .no-appointments p {
+    font-size: 1rem;
   }
 } 

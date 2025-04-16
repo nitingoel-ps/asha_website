@@ -56,6 +56,17 @@ function LoggedInNavbar() {
     // If we're in the root
     if (path === '/') return 'Home';
     
+    // Appointments routes
+    if (pathSegments[0] === 'appointments') {
+      if (pathSegments.length === 1) {
+        return 'My Appointments';
+      } else if (pathSegments[1] === 'new') {
+        return 'Add Appointment';
+      } else {
+        return 'Appointment Details';
+      }
+    }
+    
     // Health Priorities routes
     if (pathSegments[0] === 'health-priorities') {
       if (pathSegments.length > 1) {
@@ -134,6 +145,11 @@ function LoggedInNavbar() {
   const shouldShowBackButton = () => {
     const pathSegments = location.pathname.split('/').filter(Boolean);
     
+    // Show back button for appointment detail pages
+    if (pathSegments[0] === 'appointments' && pathSegments.length > 1) {
+      return true;
+    }
+    
     // Show back button for health priorities detail pages
     if (pathSegments[0] === 'health-priorities' && pathSegments.length > 1) {
       return true;
@@ -162,6 +178,12 @@ function LoggedInNavbar() {
     }
     
     const pathSegments = location.pathname.split('/').filter(Boolean);
+    
+    // Handle appointments back navigation
+    if (pathSegments[0] === 'appointments') {
+      navigate('/appointments');
+      return;
+    }
     
     // Handle health priorities back navigation
     if (pathSegments[0] === 'health-priorities' && pathSegments.length > 1) {

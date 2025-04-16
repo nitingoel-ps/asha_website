@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Form, Button, Card, Alert, Spinner } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import { createAppointment } from "../../utils/appointmentsService";
@@ -8,6 +8,7 @@ function AppointmentForm() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [formData, setFormData] = useState({
     title: "",
     participant_name: "",
@@ -15,6 +16,29 @@ function AppointmentForm() {
     duration_minutes: 30,
     is_virtual: false
   });
+
+  // Set up mobile title
+  useEffect(() => {
+    // Set mobile page title
+    if (window.setMobilePageTitle) {
+      window.setMobilePageTitle("Add Appointment");
+    }
+
+    // Check for mobile screen size
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    window.addEventListener('resize', handleResize);
+    
+    return () => {
+      // Clean up when component unmounts
+      if (window.setMobilePageTitle) {
+        window.setMobilePageTitle(null);
+      }
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -64,7 +88,7 @@ function AppointmentForm() {
     <div className="appointment-form-container">
       <Card>
         <Card.Header>
-          <h2>Record New Appointment</h2>
+          {!isMobile && <h2>Record New Appointment</h2>}
         </Card.Header>
         <Card.Body>
           {error && <Alert variant="danger">{error}</Alert>}

@@ -1,14 +1,51 @@
 import React, { useState, useEffect } from "react";
-import { Container, Row, Col, Button, Spinner, Tabs, Tab, Badge } from "react-bootstrap";
+import { Container, Row, Col, Button, Spinner, Alert, ButtonGroup } from "react-bootstrap";
 import { Link, useNavigate } from "react-router-dom";
 import { fetchAppointments } from "../../utils/appointmentsService";
 import "./AppointmentsPage.css";
+import "../shared/TabStyling.css"; // Import shared tab styling
 
 function AppointmentsPage() {
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [activeTab, setActiveTab] = useState('upcoming');
+
+  // Set up mobile title and action button
+  useEffect(() => {
+    // Set mobile page title
+    if (window.setMobilePageTitle) {
+      window.setMobilePageTitle("My Appointments");
+    }
+
+    // Set mobile action button (+ button)
+    if (window.setMobileActionButton) {
+      window.setMobileActionButton({
+        icon: 'plus',
+        action: () => navigate('/appointments/new')
+      });
+    }
+
+    // Check for mobile screen size
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    window.addEventListener('resize', handleResize);
+    
+    return () => {
+      // Clean up when component unmounts
+      if (window.setMobilePageTitle) {
+        window.setMobilePageTitle(null);
+      }
+      if (window.setMobileActionButton) {
+        window.setMobileActionButton(null);
+      }
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [navigate]);
 
   useEffect(() => {
     const getAppointments = async () => {
@@ -74,39 +111,88 @@ function AppointmentsPage() {
     return { fullDate, time };
   };
 
-  // Get status badge color
-  const getStatusBadgeVariant = (status) => {
-    switch (status) {
-      case 'booked':
-        return 'success';
-      case 'pending':
-        return 'warning';
-      case 'cancelled':
-        return 'danger';
-      case 'fulfilled':
-        return 'info';
-      case 'noshow':
-        return 'dark';
-      default:
-        return 'secondary';
+  // Render appointments list based on which are currently being displayed
+  const renderAppointmentsList = () => {
+    const currentAppointments = activeTab === 'upcoming' ? upcomingAppointments : pastAppointments;
+    
+    if (currentAppointments.length === 0) {
+      return (
+        <div className="no-appointments text-center p-5">
+          {activeTab === 'upcoming' ? (
+            <>
+              <p className="mb-4">You don't have any upcoming appointments.</p>
+              <Button 
+                variant="primary" 
+                onClick={() => navigate('/appointments/new')}
+              >
+                Record Your First Appointment
+              </Button>
+            </>
+          ) : (
+            <p>You don't have any past appointments.</p>
+          )}
+        </div>
+      );
     }
-  };
-
-  // Format status for display
-  const formatStatus = (status) => {
-    return status.charAt(0).toUpperCase() + status.slice(1).replace(/-/g, ' ');
+    
+    return (
+      <div className="appointments-list">
+        {currentAppointments.map(appointment => {
+          const boxDate = formatDateBox(appointment.start_time);
+          const { fullDate, time } = formatFullDateTime(appointment.start_time);
+          return (
+            <div key={appointment.id} className="appointment-item" onClick={() => navigate(`/appointments/${appointment.id}`)}>
+              <Row className="align-items-center">
+                <Col lg={2} md={3}>
+                  <div className="appointment-date">
+                    <div className="date">{boxDate.day}</div>
+                    <div className="month">{boxDate.month}</div>
+                  </div>
+                </Col>
+                <Col lg={8} md={7}>
+                  <div className="appointment-details">
+                    <h4>{appointment.title || appointment.appointment_type}</h4>
+                    <div className="provider">
+                      {appointment.participant_name || appointment.provider?.name || "Provider not specified"}
+                    </div>
+                    <div className="datetime text-muted">
+                      {fullDate} at {time}
+                    </div>
+                    {appointment.location_name && (
+                      <div className="location">
+                        <i className="bi bi-geo-alt"></i> {appointment.location_name}
+                      </div>
+                    )}
+                    {appointment.is_virtual && (
+                      <div className="virtual-badge">
+                        <i className="bi bi-camera-video"></i> Virtual Appointment
+                      </div>
+                    )}
+                  </div>
+                </Col>
+              </Row>
+            </div>
+          );
+        })}
+      </div>
+    );
   };
 
   return (
     <Container className="appointments-page py-4">
       <div className="d-flex justify-content-between align-items-center mb-4">
-        <h1>My Appointments</h1>
-        <Button 
-          variant="primary" 
-          onClick={() => navigate('/appointments/new')}
-        >
-          Record New Appointment
-        </Button>
+        {/* Only show the h1 title on non-mobile screens */}
+        {!isMobile && <h1>My Appointments</h1>}
+        
+        {/* Only show the button on non-mobile screens */}
+        {!isMobile && (
+          <Button 
+            variant="primary" 
+            onClick={() => navigate('/appointments/new')}
+          >
+            Record New Appointment
+          </Button>
+        )}
       </div>
 
       {loading ? (
@@ -120,118 +206,30 @@ function AppointmentsPage() {
           {error}
         </div>
       ) : (
-        <Tabs defaultActiveKey="upcoming" id="appointments-tabs" className="mb-4">
-          <Tab eventKey="upcoming" title={`Upcoming (${upcomingAppointments.length})`}>
-            {upcomingAppointments.length > 0 ? (
-              <div className="appointments-list">
-                {upcomingAppointments.map(appointment => {
-                  const boxDate = formatDateBox(appointment.start_time);
-                  const { fullDate, time } = formatFullDateTime(appointment.start_time);
-                  return (
-                    <div key={appointment.id} className="appointment-item" onClick={() => navigate(`/appointments/${appointment.id}`)}>
-                      <Row className="align-items-center">
-                        <Col lg={2} md={3}>
-                          <div className="appointment-date">
-                            <div className="date">{boxDate.day}</div>
-                            <div className="month">{boxDate.month}</div>
-                          </div>
-                        </Col>
-                        <Col lg={8} md={7}>
-                          <div className="appointment-details">
-                            <h4>{appointment.title || appointment.appointment_type}</h4>
-                            <div className="provider">
-                              {appointment.participant_name || appointment.provider?.name || "Provider not specified"}
-                            </div>
-                            <div className="datetime text-muted">
-                              {fullDate} at {time}
-                            </div>
-                            {appointment.location_name && (
-                              <div className="location">
-                                <i className="bi bi-geo-alt"></i> {appointment.location_name}
-                              </div>
-                            )}
-                            {appointment.is_virtual && (
-                              <div className="virtual-badge">
-                                <i className="bi bi-camera-video"></i> Virtual Appointment
-                              </div>
-                            )}
-                          </div>
-                        </Col>
-                        <Col lg={2} md={2} className="text-end">
-                          <Badge bg={getStatusBadgeVariant(appointment.status)} className="status-badge">
-                            {formatStatus(appointment.status)}
-                          </Badge>
-                        </Col>
-                      </Row>
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className="no-appointments text-center p-5">
-                <p className="mb-4">You don't have any upcoming appointments.</p>
-                <Button 
-                  variant="primary" 
-                  onClick={() => navigate('/appointments/new')}
-                >
-                  Record Your First Appointment
-                </Button>
-              </div>
-            )}
-          </Tab>
-          <Tab eventKey="past" title={`Past (${pastAppointments.length})`}>
-            {pastAppointments.length > 0 ? (
-              <div className="appointments-list">
-                {pastAppointments.map(appointment => {
-                  const boxDate = formatDateBox(appointment.start_time);
-                  const { fullDate, time } = formatFullDateTime(appointment.start_time);
-                  return (
-                    <div key={appointment.id} className="appointment-item" onClick={() => navigate(`/appointments/${appointment.id}`)}>
-                      <Row className="align-items-center">
-                        <Col lg={2} md={3}>
-                          <div className="appointment-date">
-                            <div className="date">{boxDate.day}</div>
-                            <div className="month">{boxDate.month}</div>
-                          </div>
-                        </Col>
-                        <Col lg={8} md={7}>
-                          <div className="appointment-details">
-                            <h4>{appointment.title || appointment.appointment_type}</h4>
-                            <div className="provider">
-                              {appointment.participant_name || appointment.provider?.name || "Provider not specified"}
-                            </div>
-                            <div className="datetime text-muted">
-                              {fullDate} at {time}
-                            </div>
-                            {appointment.location_name && (
-                              <div className="location">
-                                <i className="bi bi-geo-alt"></i> {appointment.location_name}
-                              </div>
-                            )}
-                            {appointment.is_virtual && (
-                              <div className="virtual-badge">
-                                <i className="bi bi-camera-video"></i> Virtual Appointment
-                              </div>
-                            )}
-                          </div>
-                        </Col>
-                        <Col lg={2} md={2} className="text-end">
-                          <Badge bg={getStatusBadgeVariant(appointment.status)} className="status-badge">
-                            {formatStatus(appointment.status)}
-                          </Badge>
-                        </Col>
-                      </Row>
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className="no-appointments text-center p-5">
-                <p>You don't have any past appointments.</p>
-              </div>
-            )}
-          </Tab>
-        </Tabs>
+        <>
+          <div className="app-button-tabs appointments-tabs">
+            <ButtonGroup className="w-100">
+              <Button 
+                variant={activeTab === 'upcoming' ? 'primary' : 'outline-primary'}
+                onClick={() => setActiveTab('upcoming')}
+                className="flex-grow-1"
+              >
+                Upcoming ({upcomingAppointments.length})
+              </Button>
+              <Button 
+                variant={activeTab === 'past' ? 'primary' : 'outline-primary'}
+                onClick={() => setActiveTab('past')}
+                className="flex-grow-1"
+              >
+                Past ({pastAppointments.length})
+              </Button>
+            </ButtonGroup>
+          </div>
+
+          <div className="tab-content">
+            {renderAppointmentsList()}
+          </div>
+        </>
       )}
     </Container>
   );
