@@ -2,7 +2,7 @@
   height: 100%;
   display: flex;
   flex-direction: column;
-  background-color: #F7FAFC;
+  background-color: #FFFFFF;
   overflow-y: auto;
 }
 
@@ -67,6 +67,16 @@
   font-weight: 500;
 }
 
+/* Fix for ButtonGroup on mobile - ensure buttons stay side by side */
+.btn-group {
+  display: flex !important;
+  flex-direction: row !important;
+}
+
+.btn-group > .btn {
+  flex: 1;
+}
+
 /* Mobile optimizations */
 @media (max-width: 576px) {
   .medications-header h2 {
@@ -126,8 +136,8 @@
     z-index: 10;
     background: white;
     padding: 0.5rem;
-    border-radius: 8px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    /*border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);*/
   }
 
   /* Adjust card styling for mobile */
