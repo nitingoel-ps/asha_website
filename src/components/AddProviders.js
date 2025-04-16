@@ -4,7 +4,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { Container, Card, Button, Form, Table, Alert, Collapse, Tabs, Tab, Row, Col } from "react-bootstrap";
 import { format, parseISO, formatDistanceToNow } from "date-fns";
 import './AddProviders.css';
-import { FaCheck, FaSpinner, FaTimes, FaSync, FaTrash, FaCircle, FaPlus, FaExclamationTriangle } from 'react-icons/fa';
+import { FaCheck, FaSpinner, FaTimes, FaSync, FaTrash, FaCircle, FaPlus, FaExclamationTriangle, FaSearch } from 'react-icons/fa';
 import { isMobileDevice } from '../utils/deviceDetector';
 
 // Create a custom event bus for Provider Connections page
@@ -16,17 +16,13 @@ function AddProviders() {
   const [message, setMessage] = useState("");
   const navigate = useNavigate();
   const location = useLocation();
-  const [providers, setProviders] = useState([]); // To store the list of providers
-  const [selectedProvider, setSelectedProvider] = useState(""); // To store the selected provider
-  const [connections, setConnections] = useState([]); // To store existing connections
-  const [loadingConnections, setLoadingConnections] = useState(true); // Track loading of connections
-  const [errorConnections, setErrorConnections] = useState(""); // Track errors fetching connections
-  // Add new state variables for search
-  const [searchType, setSearchType] = useState("name");
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
   const [searchError, setSearchError] = useState("");
+  const [connections, setConnections] = useState([]); // To store existing connections
+  const [loadingConnections, setLoadingConnections] = useState(true); // Track loading of connections
+  const [errorConnections, setErrorConnections] = useState(""); // Track errors fetching connections
   const [refreshProgress, setRefreshProgress] = useState({});
   const [pollingTimers, setPollingTimers] = useState({});
   const [expandedProviders, setExpandedProviders] = useState(new Set());
@@ -53,21 +49,6 @@ function AddProviders() {
     'Condition',
     'DocumentReference'
   ];
-
-  useEffect(() => {
-    // Fetch available providers
-    axiosInstance
-      .get("/providers")
-      .then((response) => {
-        setProviders(response.data.providers || []); // Set providers from the API response
-        if (response.data.providers.length > 0) {
-          setSelectedProvider(response.data.providers[0].id); // Set default selection
-        }
-      })
-      .catch((error) => {
-        console.error("Failed to fetch providers:", error);
-      });
-  }, []);
 
   useEffect(() => {
     return () => {
@@ -366,19 +347,25 @@ function AddProviders() {
     setSearchResults([]);
 
     try {
-      const response = await axiosInstance.get('/search-health-organizations/', {
+      const response = await axiosInstance.get('/search-health-providers/', {
         params: {
-          type: searchType,
           query: searchQuery
         }
       });
-      setSearchResults(response.data.results || []); // Update to use results array
+      setSearchResults(response.data.providers || []);
     } catch (error) {
       console.error("Search failed:", error);
       setSearchError("Failed to search for healthcare providers. Please try again.");
     } finally {
       setIsSearching(false);
     }
+  };
+
+  // Add handler to clear search results
+  const handleClearSearch = () => {
+    setSearchQuery("");
+    setSearchResults([]);
+    setSearchError("");
   };
 
   const formatFetchDataDetails = (detailsString) => {
@@ -681,125 +668,106 @@ function AddProviders() {
     );
   };
 
-  // Render the add new connection UI
+  // Render the add new connection UI (updated to search instead of dropdown)
   const renderAddNewConnection = () => {
     return (
-      <>
-        {/* Connect to a New Provider */}
-        <Card className="card">
-          <Card.Body>
-            <Card.Title>Connect to a Provider</Card.Title>
-            <Card.Text>
-              Please select a provider to connect your health data.
-            </Card.Text>
-            <Form.Group controlId="providerSelect">
-              <Form.Label>Select Provider</Form.Label>
-              <Form.Control
-                as="select"
-                value={selectedProvider}
-                onChange={(e) => setSelectedProvider(e.target.value)}
-                autoComplete="off"
-              >
-                {providers.map((provider) => (
-                  <option key={provider.id} value={provider.id}>
-                    {provider.name}
-                  </option>
-                ))}
-              </Form.Control>
-            </Form.Group>
-            <Button variant="primary" onClick={() => handleConnectProvider(selectedProvider)} className="mt-3">
-              Connect Provider
-            </Button>
-          </Card.Body>
-        </Card>
-
-        {/* Add new search card */}
-        <Card className="search-card">
-          <Card.Body>
-            <Card.Title>Search Healthcare Providers</Card.Title>
-            <Form onSubmit={handleSearch}>
-              <Form.Group className="search-controls">
-                <Form.Label>Search Type</Form.Label>
-                <Form.Check
-                  className="search-type-radio mb-2"
-                  type="radio"
-                  label="Search by Name"
-                  name="searchType"
-                  checked={searchType === "name"}
-                  onChange={() => setSearchType("name")}
-                />
-                <Form.Check
-                  type="radio"
-                  label="Search by Address"
-                  name="searchType"
-                  checked={searchType === "address"}
-                  onChange={() => setSearchType("address")}
-                />
-              </Form.Group>
-
-              <Form.Group className="mb-3">
-                <Form.Label>
-                  {searchType === "name" ? "Provider Name" : "Address"}
-                </Form.Label>
+      <Card className="search-card">
+        <Card.Body>
+          <Card.Title>Search Healthcare Providers</Card.Title>
+          <Card.Text>
+            Search for your healthcare provider by name to connect your health data.
+          </Card.Text>
+          <Form onSubmit={handleSearch}>
+            <Form.Group className="mb-3">
+              <Form.Label>Provider Name</Form.Label>
+              <div className="search-input-container">
                 <Form.Control
                   type="text"
-                  placeholder={searchType === "name" ? "Enter provider name" : "Enter address"}
+                  placeholder="Enter provider name"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
-              </Form.Group>
+                <Button 
+                  type="submit" 
+                  variant="primary" 
+                  disabled={isSearching || !searchQuery.trim()} 
+                  className="search-button"
+                >
+                  {isSearching ? <FaSpinner className="spinning" /> : <FaSearch />}
+                </Button>
+              </div>
+            </Form.Group>
+          </Form>
 
-              <Button type="submit" variant="primary" disabled={isSearching}>
-                {isSearching ? "Searching..." : "Search"}
-              </Button>
-            </Form>
+          {searchError && (
+            <Alert variant="danger" className="mt-3">
+              {searchError}
+            </Alert>
+          )}
 
-            {searchError && (
-              <Alert variant="danger" className="mt-3">
-                {searchError}
-              </Alert>
-            )}
-
-            {searchResults.length > 0 && (
-              <div className="search-results">
+          {searchResults.length > 0 && (
+            <div className="search-results mt-4">
+              <div className="search-results-header">
                 <h5>Search Results</h5>
-                <div className="table-container">
-                  <Table striped bordered hover>
-                    <thead><tr>
-                      <th>Organization Name</th>
-                      <th>Parent Organization</th>
-                      <th className="address-cell">Location</th>
-                      <th>EHR System</th>
-                      <th>Action</th>
-                    </tr></thead>
-                    <tbody>
-                      {searchResults.map((org) => (<tr key={org.org_id}>
-                        <td>{org.name}</td>
-                        <td>{org.parent_name || 'N/A'}</td>
-                        <td className="address-cell">
-                          <div className="address-main">{org.std_address}</div>
-                          <div className="address-secondary">
-                            {org.city}, {org.state} {org.zip}
+                <Button 
+                  variant="outline-secondary" 
+                  size="sm"
+                  onClick={handleClearSearch}
+                  className="clear-search-btn"
+                >
+                  Clear Search
+                </Button>
+              </div>
+              <div className="search-results-container">
+                <Row>
+                  {searchResults.map((provider) => (
+                    <Col xs={12} sm={6} lg={4} key={provider.id} className="mb-3">
+                      <Card className="provider-result-card">
+                        <Card.Body>
+                          <div className="provider-card-content">
+                            <div className="provider-card-header">
+                              {provider.brand_logo && (
+                                <div className="provider-logo-container">
+                                  <img 
+                                    src={provider.brand_logo} 
+                                    alt={`${provider.name} logo`}
+                                    className="provider-logo"
+                                    onError={(e) => e.target.style.display = 'none'}
+                                  />
+                                </div>
+                              )}
+                              {provider.EHR_system && (
+                                <div className="provider-ehr-badge">
+                                  {provider.EHR_system}
+                                </div>
+                              )}
+                            </div>
+                            <div className="provider-info">
+                              <Card.Title className="provider-result-name">{provider.name}</Card.Title>
+                              {provider.managing_org_name && (
+                                <div className="provider-managing-org">
+                                  {provider.managing_org_name}
+                                </div>
+                              )}
+                            </div>
                           </div>
-                        </td>
-                        <td>{org.EHR_system || 'N/A'}</td>
-                        <td>
                           <Button
                             variant="primary"
-                            size="sm"
-                            className="action-button"
-                            onClick={() => handleConnectProvider(org.org_id)}
-                          >Connect</Button>
-                        </td>
-                      </tr>))}
-                    </tbody>
-                  </Table>
-                </div>
+                            className="provider-connect-btn w-100 mt-3"
+                            onClick={() => handleConnectProvider(provider.id)}
+                          >
+                            Connect
+                          </Button>
+                        </Card.Body>
+                      </Card>
+                    </Col>
+                  ))}
+                </Row>
               </div>
-            )}
-          </Card.Body>
-        </Card>
-      </>
+            </div>
+          )}
+        </Card.Body>
+      </Card>
     );
   };
 
