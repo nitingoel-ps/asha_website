@@ -597,11 +597,13 @@
 /* Override Bootstrap tab spacing for mobile */
 .providers-container .tab-content {
   padding: 1rem 0;
+  background-color: white;
 }
 
 .providers-container .connected-tab-content,
 .providers-container .add-new-tab-content {
   padding-top: 0.5rem;
+  background-color: white;
 }
 
 /* Mobile-specific styles */
