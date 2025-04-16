@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { Button } from "react-bootstrap";
 import axiosInstance from "../../utils/axiosInstance";
+import { useConnection } from "../../context/ConnectionContext";
 import "./VitalsCard.css";
 
 function VitalsCard() {
   const [vitals, setVitals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const { getEmptyStateMessage, isLoading: connectionLoading } = useConnection();
 
   // Function to determine vital sign status
   const determineStatus = (vital) => {
@@ -89,7 +92,7 @@ function VitalsCard() {
         setError(null);
       } catch (err) {
         console.error('Error fetching vital signs:', err);
-        setError('No Vital Signs Available');
+        setError('Failed to fetch vital signs');
       } finally {
         setLoading(false);
       }
@@ -98,37 +101,43 @@ function VitalsCard() {
     fetchVitals();
   }, []);
 
-  if (loading) {
+  const renderEmptyState = () => {
+    if (loading || connectionLoading) {
+      return (
+        <div className="loading-state">
+          <div className="loading-spinner"></div>
+          <p>Loading vital signs...</p>
+        </div>
+      );
+    }
+    
+    if (error) {
+      return (
+        <div className="error-state">{error}</div>
+      );
+    }
+    
+    const emptyMessage = getEmptyStateMessage('vitals');
+    
     return (
-      <div className="card dashboard-grid-3x1">
-        <div className="card-header card-header-single-line">
-          <div className="card-title">
-            <span>❤️</span> Key Vitals
-          </div>
-          <Link to="/patient-dashboard/vital-signs" className="card-action">View All Vitals</Link>
-        </div>
-        <div className="card-body">
-          <div className="loading-state">Loading vital signs...</div>
-        </div>
+      <div className="empty-state-container">
+        {emptyMessage.heading ? (
+          <>
+            <span className="empty-state-icon">❤️</span>
+            <h3>{emptyMessage.heading}</h3>
+          </>
+        ) : null}
+        <p>{emptyMessage.message}</p>
+        {emptyMessage.action && (
+          <Link to="/add-providers">
+            <Button variant="primary" size="sm" className="mt-2">
+              {emptyMessage.action}
+            </Button>
+          </Link>
+        )}
       </div>
     );
-  }
-
-  if (error) {
-    return (
-      <div className="card dashboard-grid-3x1">
-        <div className="card-header card-header-single-line">
-          <div className="card-title">
-            <span>❤️</span> Key Vitals
-          </div>
-          <Link to="/patient-dashboard/vital-signs" className="card-action">View All Vitals</Link>
-        </div>
-        <div className="card-body">
-          <div className="error-state">{error}</div>
-        </div>
-      </div>
-    );
-  }
+  };
 
   return (
     <div className="card dashboard-grid-3x1">
@@ -139,25 +148,29 @@ function VitalsCard() {
         <Link to="/patient-dashboard/vital-signs" className="card-action">View All Vitals</Link>
       </div>
       <div className="card-body">
-        <div className="mini-vitals-bar">
-          {vitals.map(vital => (
-            <div key={vital.id} className="mini-vital">
-              <div className="mini-vital-icon">{vital.icon}</div>
-              <div className="mini-vital-data">
-                <div className="mini-vital-label">{vital.name}</div>
-                <div className="mini-vital-reading">
-                  {vital.value} <span className="mini-vital-unit">{vital.unit}</span>
-                  <span className={`status-dot status-${vital.status}`}></span>
+        {loading || connectionLoading ? (
+          <div className="loading-state">
+            <div className="loading-spinner"></div>
+            <p>Loading vital signs...</p>
+          </div>
+        ) : vitals.length > 0 ? (
+          <div className="mini-vitals-bar">
+            {vitals.map(vital => (
+              <div key={vital.id} className="mini-vital">
+                <div className="mini-vital-icon">{vital.icon}</div>
+                <div className="mini-vital-data">
+                  <div className="mini-vital-label">{vital.name}</div>
+                  <div className="mini-vital-reading">
+                    {vital.value} <span className="mini-vital-unit">{vital.unit}</span>
+                    <span className={`status-dot status-${vital.status}`}></span>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
-          {vitals.length === 0 && (
-            <div className="no-vitals">
-              No vital signs available in the records yet.
-            </div>
-          )}
-        </div>
+            ))}
+          </div>
+        ) : (
+          renderEmptyState()
+        )}
       </div>
     </div>
   );

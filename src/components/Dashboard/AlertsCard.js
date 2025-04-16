@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from "react";
 import axiosInstance from "../../utils/axiosInstance";
+import { useConnection } from "../../context/ConnectionContext";
+import { Button } from "react-bootstrap";
+import { Link } from "react-router-dom";
 import "./AlertsCard.css";
 
 function AlertsCard({ maxItemsPerCategory = 2 }) {
@@ -14,6 +17,9 @@ function AlertsCard({ maxItemsPerCategory = 2 }) {
   const [screeningsError, setScreeningsError] = useState(null);
   // Add state to track expanded items
   const [expandedItems, setExpandedItems] = useState({});
+  
+  // Get connection status info from context
+  const { getEmptyStateMessage, connectionStatus, isLoading: connectionLoading } = useConnection();
 
   // Function to toggle item expansion
   const toggleItemExpansion = (id, category) => {
@@ -139,6 +145,49 @@ function AlertsCard({ maxItemsPerCategory = 2 }) {
   const screeningCounts = countSeverityLevels(recommendedScreenings);
   const prescriptionCounts = countSeverityLevels(prescriptionRefills);
 
+  // Empty state renderer
+  const renderEmptyState = (section, loadingState, errorState) => {
+    if (loadingState || connectionLoading) {
+      return (
+        <div className="loading-state">
+          <div className="loading-spinner"></div>
+          <p>Loading {section}...</p>
+        </div>
+      );
+    }
+    
+    if (errorState) {
+      return (
+        <div className="empty-state-container">
+          <span className="empty-state-icon">{section === 'medications' ? '💊' : '🔍'}</span>
+          <h3>Unable to Load {section}</h3>
+          <p>{errorState}</p>
+        </div>
+      );
+    }
+    
+    const emptyMessage = getEmptyStateMessage(section);
+    
+    return (
+      <div className="empty-state-container">
+        {emptyMessage.heading ? (
+          <>
+            <span className="empty-state-icon">{section === 'medications' ? '💊' : '🔍'}</span>
+            <h3>{emptyMessage.heading}</h3>
+          </>
+        ) : null}
+        <p>{emptyMessage.message}</p>
+        {emptyMessage.action && (
+          <Link to="/add-providers">
+            <Button variant="primary" size="sm" className="mt-2">
+              {emptyMessage.action}
+            </Button>
+          </Link>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div className="alerts-wrapper">
       {/* Medication Interactions Card */}
@@ -171,15 +220,14 @@ function AlertsCard({ maxItemsPerCategory = 2 }) {
           </div>
           <div className="card-body">
             {isLoading ? (
-              <div className="loading-state">Loading medication interactions...</div>
+              <div className="loading-state">
+                <div className="loading-spinner"></div>
+                <p>Loading medication interactions...</p>
+              </div>
             ) : error ? (
               <div className="error-state">{error}</div>
             ) : medicationInteractions.length === 0 ? (
-              <div className="empty-state-container">
-                <span className="empty-state-icon">💊</span>
-                <h3>No Medication Interactions</h3>
-                <p>No medication interactions found.</p>
-              </div>
+              renderEmptyState('medications', isLoading, error)
             ) : (
               <ul className="alert-list">
                 {medicationInteractions.slice(0, showAllMedications ? undefined : maxItemsPerCategory).map(alert => (
@@ -261,17 +309,9 @@ function AlertsCard({ maxItemsPerCategory = 2 }) {
                 <p>Loading screening recommendations...</p>
               </div>
             ) : screeningsError ? (
-              <div className="empty-state-container">
-                <span className="empty-state-icon">🔍</span>
-                <h3>Unable to Load Screenings</h3>
-                <p>We don't have any screening recommendations for you right now. Once Asha is done reviewing your records, you will see them here.</p>
-              </div>
+              <div className="error-state">{screeningsError}</div>
             ) : recommendedScreenings.length === 0 ? (
-              <div className="empty-state-container">
-                <span className="empty-state-icon">🔍</span>
-                <h3>No Screenings Due</h3>
-                <p>You're up to date with your recommended health screenings.</p>
-              </div>
+              renderEmptyState('screenings', screeningsLoading, screeningsError)
             ) : (
               <ul className="alert-list">
                 {recommendedScreenings.slice(0, showAllScreenings ? undefined : maxItemsPerCategory).map(alert => (

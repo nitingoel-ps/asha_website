@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { Button } from "react-bootstrap";
+import { Link } from "react-router-dom";
 import axiosInstance from "../../utils/axiosInstance";
+import { useConnection } from "../../context/ConnectionContext";
 import "./InsightsCard.css";
 
 function InsightsCard() {
@@ -11,6 +14,7 @@ function InsightsCard() {
   const [expandedPriorities, setExpandedPriorities] = useState({});
   const navigate = useNavigate();
   const maxItemsToShow = 3;
+  const { getEmptyStateMessage, isLoading: connectionLoading } = useConnection();
 
   const togglePriorityExpansion = (id, event) => {
     if (event) {
@@ -67,6 +71,49 @@ function InsightsCard() {
     fetchHealthPriorities();
   }, []);
 
+  // Render an appropriate message when no priorities are available
+  const renderEmptyState = () => {
+    if (loading || connectionLoading) {
+      return (
+        <div className="loading-insights">
+          <div className="loading-spinner"></div>
+          <p>Loading health priorities...</p>
+        </div>
+      );
+    }
+    
+    if (error) {
+      return (
+        <div className="empty-state-container">
+          <span className="empty-state-icon">💡</span>
+          <h3>Unable to Load Health Priorities</h3>
+          <p>{error}</p>
+        </div>
+      );
+    }
+    
+    const emptyMessage = getEmptyStateMessage('insights');
+    
+    return (
+      <div className="empty-state-container">
+        {emptyMessage.heading ? (
+          <>
+            <span className="empty-state-icon">💡</span>
+            <h3>{emptyMessage.heading}</h3>
+          </>
+        ) : null}
+        <p>{emptyMessage.message}</p>
+        {emptyMessage.action && (
+          <Link to="/add-providers">
+            <Button variant="primary" size="sm" className="mt-2">
+              {emptyMessage.action}
+            </Button>
+          </Link>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div className="card dashboard-grid-3x1">
       <div className="card-header">
@@ -75,23 +122,13 @@ function InsightsCard() {
         </div>
       </div>
       <div className="card-body">
-        {loading ? (
+        {loading || connectionLoading ? (
           <div className="loading-insights">
             <div className="loading-spinner"></div>
             <p>Loading health priorities...</p>
           </div>
-        ) : error ? (
-          <div className="empty-state-container">
-            <span className="empty-state-icon">💡</span>
-            <h3>Unable to Load Health Priorities</h3>
-            <p>{error}</p>
-          </div>
         ) : healthPriorities.length === 0 ? (
-          <div className="empty-state-container">
-            <span className="empty-state-icon">💡</span>
-            <h3>No Health Priorities Available</h3>
-            <p>We'll analyze your health data and provide personalized priorities as more information becomes available.</p>
-          </div>
+          renderEmptyState()
         ) : (
           <div className="insights-list">
             {healthPriorities.slice(0, showAllPriorities ? undefined : maxItemsToShow).map(priority => (

@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { Button } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faFlask, faList, faGrip } from "@fortawesome/free-solid-svg-icons";
 import axiosInstance from "../../utils/axiosInstance";
+import { useConnection } from "../../context/ConnectionContext";
 import "./LabResultsCard.css";
 
 function LabResultsCard() {
@@ -11,13 +13,17 @@ function LabResultsCard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isDetailedView, setIsDetailedView] = useState(false);
+  const { getEmptyStateMessage, isLoading: connectionLoading } = useConnection();
 
   useEffect(() => {
     const fetchLabResults = async () => {
       try {
         const response = await axiosInstance.get('/important-charts/');
-        // Ensure we have valid data structure
-        if (response.data && Array.isArray(response.data.important_charts)) {
+        // Handle null response for important_charts
+        if (response.data?.important_charts === null) {
+          // This is an expected case when there are no lab results yet
+          setLabResults([]);
+        } else if (Array.isArray(response.data?.important_charts)) {
           // Sort the lab results by severity
           const sortedResults = response.data.important_charts.sort((a, b) => {
             const statusA = getBadgeStatus(a);
@@ -166,58 +172,44 @@ function LabResultsCard() {
     });
   };
 
-  if (loading) {
+  // Render empty or loading state
+  const renderStateMessage = () => {
+    if (loading || connectionLoading) {
+      return (
+        <div className="loading-state">
+          <div className="loading-spinner"></div>
+          <p>Loading lab results...</p>
+        </div>
+      );
+    }
+    
+    if (error) {
+      return (
+        <div className="error-state">{error}</div>
+      );
+    }
+    
+    const emptyMessage = getEmptyStateMessage('labs');
+    
     return (
-      <div className="card dashboard-grid-3x1">
-        <div className="card-header lab-results-header card-header-single-line">
-          <div className="card-title">
-            <FontAwesomeIcon icon={faFlask} /> Key Lab Results
-          </div>
-          <Link to="/patient-dashboard/lab-panels" className="card-action">View All Labs</Link>
-        </div>
-        <div className="lab-view-toggle">
-          <label className="view-toggle-label disabled">
-            Detailed View
-            <div className="toggle-switch disabled">
-              <input type="checkbox" disabled />
-              <span className="toggle-slider"></span>
-            </div>
-          </label>
-        </div>
-        <div className="card-body">
-          Loading lab results...
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="card dashboard-grid-3x1">
-        <div className="card-header lab-results-header card-header-single-line">
-          <div className="card-title">
-            <FontAwesomeIcon icon={faFlask} /> Key Lab Results
-          </div>
-          <Link to="/patient-dashboard/lab-panels" className="card-action">View All Labs</Link>
-        </div>
-        <div className="lab-view-toggle">
-          <label className="view-toggle-label disabled">
-            Detailed View
-            <div className="toggle-switch disabled">
-              <input type="checkbox" disabled />
-              <span className="toggle-slider"></span>
-            </div>
-          </label>
-        </div>
-        <div className="card-body">
-          <div className="empty-state-container">
+      <div className="empty-state-container">
+        {emptyMessage.heading ? (
+          <>
             <FontAwesomeIcon icon={faFlask} className="empty-state-icon" />
-            <p>There are no key lab results to share yet. Once Asha is done reviewing your records, you will see them here.</p>
-          </div>
-        </div>
+            <h3>{emptyMessage.heading}</h3>
+          </>
+        ) : null}
+        <p>{emptyMessage.message}</p>
+        {emptyMessage.action && (
+          <Link to="/add-providers">
+            <Button variant="primary" size="sm" className="mt-2">
+              {emptyMessage.action}
+            </Button>
+          </Link>
+        )}
       </div>
     );
-  }
+  };
 
   return (
     <div className="card dashboard-grid-3x1">
@@ -228,20 +220,23 @@ function LabResultsCard() {
         <Link to="/patient-dashboard/lab-panels" className="card-action">View All Labs</Link>
       </div>
       <div className="lab-view-toggle">
-        <label className="view-toggle-label">
+        <label className={`view-toggle-label ${loading || connectionLoading || labResults.length === 0 ? 'disabled' : ''}`}>
           Detailed View
-          <div className="toggle-switch">
+          <div className={`toggle-switch ${loading || connectionLoading || labResults.length === 0 ? 'disabled' : ''}`}>
             <input
               type="checkbox"
               checked={isDetailedView}
               onChange={(e) => setIsDetailedView(e.target.checked)}
+              disabled={loading || connectionLoading || labResults.length === 0}
             />
             <span className="toggle-slider"></span>
           </div>
         </label>
       </div>
       <div className="card-body">
-        {!isDetailedView ? (
+        {loading || connectionLoading || labResults.length === 0 ? (
+          renderStateMessage()
+        ) : !isDetailedView ? (
           <div className="lab-kpi-compact-grid">
             {labResults.map(lab => (
               <Link 
@@ -289,13 +284,6 @@ function LabResultsCard() {
               </div>
             </Link>
           ))
-        )}
-        {labResults.length === 0 && (
-          <div className="empty-state-container">
-            <FontAwesomeIcon icon={faFlask} className="empty-state-icon" />
-            <h3>No Lab Results Yet</h3>
-            <p>Your lab results will appear here once they're available.</p>
-          </div>
         )}
       </div>
     </div>
