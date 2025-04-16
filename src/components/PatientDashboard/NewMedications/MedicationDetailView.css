@@ -1,9 +1,12 @@
 .medication-detail-container {
-  height: 100%;
   display: flex;
   flex-direction: column;
   background-color: #F7FAFC;
-  overflow-y: auto;
+  overflow: visible;
+  height: 100%;
+  width: 100%;
+  position: relative;
+  padding: 0.5rem;
 }
 
 .medication-detail-content {
@@ -19,11 +22,22 @@
   padding: 0;
 }
 
-/* Ensure the detail card respects container boundaries */
+/* Make the detail card take up most space and be scrollable */
 .detail-card {
   width: 100%;
   max-width: 100%;
   overflow-wrap: break-word;
+  margin-bottom: 1rem;
+  overflow-y: auto;
+  max-height: calc(100vh - 120px);
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.detail-card .card-body {
+  overflow-y: auto;
+  flex: 1 1 auto;
 }
 
 .medication-details {
@@ -269,26 +283,51 @@
 /* Responsive improvements */
 @media (max-width: 767px) {
   .medication-detail-container {
-    padding: 0;
+    padding: 0.5rem;
     height: 100%;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
+    overflow: visible;
+  }
+
+  .detail-card {
+    margin: 0;
+    margin-bottom: 1rem;
+    border-radius: 8px;
+  }
+
+  .scrollable-card-body {
+    max-height: calc(100vh - 150px) !important; /* Adjusted for mobile */
   }
 
   .medication-detail-content {
     padding: 0.5rem;
   }
 
-  .medication-detail-card {
-    margin: 0.5rem;
-    border-radius: 8px;
+  .medication-detail-item {
+    flex-direction: column;
+  }
+  
+  .medication-detail-label {
+    margin-bottom: 0.25rem;
+  }
+  
+  .medication-detail-value {
+    width: 100%;
   }
 }
 
 @media (min-width: 768px) {
   .medication-detail-container {
     padding: 1rem;
-    height: calc(100vh - 80px);
+    height: 100%;
+    overflow: visible;
+  }
+  
+  .detail-card {
+    border-radius: 8px;
+  }
+  
+  .scrollable-card-body {
+    max-height: calc(100vh - 200px) !important; /* Adjusted for desktop */
   }
 }
 
@@ -319,4 +358,10 @@
   .history-label {
     min-width: 100px;
   }
+}
+
+.scrollable-card-body {
+  overflow-y: auto !important;
+  max-height: calc(100vh - 180px) !important; /* Account for header and other elements */
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
 }

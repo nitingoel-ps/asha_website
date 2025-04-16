@@ -198,7 +198,7 @@ export function MedicationDetailView({ medications, refreshMedications }) {
           </div>
         </Card.Header>
         
-        <Card.Body>
+        <Card.Body className="scrollable-card-body">
           <div className="medication-details">
             <div className="medication-detail-item">
               <div className="medication-detail-label">Instructions</div>
