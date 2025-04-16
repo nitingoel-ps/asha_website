@@ -287,11 +287,6 @@ function LabResultsCard() {
                   {lab.reason}
                 </div>
               </div>
-              <div className="lab-status">
-                <span className={`badge ${getBadgeColorClass(getBadgeStatus(lab))}`}>
-                  {getBadgeStatus(lab)}
-                </span>
-              </div>
             </Link>
           ))
         )}

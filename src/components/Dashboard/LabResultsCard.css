@@ -4,6 +4,7 @@
   padding: 1rem 0;
   border-bottom: 1px solid rgba(0, 0, 0, 0.08);
   transition: background-color 0.2s ease;
+  width: 100%;
 }
 
 .dashboard-grid-3x1 .lab-item:last-child {
@@ -35,6 +36,10 @@
 
 .dashboard-grid-3x1 .lab-info {
   flex: 1;
+  min-width: 0;
+  width: 100%; /* Take full width now that lab-status is gone */
+  box-sizing: border-box;
+  padding-right: 1rem; /* Add padding on the right for better spacing */
 }
 
 .dashboard-grid-3x1 .lab-name {
@@ -62,13 +67,22 @@
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
+  max-height: calc(0.8rem * 1.4 * 2 + 2px);
+  min-height: calc(0.8rem * 1.4 * 2);
+  padding-bottom: 2px;
+  width: 100%;
+  word-break: normal;
+  hyphens: auto;
 }
 
+/* No longer needed - lab-status is removed
 .dashboard-grid-3x1 .lab-status {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   margin-left: 0.5rem;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .dashboard-grid-3x1 .lab-status .badge {
@@ -78,6 +92,7 @@
   font-weight: 500;
   white-space: nowrap;
 }
+*/
 
 .dashboard-grid-3x1 .no-labs {
   text-align: center;
@@ -126,9 +141,16 @@
     flex-wrap: wrap;
   }
   
+  /* Remove this as lab-status is now gone 
   .dashboard-grid-3x1 .lab-status {
     margin-left: calc(36px + 0.75rem);
     margin-top: 0.5rem;
+  }
+  */
+  
+  /* Make sure lab-info takes full width on mobile */
+  .dashboard-grid-3x1 .lab-info {
+    width: calc(100% - 36px - 0.75rem); /* Account only for the icon space */
   }
 }
 
@@ -358,4 +380,23 @@ input:checked + .toggle-slider:before {
   .view-toggle-label {
     font-size: 0.8rem;
   }
+}
+
+/* Card body styles for lab results */
+.dashboard-grid-3x1 .card-body {
+  width: 100%; /* Ensure it takes full width */
+  padding: 1rem;
+}
+
+/* Ensure the lab-items have proper width */
+.dashboard-grid-3x1 .card-body > a.lab-item {
+  display: flex;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Ensure the card properly manages its width */
+.dashboard-grid-3x1.card {
+  width: 100%;
+  box-sizing: border-box;
 } 
