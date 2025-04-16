@@ -198,7 +198,7 @@
   /* Icon styling for mobile */
   .mobile-icon-wrapper {
     margin-right: 16px;
-    font-size: 42px;
+    font-size: 32px;
     display: flex;
     align-items: center;
     padding-top: 0;
@@ -255,7 +255,7 @@
   }
   
   .mobile-reading-value {
-    font-size: 48px;
+    font-size: 28px;
     font-weight: 600;
     color: #333;
     line-height: 1.1;
