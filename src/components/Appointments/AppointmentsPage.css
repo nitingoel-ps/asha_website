@@ -147,7 +147,7 @@
 /* Responsive styles */
 @media (max-width: 768px) {
   .appointments-page {
-    padding-top: 0.5rem !important;
+    padding-top: 60px !important; /* Add padding for mobile top bar */
   }
 
   .appointments-page h1 {

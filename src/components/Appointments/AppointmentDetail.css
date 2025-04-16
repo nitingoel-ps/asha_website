@@ -217,7 +217,7 @@
 /* Edit mode buttons for mobile */
 @media (max-width: 768px) {
   .appointment-detail-page {
-    padding-top: 56px !important; /* Exactly match mobile-top-bar height */
+    padding-top: 60px !important; /* Exactly match mobile-top-bar height */
     padding-bottom: 85px !important; /* Match mobile-bottom-nav height */
   }
   
