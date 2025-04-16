@@ -12,6 +12,16 @@ function AlertsCard({ maxItemsPerCategory = 2 }) {
   const [showAllRefills, setShowAllRefills] = useState(false);
   const [screeningsLoading, setScreeningsLoading] = useState(true);
   const [screeningsError, setScreeningsError] = useState(null);
+  // Add state to track expanded items
+  const [expandedItems, setExpandedItems] = useState({});
+
+  // Function to toggle item expansion
+  const toggleItemExpansion = (id, category) => {
+    setExpandedItems(prev => ({
+      ...prev,
+      [`${category}-${id}`]: !prev[`${category}-${id}`]
+    }));
+  };
 
   // Define severity order for sorting
   const severityOrder = {
@@ -173,7 +183,11 @@ function AlertsCard({ maxItemsPerCategory = 2 }) {
             ) : (
               <ul className="alert-list">
                 {medicationInteractions.slice(0, showAllMedications ? undefined : maxItemsPerCategory).map(alert => (
-                  <li key={alert.id} className="alert-item">
+                  <li 
+                    key={alert.id} 
+                    className={`alert-item ${expandedItems[`medications-${alert.id}`] ? 'expanded' : ''}`}
+                    onClick={() => toggleItemExpansion(alert.id, 'medications')}
+                  >
                     <div className={`alert-priority ${alert.severity}-priority`}></div>
                     <div className={`alert-icon ${
                       alert.severity === "high" ? "danger-icon" : 
@@ -181,7 +195,9 @@ function AlertsCard({ maxItemsPerCategory = 2 }) {
                     }`}>{alert.icon}</div>
                     <div className="alert-content">
                       <div className="alert-title">{alert.title}</div>
-                      <div className="alert-description">{alert.description}</div>
+                      {expandedItems[`medications-${alert.id}`] && (
+                        <div className="alert-description">{alert.description}</div>
+                      )}
                     </div>
                   </li>
                 ))}
@@ -259,7 +275,11 @@ function AlertsCard({ maxItemsPerCategory = 2 }) {
             ) : (
               <ul className="alert-list">
                 {recommendedScreenings.slice(0, showAllScreenings ? undefined : maxItemsPerCategory).map(alert => (
-                  <li key={alert.id} className="alert-item">
+                  <li 
+                    key={alert.id} 
+                    className={`alert-item ${expandedItems[`screenings-${alert.id}`] ? 'expanded' : ''}`}
+                    onClick={() => toggleItemExpansion(alert.id, 'screenings')}
+                  >
                     <div className={`alert-priority ${
                       alert.severity === "high" ? "high-priority" : 
                       alert.severity === "medium" ? "medium-priority" : "low-priority"
@@ -270,7 +290,9 @@ function AlertsCard({ maxItemsPerCategory = 2 }) {
                     }`}>{alert.icon}</div>
                     <div className="alert-content">
                       <div className="alert-title">{alert.title}</div>
-                      <div className="alert-description">{alert.description}</div>
+                      {expandedItems[`screenings-${alert.id}`] && (
+                        <div className="alert-description">{alert.description}</div>
+                      )}
                     </div>
                   </li>
                 ))}
@@ -321,7 +343,11 @@ function AlertsCard({ maxItemsPerCategory = 2 }) {
             <div className="card-body">
               <ul className="alert-list">
                 {prescriptionRefills.slice(0, showAllRefills ? undefined : maxItemsPerCategory).map(alert => (
-                  <li key={alert.id} className="alert-item">
+                  <li 
+                    key={alert.id} 
+                    className={`alert-item ${expandedItems[`refills-${alert.id}`] ? 'expanded' : ''}`}
+                    onClick={() => toggleItemExpansion(alert.id, 'refills')}
+                  >
                     <div className={`alert-priority ${
                       alert.severity === "due-soon" ? "medium-priority" : "low-priority"
                     }`}></div>
@@ -330,7 +356,9 @@ function AlertsCard({ maxItemsPerCategory = 2 }) {
                     }`}>{alert.icon}</div>
                     <div className="alert-content">
                       <div className="alert-title">{alert.title}</div>
-                      <div className="alert-description">{alert.description}</div>
+                      {expandedItems[`refills-${alert.id}`] && (
+                        <div className="alert-description">{alert.description}</div>
+                      )}
                     </div>
                   </li>
                 ))}

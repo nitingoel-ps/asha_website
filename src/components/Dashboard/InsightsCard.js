@@ -7,7 +7,15 @@ function InsightsCard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showAllInsights, setShowAllInsights] = useState(false);
+  const [expandedInsights, setExpandedInsights] = useState({});
   const maxItemsToShow = 3;
+
+  const toggleInsightExpansion = (id) => {
+    setExpandedInsights(prev => ({
+      ...prev,
+      [id]: !prev[id]
+    }));
+  };
 
   useEffect(() => {
     const fetchInsights = async () => {
@@ -56,14 +64,20 @@ function InsightsCard() {
           ) : insights.length > 0 ? (
             <>
               {insights.slice(0, showAllInsights ? undefined : maxItemsToShow).map(insight => (
-                <div key={insight.id} className="insight-item">
+                <div 
+                  key={insight.id} 
+                  className={`insight-item ${expandedInsights[insight.id] ? 'expanded' : ''}`}
+                  onClick={() => toggleInsightExpansion(insight.id)}
+                >
                   <div className="insight-header">
                     <div className="insight-icon">{insight.icon}</div>
                     <div className="insight-title">{insight.title}</div>
                   </div>
-                  <div className="insight-content">
-                    {insight.content}
-                  </div>
+                  {expandedInsights[insight.id] && (
+                    <div className="insight-content">
+                      {insight.content}
+                    </div>
+                  )}
                 </div>
               ))}
               {insights.length > maxItemsToShow && (
