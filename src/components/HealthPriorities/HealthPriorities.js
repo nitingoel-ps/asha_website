@@ -1,8 +1,9 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Card, Badge, Tabs, Tab, Container, Row, Col, Alert, Button } from 'react-bootstrap';
+import { Card, Badge, ButtonGroup, Button, Container, Row, Col, Alert } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import { ThumbsUp, ThumbsDown } from 'lucide-react';
 import './HealthPriorities.css';
+import '../shared/TabStyling.css';
 import axiosInstance from '../../utils/axiosInstance';
 
 const FocusAreaCard = ({ focusArea, onClick }) => {
@@ -82,6 +83,30 @@ function HealthPriorities() {
   const [focusAreas, setFocusAreas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  
+  // Set the mobile page title
+  useEffect(() => {
+    if (window.setMobilePageTitle) {
+      window.setMobilePageTitle("Health Priorities");
+    }
+    
+    return () => {
+      // Clear mobile page title when component unmounts
+      if (window.setMobilePageTitle) {
+        window.setMobilePageTitle(null);
+      }
+    };
+  }, []);
+  
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
   
   useEffect(() => {
     const fetchFocusAreas = async () => {
@@ -162,7 +187,7 @@ function HealthPriorities() {
   if (loading) {
     return (
       <Container className="health-priorities-container">
-        <h2 className="mb-4">Health Priorities</h2>
+        {!isMobile && <h2 className="mb-4">Health Priorities</h2>}
         <div className="loading-insights">
           <div className="loading-spinner"></div>
           <p>Loading health priorities...</p>
@@ -174,7 +199,7 @@ function HealthPriorities() {
   if (error) {
     return (
       <Container className="health-priorities-container">
-        <h2 className="mb-4">Health Priorities</h2>
+        {!isMobile && <h2 className="mb-4">Health Priorities</h2>}
         <Alert variant="danger">
           {error}
         </Alert>
@@ -184,81 +209,102 @@ function HealthPriorities() {
 
   return (
     <Container className="health-priorities-container">
-      <h2 className="mb-4">Health Priorities</h2>
+      {!isMobile && <h2 className="mb-4">Health Priorities</h2>}
       
       {focusAreas.length === 0 ? (
         <Alert variant="info">
           No health priorities have been identified yet.
         </Alert>
       ) : (
-        <Tabs
-          activeKey={activeTab}
-          onSelect={(key) => setActiveTab(key)}
-          className="mb-4"
-        >
-          <Tab 
-            eventKey="review" 
-            title={`Review (${groupedFocusAreas.review.length})`}
-          >
-            <Row xs={1} md={2} lg={3} className="g-4">
-              {groupedFocusAreas.review.map((focusArea) => (
-                <Col key={focusArea.id}>
-                  <FocusAreaCard 
-                    focusArea={focusArea}
-                    onClick={() => handleFocusAreaClick(focusArea.id)}
-                  />
-                </Col>
-              ))}
-            </Row>
-            {groupedFocusAreas.review.length === 0 && (
-              <Alert variant="light" className="text-center mt-3">
-                No priorities to review
-              </Alert>
+        <>
+          <div className="app-button-tabs health-priorities-tabs">
+            <ButtonGroup className="w-100">
+              <Button 
+                variant={activeTab === 'review' ? 'primary' : 'outline-primary'}
+                onClick={() => setActiveTab('review')}
+                className="flex-grow-1"
+              >
+                Review ({groupedFocusAreas.review.length})
+              </Button>
+              <Button 
+                variant={activeTab === 'active' ? 'primary' : 'outline-primary'}
+                onClick={() => setActiveTab('active')}
+                className="flex-grow-1"
+              >
+                Active ({groupedFocusAreas.active.length})
+              </Button>
+              <Button 
+                variant={activeTab === 'inactive' ? 'primary' : 'outline-primary'}
+                onClick={() => setActiveTab('inactive')}
+                className="flex-grow-1"
+              >
+                Inactive ({groupedFocusAreas.inactive.length})
+              </Button>
+            </ButtonGroup>
+          </div>
+
+          <div className="tab-content health-priorities-content">
+            {activeTab === 'review' && (
+              <>
+                <Row xs={1} md={2} lg={3} className="g-4">
+                  {groupedFocusAreas.review.map((focusArea) => (
+                    <Col key={focusArea.id}>
+                      <FocusAreaCard 
+                        focusArea={focusArea}
+                        onClick={() => handleFocusAreaClick(focusArea.id)}
+                      />
+                    </Col>
+                  ))}
+                </Row>
+                {groupedFocusAreas.review.length === 0 && (
+                  <Alert variant="light" className="text-center mt-3">
+                    No priorities to review
+                  </Alert>
+                )}
+              </>
             )}
-          </Tab>
-          
-          <Tab 
-            eventKey="active" 
-            title={`Active (${groupedFocusAreas.active.length})`}
-          >
-            <Row xs={1} md={2} lg={3} className="g-4">
-              {groupedFocusAreas.active.map((focusArea) => (
-                <Col key={focusArea.id}>
-                  <FocusAreaCard 
-                    focusArea={focusArea}
-                    onClick={() => handleFocusAreaClick(focusArea.id)}
-                  />
-                </Col>
-              ))}
-            </Row>
-            {groupedFocusAreas.active.length === 0 && (
-              <Alert variant="light" className="text-center mt-3">
-                No active health priorities
-              </Alert>
+            
+            {activeTab === 'active' && (
+              <>
+                <Row xs={1} md={2} lg={3} className="g-4">
+                  {groupedFocusAreas.active.map((focusArea) => (
+                    <Col key={focusArea.id}>
+                      <FocusAreaCard 
+                        focusArea={focusArea}
+                        onClick={() => handleFocusAreaClick(focusArea.id)}
+                      />
+                    </Col>
+                  ))}
+                </Row>
+                {groupedFocusAreas.active.length === 0 && (
+                  <Alert variant="light" className="text-center mt-3">
+                    No active health priorities
+                  </Alert>
+                )}
+              </>
             )}
-          </Tab>
-          
-          <Tab 
-            eventKey="inactive" 
-            title={`Inactive (${groupedFocusAreas.inactive.length})`}
-          >
-            <Row xs={1} md={2} lg={3} className="g-4">
-              {groupedFocusAreas.inactive.map((focusArea) => (
-                <Col key={focusArea.id}>
-                  <FocusAreaCard 
-                    focusArea={focusArea}
-                    onClick={() => handleFocusAreaClick(focusArea.id)}
-                  />
-                </Col>
-              ))}
-            </Row>
-            {groupedFocusAreas.inactive.length === 0 && (
-              <Alert variant="light" className="text-center mt-3">
-                No inactive health priorities
-              </Alert>
+            
+            {activeTab === 'inactive' && (
+              <>
+                <Row xs={1} md={2} lg={3} className="g-4">
+                  {groupedFocusAreas.inactive.map((focusArea) => (
+                    <Col key={focusArea.id}>
+                      <FocusAreaCard 
+                        focusArea={focusArea}
+                        onClick={() => handleFocusAreaClick(focusArea.id)}
+                      />
+                    </Col>
+                  ))}
+                </Row>
+                {groupedFocusAreas.inactive.length === 0 && (
+                  <Alert variant="light" className="text-center mt-3">
+                    No inactive health priorities
+                  </Alert>
+                )}
+              </>
             )}
-          </Tab>
-        </Tabs>
+          </div>
+        </>
       )}
       <div className="scroll-spacer" style={{ height: '60px', width: '100%' }}></div>
     </Container>

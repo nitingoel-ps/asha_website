@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Card, Button, ButtonGroup, Modal, Form, Spinner, Alert } from 'react-bootstrap';
 import axiosInstance from '../../../utils/axiosInstance';
 import './MedicationsListView.css';
+import '../../../components/shared/TabStyling.css';
 
 export function MedicationsListView({ medications, loading, error, refreshMedications }) {
   const [viewType, setViewType] = useState('active');
@@ -193,22 +194,24 @@ export function MedicationsListView({ medications, loading, error, refreshMedica
         </div>
       )}
       
-      <ButtonGroup className="w-100 mb-3">
-        <Button 
-          variant={viewType === 'active' ? 'primary' : 'outline-primary'}
-          onClick={() => setViewType('active')}
-          className="flex-grow-1"
-        >
-          Active ({activeMeds.length})
-        </Button>
-        <Button 
-          variant={viewType === 'inactive' ? 'primary' : 'outline-primary'}
-          onClick={() => setViewType('inactive')}
-          className="flex-grow-1"
-        >
-          Past ({inactiveMeds.length})
-        </Button>
-      </ButtonGroup>
+      <div className="app-button-tabs medications-tabs">
+        <ButtonGroup className="w-100">
+          <Button 
+            variant={viewType === 'active' ? 'primary' : 'outline-primary'}
+            onClick={() => setViewType('active')}
+            className="flex-grow-1"
+          >
+            Active ({activeMeds.length})
+          </Button>
+          <Button 
+            variant={viewType === 'inactive' ? 'primary' : 'outline-primary'}
+            onClick={() => setViewType('inactive')}
+            className="flex-grow-1"
+          >
+            Past ({inactiveMeds.length})
+          </Button>
+        </ButtonGroup>
+      </div>
 
       <div className="medications-list">
         {loading ? (

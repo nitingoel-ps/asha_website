@@ -1,46 +1,19 @@
 import React, { useMemo, useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Card, Badge, Container, Row, Col, Alert, Tabs, Tab, Button } from 'react-bootstrap';
+import { Card, Badge, Container, Row, Col, Alert, Button, ButtonGroup } from 'react-bootstrap';
 import { 
-  FlaskConical, 
   MessageSquareMore, 
-  MessageCircle,
-  Activity, 
-  Pill, 
-  CalendarCheck, 
-  Search, 
-  Heart,
   ChevronDown,
   ChevronUp,
   ThumbsUp,
   ThumbsDown
 } from 'lucide-react';
 import './HealthPriorities.css';
+import '../shared/TabStyling.css'; // Import shared tab styling
 import EvidenceWithReferences from './EvidenceWithReferences';
 import axiosInstance from '../../utils/axiosInstance';
 // Import the utility function
 import { formatDisplayText } from '../../utils/textUtils';
-
-const ActionIcon = ({ actionType }) => {
-  switch (actionType.toLowerCase()) {
-    case 'test':
-      return <FlaskConical className="action-icon" />;
-    case 'discussion':
-      return <MessageCircle className="action-icon" />;
-    case 'monitor':
-      return <Activity className="action-icon" />;
-    case 'medication':
-      return <Pill className="action-icon" />;
-    case 'followup':
-      return <CalendarCheck className="action-icon" />;
-    case 'research':
-      return <Search className="action-icon" />;
-    case 'lifestyle':
-      return <Heart className="action-icon" />;
-    default:
-      return null;
-  }
-};
 
 const PriorityBadge = ({ priority }) => {
   const getBadgeColor = () => {
@@ -145,6 +118,38 @@ function HealthPriorityDetail() {
   const [focusArea, setFocusArea] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  
+  // Set the mobile page title and handle back button
+  useEffect(() => {
+    // Set mobile page title
+    if (window.setMobilePageTitle) {
+      window.setMobilePageTitle("Priority Detail");
+    }
+    
+    // Override the default back button behavior to navigate to health priorities
+    const handleMobileBackButton = (e) => {
+      navigate('/health-priorities');
+    };
+    
+    // If there's a mobile back button handler available, use it
+    if (window.mobileBackHandler) {
+      // Store the original handler if it exists
+      const originalHandler = window.mobileBackHandler;
+      window.mobileBackHandler = handleMobileBackButton;
+      
+      // Restore original handler on cleanup
+      return () => {
+        window.mobileBackHandler = originalHandler;
+      };
+    }
+    
+    return () => {
+      // Clear mobile page title when component unmounts
+      if (window.setMobilePageTitle) {
+        window.setMobilePageTitle(null);
+      }
+    };
+  }, [navigate]);
   
   // Fetch the specific health priority data
   useEffect(() => {
@@ -368,16 +373,12 @@ Focus area title: "${focusArea.title}"
 Action item title: "${action.title}"
 Action item description: ${action.description}`;
       
-      console.log('Chat button clicked with message:', initialMessage);
-      
       // Navigate to AI chat with the message as state
       navigate('/ai-chat', { 
         state: { 
           initialMessage 
         }
       });
-      
-      console.log('Navigated to AI chat with initialMessage in state');
     };
 
     const handleAcceptClick = (e) => {
@@ -398,67 +399,62 @@ Action item description: ${action.description}`;
     return (
       <Card className="mb-3 action-item-card">
         <Card.Body>
-          <div className="d-flex">
-            <div className="action-icon-container">
-              <ActionIcon actionType={action.action_type} />
+          <div>
+            <div className="d-flex justify-content-between align-items-start mb-2">
+              <h6 className="mb-0">{action.title}</h6>
+              <Badge bg={getBadgeVariant(action.status)}>{action.status}</Badge>
             </div>
-            <div className="flex-grow-1">
-              <div className="d-flex justify-content-between align-items-start mb-2">
-                <h5 className="mb-0">{action.title}</h5>
-                <Badge bg={getBadgeVariant(action.status)}>{action.status}</Badge>
+            <p>{action.description}</p>
+            
+            {/* Display instructions if available */}
+            {formattedInstructions && formattedInstructions.trim() !== '' && (
+              <div className="action-instructions">
+                <h6 className="instructions-title">Instructions:</h6>
+                <p className="instructions-content">{formattedInstructions}</p>
               </div>
-              <p>{action.description}</p>
+            )}
+            
+            {/* Action buttons */}
+            <div className="action-footer">
+              {/* Type information - aligned left */}
+              <div className="action-type-container">
+                <span className="action-buttons-label">Type:</span>
+                <span className="action-type-value">
+                  {getActionTypeDisplayName(action.action_type)}
+                </span>
+              </div>
               
-              {/* Display instructions if available - now using formatted text */}
-              {formattedInstructions && formattedInstructions.trim() !== '' && (
-                <div className="action-instructions">
-                  <h6 className="instructions-title">Instructions:</h6>
-                  <p className="instructions-content">{formattedInstructions}</p>
-                </div>
-              )}
-              
-              {/* Completely restructured action buttons container */}
-              <div className="action-footer">
-                {/* Type information - aligned left */}
-                <div className="action-type-container">
-                  <span className="action-buttons-label">Type:</span>
-                  <span className="action-type-value">
-                    {getActionTypeDisplayName(action.action_type)}
-                  </span>
-                </div>
-                
-                {/* Actions - aligned right */}
-                <div className="action-buttons-container">
-                  <span className="action-buttons-label">Actions:</span>
-                  <div className="action-buttons">
-                    <Button 
-                      variant="link"
-                      size="sm"
-                      className="action-button"
-                      onClick={handleChatClick}
-                      title="Discuss this with AI assistant"
-                    >
-                      <MessageSquareMore size={20} />
-                    </Button>
-                    <Button 
-                      variant="link"
-                      size="sm"
-                      className="action-button"
-                      onClick={handleAcceptClick}
-                      title="Accept this action item"
-                    >
-                      <ThumbsUp size={20} />
-                    </Button>
-                    <Button 
-                      variant="link"
-                      size="sm"
-                      className="action-button"
-                      onClick={handleRejectClick}
-                      title="Reject this action item"
-                    >
-                      <ThumbsDown size={20} />
-                    </Button>
-                  </div>
+              {/* Actions - aligned right */}
+              <div className="action-buttons-container">
+                <span className="action-buttons-label">Actions:</span>
+                <div className="action-buttons">
+                  <Button 
+                    variant="link"
+                    size="sm"
+                    className="action-button"
+                    onClick={handleChatClick}
+                    title="Discuss this with AI assistant"
+                  >
+                    <MessageSquareMore size={20} />
+                  </Button>
+                  <Button 
+                    variant="link"
+                    size="sm"
+                    className="action-button"
+                    onClick={handleAcceptClick}
+                    title="Accept this action item"
+                  >
+                    <ThumbsUp size={20} />
+                  </Button>
+                  <Button 
+                    variant="link"
+                    size="sm"
+                    className="action-button"
+                    onClick={handleRejectClick}
+                    title="Reject this action item"
+                  >
+                    <ThumbsDown size={20} />
+                  </Button>
                 </div>
               </div>
             </div>
@@ -534,32 +530,36 @@ Action item description: ${action.description}`;
       
       {/* Restructured Action Items section */}
       <section className="action-items-section">
-        {/* This header will be sticky */}
         <header className="action-items-header">
-          <div className="d-flex align-items-center justify-content-between">
-            <h4 className="m-0 action-header-title">Action Items</h4>
-            
-            {focusArea.actions && focusArea.actions.length > 0 && (
-              <Tabs
-                activeKey={activeActionTab}
-                onSelect={(key) => setActiveActionTab(key)}
-                className="action-items-inline-tabs health-priority-tabs mb-0"
-              >
-                <Tab 
-                  eventKey="suggested" 
-                  title={`Review (${groupedActions.suggested.length})`}
-                />
-                <Tab 
-                  eventKey="active" 
-                  title={`Active (${groupedActions.active.length})`}
-                />
-                <Tab 
-                  eventKey="inactive" 
-                  title={`Completed (${groupedActions.completed.length})`}
-                />
-              </Tabs>
-            )}
-          </div>
+          <h4 className="mb-3">Action Items</h4>
+          
+          {focusArea.actions && focusArea.actions.length > 0 && (
+            <div className="app-button-tabs action-items-tabs">
+              <ButtonGroup className="w-100">
+                <Button 
+                  variant={activeActionTab === 'suggested' ? 'primary' : 'outline-primary'}
+                  onClick={() => setActiveActionTab('suggested')}
+                  className="flex-grow-1"
+                >
+                  Review ({groupedActions.suggested.length})
+                </Button>
+                <Button 
+                  variant={activeActionTab === 'active' ? 'primary' : 'outline-primary'}
+                  onClick={() => setActiveActionTab('active')}
+                  className="flex-grow-1"
+                >
+                  Active ({groupedActions.active.length})
+                </Button>
+                <Button 
+                  variant={activeActionTab === 'completed' ? 'primary' : 'outline-primary'}
+                  onClick={() => setActiveActionTab('completed')}
+                  className="flex-grow-1"
+                >
+                  Completed ({groupedActions.completed.length})
+                </Button>
+              </ButtonGroup>
+            </div>
+          )}
         </header>
 
         {/* Content area for action items */}

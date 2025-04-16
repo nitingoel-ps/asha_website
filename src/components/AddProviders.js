@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
 import axiosInstance from "../utils/axiosInstance";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Container, Card, Button, Form, Table, Alert, Collapse, Tabs, Tab, Row, Col } from "react-bootstrap";
+import { Container, Card, Button, Form, Table, Alert, Collapse, ButtonGroup, Row, Col } from "react-bootstrap";
 import { format, parseISO, formatDistanceToNow } from "date-fns";
 import './AddProviders.css';
+import './shared/TabStyling.css';
 import { FaCheck, FaSpinner, FaTimes, FaSync, FaTrash, FaCircle, FaPlus, FaExclamationTriangle, FaSearch } from 'react-icons/fa';
 import { isMobileDevice } from '../utils/deviceDetector';
 
@@ -785,12 +786,27 @@ function AddProviders() {
         )}
       </div>
 
-      <Tabs 
-        activeKey={activeTab} 
-        onSelect={(key) => setActiveTab(key)} 
-        className="provider-tabs"
-      >
-        <Tab eventKey="connected" title="Connected">
+      <div className="app-button-tabs providers-tabs">
+        <ButtonGroup className="w-100">
+          <Button 
+            variant={activeTab === 'connected' ? 'primary' : 'outline-primary'}
+            onClick={() => setActiveTab('connected')}
+            className="flex-grow-1"
+          >
+            Connected
+          </Button>
+          <Button 
+            variant={activeTab === 'addNew' ? 'primary' : 'outline-primary'}
+            onClick={() => setActiveTab('addNew')}
+            className="flex-grow-1"
+          >
+            Add New
+          </Button>
+        </ButtonGroup>
+      </div>
+
+      <div className="tab-content">
+        {activeTab === 'connected' && (
           <div className="connected-tab-content">
             {renderConnectionCards()}
             {isMobile && connections.length > 0 && (
@@ -806,13 +822,13 @@ function AddProviders() {
               </div>
             )}
           </div>
-        </Tab>
-        <Tab eventKey="addNew" title="Add New">
+        )}
+        {activeTab === 'addNew' && (
           <div className="add-new-tab-content">
             {renderAddNewConnection()}
           </div>
-        </Tab>
-      </Tabs>
+        )}
+      </div>
     </Container>
   );
 }

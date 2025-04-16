@@ -56,6 +56,14 @@ function LoggedInNavbar() {
     // If we're in the root
     if (path === '/') return 'Home';
     
+    // Health Priorities routes
+    if (pathSegments[0] === 'health-priorities') {
+      if (pathSegments.length > 1) {
+        return 'Priority Detail'; // For detail pages
+      }
+      return 'Health Priorities';
+    }
+    
     // If we're in the patient dashboard
     if (pathSegments[0] === 'patient-dashboard') {
       // If we're at the root of patient-dashboard
@@ -125,6 +133,12 @@ function LoggedInNavbar() {
   // Check if we should show back button
   const shouldShowBackButton = () => {
     const pathSegments = location.pathname.split('/').filter(Boolean);
+    
+    // Show back button for health priorities detail pages
+    if (pathSegments[0] === 'health-priorities' && pathSegments.length > 1) {
+      return true;
+    }
+    
     // Show back button for any patient-dashboard route except the root
     return pathSegments.length >= 2 && pathSegments[0] === 'patient-dashboard';
   };
@@ -141,7 +155,19 @@ function LoggedInNavbar() {
   };
 
   const handleBack = () => {
+    // Check if there's a custom back handler set by a component
+    if (window.mobileBackHandler) {
+      window.mobileBackHandler();
+      return;
+    }
+    
     const pathSegments = location.pathname.split('/').filter(Boolean);
+    
+    // Handle health priorities back navigation
+    if (pathSegments[0] === 'health-priorities' && pathSegments.length > 1) {
+      navigate('/health-priorities');
+      return;
+    }
     
     // Special case for observation URLs - use browser history
     if (pathSegments[1] === 'observation' && pathSegments[2]) {

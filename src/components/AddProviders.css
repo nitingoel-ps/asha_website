@@ -477,14 +477,6 @@
 }
 
 /* New styles for card-based layout */
-.providers-container .provider-tabs {
-  border-bottom: 1px solid #dee2e6;
-}
-
-.providers-container .provider-tabs .nav-link {
-  font-weight: 500;
-}
-
 .providers-container .connection-cards-container {
   margin-top: 0.5rem;
 }
@@ -604,13 +596,7 @@
 
 /* Override Bootstrap tab spacing for mobile */
 .providers-container .tab-content {
-  margin-top: 0 !important;
-  background-color: #ffffff;  
-}
-
-.providers-container .tab-pane {
-  padding-top: 0.5rem !important;
-  margin: 0 !important;
+  padding: 1rem 0;
 }
 
 .providers-container .connected-tab-content,
@@ -626,12 +612,7 @@
     margin-top: 0.5rem;
   }
   
-  .providers-container .provider-tabs {
-    margin-top: 40px;
-  }
-  
   .providers-container .tab-content {
-    margin-top: 0 !important;
     padding-top: 0 !important;
     overflow-x: hidden;
   }
@@ -907,22 +888,6 @@
   margin-bottom: 1.5rem;
 }
 
-/* Override Bootstrap tab spacing for mobile with full-width layout */
-.providers-container .tab-content {
-  margin-top: 0 !important;
-}
-
-.providers-container .tab-pane {
-  padding-top: 0.5rem !important;
-  margin: 0 !important;
-  background-color: #f8f9fa; /* Light background to differentiate the area */
-}
-
-.providers-container .connected-tab-content,
-.providers-container .add-new-tab-content {
-  padding-top: 0.5rem;
-}
-
 /* Mobile-specific styles for the new layout */
 @media (max-width: 768px) {
   .providers-container .tab-pane {
@@ -947,5 +912,34 @@
   .providers-container .provider-result-card {
     border-radius: 12px;
     margin-bottom: 1rem;
+  }
+}
+
+/* Custom spacing for Provider tabs */
+.providers-tabs {
+  margin-top: 1.25rem !important; /* Ensure enough space from header */
+  padding-top: 0.5rem !important; /* Additional padding to prevent overlap */
+}
+
+@media (max-width: 767px) {
+  .providers-container {
+    padding-top: 60px !important; /* Consistent padding for fixed navbar */
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+    height: auto;
+  }
+
+  .providers-container .tab-content {
+    padding: 0.5rem 0; /* Reduce padding */
+  }
+
+  .provider-header {
+    display: none !important; /* Hide header on mobile since it's in the navbar */
+  }
+
+  .providers-tabs {
+    margin-top: 0 !important;
+    margin-bottom: 0.75rem !important;
+    padding-top: 0 !important; /* Remove padding to match other components */
   }
 }

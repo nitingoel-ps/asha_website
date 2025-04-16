@@ -1,0 +1,111 @@
+/* TabStyling.css - Shared tab styling for the application */
+
+/* ButtonGroup tabs styling - Used in all components */
+.app-button-tabs {
+  margin-top: 1rem;
+  margin-bottom: 1.5rem;
+  padding-top: 5px; /* Added padding to ensure content doesn't hide under navbar */
+}
+
+.app-button-tabs .btn-group {
+  display: flex !important;
+  flex-direction: row !important;
+  width: 100%;
+  margin-bottom: 0;
+}
+
+.app-button-tabs .btn-group > .btn {
+  flex: 1;
+  transition: all 0.15s ease;
+  font-weight: 500;
+  /* Override default bootstrap button styles */
+  box-shadow: none !important;
+}
+
+.app-button-tabs .btn-group > .btn:not(:last-child) {
+  margin-right: 0.25rem;
+}
+
+.app-button-tabs .btn-group > .btn-outline-primary {
+  background-color: #f8f9fa;
+  color: #6c757d;
+  border-color: #dee2e6;
+}
+
+.app-button-tabs .btn-group > .btn-outline-primary:hover {
+  background-color: #e9ecef;
+  color: #495057;
+}
+
+.app-button-tabs .btn-group > .btn-primary {
+  background-color: var(--primary-color, #019ea1); /* Use theme variable with fallback */
+  border-color: var(--primary-color, #019ea1); /* Use theme variable with fallback */
+  color: #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Tab content styling */
+.tab-content {
+  padding-top: 1rem;
+  background-color: transparent;
+  margin-bottom: 1rem;
+}
+
+/* Mobile optimizations */
+@media (max-width: 767px) {
+  /* Base mobile styles for all implementations */
+  .app-button-tabs {
+    margin-top: 0 !important; /* Reduce top margin to avoid extra space */
+    margin-bottom: 0.75rem;
+    padding-top: 0.25rem; /* Reduced top padding */
+  }
+  
+  .app-button-tabs .btn-group {
+    margin: 0;
+    z-index: 10;
+    background: white;
+    padding: 0.25rem 0; /* Reduced padding */
+  }
+  
+  .app-button-tabs .btn-group > .btn {
+    font-size: 0.875rem;
+    padding: 0.375rem 0.5rem;
+  }
+  
+  .app-button-tabs .btn-group > .btn:not(:last-child) {
+    margin-right: 0.125rem;
+  }
+
+  /* Increase spacing after tab content on mobile */
+  .tab-content {
+    padding-top: 0.75rem;
+    margin-bottom: 4rem; /* Extra space at bottom on mobile to account for bottom nav */
+  }
+  
+  /* Component-specific overrides - these have higher specificity */
+  /* For AddProviders */
+  .providers-tabs {
+    margin-top: 0 !important;
+    padding-top: 0.5rem !important; /* Slightly reduced */
+  }
+  
+  /* For HealthPriorities */
+  .health-priorities-tabs {
+    margin-top: 0 !important;
+    padding-top: 0 !important; /* No top padding needed */
+  }
+  
+  /* For MedicationsListView */
+  .medications-tabs {
+    margin-top: 0 !important;
+    padding-top: 0 !important; /* No top padding needed */
+  }
+  
+  /* Special cases for containers that already have padding/margins */
+  .container .app-button-tabs,
+  .providers-container .app-button-tabs,
+  .medications-list-container .app-button-tabs,
+  .health-priorities-container .app-button-tabs {
+    margin-top: 0 !important; /* Remove top margin when inside containers */
+  }
+} 

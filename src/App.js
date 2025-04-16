@@ -28,6 +28,7 @@ import HealthPriorities from './components/HealthPriorities/HealthPriorities';
 import HealthPriorityDetail from './components/HealthPriorities/HealthPriorityDetail';
 
 import './theme.css';
+import './components/shared/TabStyling.css';
 
 function AppContent() {
   const { isAuthenticated, loading } = useAuth();

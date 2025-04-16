@@ -118,12 +118,21 @@
 /* Update container height for mobile */
 @media (max-width: 767px) {
   .medications-list-container {
-    padding: 0;
     height: 100%;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
   }
 
+  .medications-tabs {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+    padding-top: 0 !important; /* Remove padding to match health priorities */
+  }
+  
+  .medications-header {
+    display: none !important; /* Hide the header on mobile as it's in the navbar */
+  }
+  
   .medications-list {
     padding: 0.5rem;
   }
@@ -131,13 +140,8 @@
   /* Remove margin from button group on mobile */
   .medications-list-container .btn-group {
     margin: 0.5rem;
-    position: sticky;
-    top: 0;
-    z-index: 10;
     background: white;
-    padding: 0.5rem;
-    /*border-radius: 8px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);*/
+    padding: 0.25rem 0; /* Match TabStyling.css */
   }
 
   /* Adjust card styling for mobile */
@@ -157,4 +161,10 @@
     padding: 1rem;
     height: calc(100vh - 80px);
   }
+}
+
+/* Custom spacing for Medications tabs */
+.medications-tabs {
+  margin-top: 0 rem !important;
+  margin-bottom: 0rem !important;
 }
