@@ -59,7 +59,13 @@ function AppointmentDetail() {
         setLoading(true);
         const data = await fetchAppointmentById(appointmentId);
         setAppointment(data);
-        setEditData(data);
+        
+        // Format the start_time for datetime-local input
+        const formattedData = {
+          ...data,
+          start_time: data.start_time ? new Date(data.start_time).toISOString().slice(0, 16) : ""
+        };
+        setEditData(formattedData);
       } catch (err) {
         console.error("Error fetching appointment details:", err);
         setError("Failed to load appointment details. Please try again later.");
@@ -75,10 +81,30 @@ function AppointmentDetail() {
     e.preventDefault();
     try {
       setSaving(true);
-      const response = await updateAppointment(appointmentId, editData);
+      
+      // Create a copy of edit data to send to the API
+      const dataToSubmit = { ...editData };
+      
+      // If start_time was changed, ensure it's in ISO format for the API
+      if (dataToSubmit.start_time) {
+        // The datetime-local input gives us a local datetime string
+        // Make sure it's converted to a proper ISO string for the API
+        const dateObj = new Date(dataToSubmit.start_time);
+        dataToSubmit.start_time = dateObj.toISOString();
+      }
+      
+      const response = await updateAppointment(appointmentId, dataToSubmit);
       if (response.appointment) {
         setAppointment(response.appointment);
-        setEditData(response.appointment);
+        
+        // Format the start_time for datetime-local input for editData
+        const formattedData = {
+          ...response.appointment,
+          start_time: response.appointment.start_time ? 
+            new Date(response.appointment.start_time).toISOString().slice(0, 16) : ""
+        };
+        setEditData(formattedData);
+        
         setIsEditing(false);
         setSuccessMessage("Appointment updated successfully!");
         
@@ -105,7 +131,13 @@ function AppointmentDetail() {
   };
 
   const handleCancel = () => {
-    setEditData(appointment);
+    // Format the start_time for datetime-local input
+    const formattedData = {
+      ...appointment,
+      start_time: appointment.start_time ? 
+        new Date(appointment.start_time).toISOString().slice(0, 16) : ""
+    };
+    setEditData(formattedData);
     setIsEditing(false);
     setError(null);
   };
@@ -190,8 +222,8 @@ function AppointmentDetail() {
   const renderField = (label, value, fieldName, type = "text", required = false) => {
     if (isEditing || value) {
       return (
-        <Form.Group className="mb-3">
-          <Form.Label>{label}{required && "*"}</Form.Label>
+        <div className="field-group">
+          <div className="field-label">{label}{isEditing && required && "*"}</div>
           {isEditing ? (
             type === "textarea" ? (
               <Form.Control
@@ -206,9 +238,9 @@ function AppointmentDetail() {
               <Form.Check
                 type="checkbox"
                 name={fieldName}
-                label={label}
                 checked={editData[fieldName] || false}
                 onChange={handleInputChange}
+                className="w-100"
               />
             ) : (
               <Form.Control
@@ -220,68 +252,71 @@ function AppointmentDetail() {
               />
             )
           ) : (
-            <p className="mb-0">{value}</p>
+            <p className="field-value">{value}</p>
           )}
-        </Form.Group>
+        </div>
       );
     }
     return null;
   };
 
   return (
-    <Container className="appointment-detail-page py-3">
-      <div className="d-flex align-items-center mb-4">
-        {/* Only show the back button on non-mobile screens */}
-        {!isMobile && (
-          <Button 
-            variant="link" 
-            className="p-0 me-3 back-button" 
-            onClick={() => navigate('/appointments')}
-          >
-            ← Back to Appointments
-          </Button>
-        )}
-        
-        {/* Only show the h1 title on non-mobile screens */}
-        {!isMobile && <h1>Appointment Details</h1>}
-        
-        {!isEditing ? (
-          !isMobile && (
+    <Container className={`appointment-detail-page ${isEditing && isMobile ? 'editing' : ''}`}>
+      {/* Only show header with buttons on desktop or when editing on mobile */}
+      {(!isMobile || isEditing) && (
+        <div className="d-flex align-items-center mb-4">
+          {/* Only show the back button on non-mobile screens */}
+          {!isMobile && (
             <Button 
-              variant="outline-primary"
-              className="ms-auto"
-              onClick={() => setIsEditing(true)}
+              variant="link" 
+              className="p-0 me-3 back-button" 
+              onClick={() => navigate('/appointments')}
             >
-              Edit Appointment
+              ← Back to Appointments
             </Button>
-          )
-        ) : (
-          <div className={`${isMobile ? 'w-100 mt-2' : 'ms-auto'}`}>
-            <Button 
-              variant="outline-secondary"
-              className="me-2"
-              onClick={handleCancel}
-            >
-              Cancel
-            </Button>
-            <Button 
-              variant="primary"
-              onClick={handleEdit}
-              disabled={saving}
-            >
-              {saving ? (
-                <>
-                  <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" />
-                  <span className="ms-2">Saving...</span>
-                </>
-              ) : (
-                'Save Changes'
-              )}
-            </Button>
-          </div>
-        )}
-      </div>
-
+          )}
+          
+          {/* Only show the h1 title on non-mobile screens */}
+          {!isMobile && <h1>Appointment Details</h1>}
+          
+          {!isEditing ? (
+            !isMobile && (
+              <Button 
+                variant="outline-primary"
+                className="ms-auto"
+                onClick={() => setIsEditing(true)}
+              >
+                Edit Appointment
+              </Button>
+            )
+          ) : (
+            <div className={`${isMobile ? 'edit-buttons-mobile' : 'ms-auto'}`}>
+              <Button 
+                variant="outline-secondary"
+                className="me-2"
+                onClick={handleCancel}
+              >
+                Cancel
+              </Button>
+              <Button 
+                variant="primary"
+                onClick={handleEdit}
+                disabled={saving}
+              >
+                {saving ? (
+                  <>
+                    <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" />
+                    <span className="ms-2">Saving...</span>
+                  </>
+                ) : (
+                  'Save Changes'
+                )}
+              </Button>
+            </div>
+          )}
+        </div>
+      )}
+      
       {loading ? (
         <div className="text-center p-5">
           <Spinner animation="border" role="status" variant="primary">
@@ -305,20 +340,48 @@ function AppointmentDetail() {
                   <h5 className="mb-0">Basic Information</h5>
                 </Card.Header>
                 <Card.Body>
-                  {renderField("Title", appointment.title, "title", "text", true)}
-                  {renderField("Provider Name", appointment.participant_name, "participant_name", "text", true)}
-                  <div className="appointment-datetime">
-                    <span className="label">Date & Time:</span> 
-                    {formatDate(appointment.start_time)} at {formatTime(appointment.start_time)}
+                  {renderField('Title', appointment.title, 'title', 'text', true)}
+
+                  {renderField('Provider Name', appointment.participant_name, 'participant_name', 'text', true)}
+
+                  <div className="field-group">
+                    <div className="field-label">Date & Time{isEditing && "*"}</div>
+                    {isEditing ? (
+                      <Form.Control
+                        type="datetime-local"
+                        name="start_time"
+                        value={editData.start_time ? new Date(editData.start_time).toISOString().slice(0, 16) : ""}
+                        onChange={handleInputChange}
+                        required
+                      />
+                    ) : (
+                      <p className="field-value">{formatDate(appointment.start_time)} at {formatTime(appointment.start_time)}</p>
+                    )}
                   </div>
+
                   {appointment.duration_minutes && (
-                    <div className="appointment-duration mt-2">
-                      <span className="label">Duration:</span> 
-                      {appointment.duration_minutes} minutes
-                    </div>
+                    renderField('Duration', `${appointment.duration_minutes} minutes`, 'duration_minutes')
                   )}
-                  {renderField("Reason for Visit", appointment.reason, "reason")}
-                  {renderField("Virtual Appointment", appointment.is_virtual, "is_virtual", "checkbox")}
+
+                  {renderField('Reason for Visit', appointment.reason || "Not specified", 'reason')}
+
+                  <div className="field-group">
+                    <div className="field-label">Virtual Appointment</div>
+                    {isEditing ? (
+                      <div className="checkbox-wrapper">
+                        <Form.Check
+                          type="checkbox"
+                          id="is_virtual"
+                          name="is_virtual"
+                          label="This is a virtual appointment"
+                          checked={editData.is_virtual || false}
+                          onChange={handleInputChange}
+                        />
+                      </div>
+                    ) : (
+                      <p className="field-value">{appointment.is_virtual ? "Yes" : "No"}</p>
+                    )}
+                  </div>
                 </Card.Body>
               </Card>
 
@@ -327,8 +390,9 @@ function AppointmentDetail() {
                   <h5 className="mb-0">Discussion Topics</h5>
                 </Card.Header>
                 <Card.Body>
-                  {isEditing ? (
-                    <Form.Group>
+                  <div className="field-group">
+                    <div className="field-label">Topics to Discuss</div>
+                    {isEditing ? (
                       <Form.Control
                         as="textarea"
                         rows={4}
@@ -337,57 +401,86 @@ function AppointmentDetail() {
                         onChange={handleInputChange}
                         placeholder="List any topics, questions, or concerns you want to discuss during the appointment..."
                       />
-                    </Form.Group>
-                  ) : appointment.comments ? (
-                    <div className="topics-list">
-                      {appointment.comments.split('\n').map((topic, index) => (
-                        <div key={index} className="topic-item">
-                          {topic}
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-muted">No discussion topics added yet. Click 'Edit Appointment' to add topics to discuss.</p>
-                  )}
+                    ) : appointment.comments ? (
+                      <div className="topics-list field-value">
+                        {appointment.comments.split('\n').map((topic, index) => (
+                          <div key={index} className="topic-item">
+                            {topic}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="field-value text-muted">No discussion topics added yet. Click 'Edit Appointment' to add topics to discuss.</p>
+                    )}
+                  </div>
                 </Card.Body>
               </Card>
             </Col>
 
             <Col md={4}>
-              <Card className="mb-4">
-                <Card.Header>
-                  <h5 className="mb-0">Status</h5>
-                </Card.Header>
-                <Card.Body>
-                  <Badge bg={getStatusBadgeVariant(appointment.status)} className="status-badge">
-                    {formatStatus(appointment.status)}
-                  </Badge>
-                </Card.Body>
-              </Card>
-
-              <Card>
-                <Card.Header>
-                  <h5 className="mb-0">Location Information</h5>
-                </Card.Header>
-                <Card.Body>
-                  {editData?.is_virtual ? (
-                    <>
-                      <div className="virtual-badge mb-3">
-                        <i className="bi bi-camera-video"></i> Virtual Appointment
+              {(appointment.location_name || appointment.location) && (
+                <Card className="mb-4">
+                  <Card.Header>Location Information</Card.Header>
+                  <Card.Body>
+                    {appointment.location_name && (
+                      <div className="field-group">
+                        <div className="field-label">Location Name</div>
+                        <p className="field-value">{appointment.location_name}</p>
                       </div>
-                      {renderField("Meeting URL", appointment.virtual_meeting_url, "virtual_meeting_url", "url")}
-                    </>
-                  ) : (
-                    <>
-                      {renderField("Location Name", appointment.location_name, "location_name")}
-                      {renderField("Location Phone", appointment.location_phone, "location_phone", "tel")}
-                      {renderField("Address", appointment.location_address, "location_address", "textarea")}
-                    </>
-                  )}
-                </Card.Body>
-              </Card>
+                    )}
+                    {appointment.location && (
+                      <div className="field-group">
+                        <div className="field-label">Address</div>
+                        <p className="field-value">{appointment.location}</p>
+                      </div>
+                    )}
+                    {appointment.location_phone && (
+                      <div className="field-group">
+                        <div className="field-label">Location Phone</div>
+                        <p className="field-value">{appointment.location_phone}</p>
+                      </div>
+                    )}
+                  </Card.Body>
+                </Card>
+              )}
+
+              {appointment.is_virtual && (
+                <Card className="mb-4">
+                  <Card.Header>Virtual Meeting Information</Card.Header>
+                  <Card.Body>
+                    <div className="virtual-badge mb-3">
+                      <i className="bi bi-camera-video"></i> Virtual Appointment
+                    </div>
+                    {appointment.virtual_meeting_url && (
+                      <div className="field-group">
+                        <div className="field-label">Meeting URL</div>
+                        <p className="field-value">
+                          <a href={appointment.virtual_meeting_url} target="_blank" rel="noopener noreferrer">
+                            {appointment.virtual_meeting_url}
+                          </a>
+                        </p>
+                      </div>
+                    )}
+                  </Card.Body>
+                </Card>
+              )}
+
+              {appointment.notes && (
+                <Card className="mb-4">
+                  <Card.Header>Notes</Card.Header>
+                  <Card.Body>
+                    <div className="field-group">
+                      <div className="field-label">Additional Notes</div>
+                      <p className="field-value">{appointment.notes}</p>
+                    </div>
+                  </Card.Body>
+                </Card>
+              )}
             </Col>
           </Row>
+          
+          {/* Add spacer to prevent content from hiding under bottom navbar */}
+          <div className="bottom-spacer"></div>
         </Form>
       ) : (
         <Alert variant="warning">Appointment not found.</Alert>

@@ -1,3 +1,11 @@
+.appointment-detail-page {
+  position: relative;
+  min-height: 100%;
+  overflow-y: auto;
+  padding-top: 20px; /* Basic padding for desktop */
+  padding-bottom: 6rem !important; /* Provide space for bottom navbar/mobile actions */
+}
+
 .appointment-detail-page h1 {
   font-size: 1.8rem;
   font-weight: 600;
@@ -143,83 +151,100 @@
   box-shadow: 0 0 0 0.2rem rgba(var(--primary-rgb), 0.25);
 }
 
-/* Appointment times and duration */
-.appointment-datetime, 
-.appointment-duration {
-  margin-bottom: 0.5rem;
+/* Field group styling - consistent for all fields */
+.field-group {
+  margin-bottom: 1rem;
+}
+
+.field-group .field-label {
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 0.25rem;
+  display: block;
+}
+
+.field-group .field-value {
   color: var(--text-light);
+  margin-bottom: 0;
+}
+
+/* Edit buttons on mobile */
+.edit-buttons-mobile {
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+  padding: 10px 15px;
+  position: fixed;
+  top: 56px; /* Match mobile-top-bar height */
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background-color: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.edit-buttons-mobile .btn {
+  min-width: 100px;
+}
+
+/* Checkbox styling */
+.checkbox-wrapper {
+  margin-top: 0.25rem;
+}
+
+.checkbox-wrapper .form-check {
+  padding-left: 1.8rem;
+}
+
+.checkbox-wrapper .form-check-input {
+  margin-left: -1.8rem;
+  margin-top: 0.3rem;
+  width: 1.2rem;
+  height: 1.2rem;
+}
+
+.checkbox-wrapper .form-check-label {
+  color: var(--text);
+  font-size: 0.95rem;
+}
+
+/* Override existing style to use new consistent classes */
+.appointment-datetime,
+.appointment-duration {
+  margin-bottom: 1rem;
 }
 
 /* Edit mode buttons for mobile */
 @media (max-width: 768px) {
   .appointment-detail-page {
-    padding-top: 60px !important;
+    padding-top: 56px !important; /* Exactly match mobile-top-bar height */
+    padding-bottom: 85px !important; /* Match mobile-bottom-nav height */
   }
   
-  .appointment-title {
-    font-size: 1.3rem;
-  }
-  
-  .appointment-meta {
-    margin-bottom: 1.5rem;
-  }
-  
-  .status-badge {
-    margin-bottom: 1rem;
-  }
-
-  .edit-section {
-    padding-bottom: 1rem;
-  }
-  
-  /* Remove padding from button container on mobile */
-  .appointment-detail-page .d-flex {
-    width: 100%;
-    flex-wrap: wrap;
-  }
-  
-  /* Edit buttons in full width on mobile when editing */
-  .appointment-detail-page .w-100 {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 1rem;
-  }
-  
-  .appointment-detail-page .w-100 .btn {
-    flex: 1;
-    margin: 0 0.25rem;
-  }
-  
-  /* Add more top padding when editing on mobile */
-  .appointment-detail-page form {
-    padding-top: 0.5rem;
-  }
-  
-  /* Ensure cards don't overlap with the navbar */
+  /* Add extra padding for the first card in both view and edit modes */
   .appointment-detail-page .card:first-of-type {
-    margin-top: 0.5rem;
+    margin-top: 15px;
   }
   
-  /* Additional top spacing for mobile */
+  /* Add more padding in edit mode with floating buttons */
+  .appointment-detail-page.editing {
+    padding-top: 106px !important; /* 56px top-bar + 50px edit buttons */
+  }
+  
+  /* Ensure content spacing is appropriate */
   .appointment-detail-page .row {
-    margin-top: 0.5rem;
+    margin-top: 0; /* Reset margin */
+    margin-left: -5px; /* Adjust side margins */
+    margin-right: -5px;
   }
   
-  /* Fix back button alignment */
-  .back-button {
-    align-self: flex-start;
+  .appointment-detail-page .col-md-8,
+  .appointment-detail-page .col-md-4 {
+    padding-left: 5px;
+    padding-right: 5px;
   }
   
-  /* Ensure cards stack nicely on mobile */
-  .card {
-    margin-bottom: 1rem;
-  }
-  
-  .card .card-header {
-    padding-top: 10px !important;
-  }
-  
-  /* Improve readability of form controls on mobile */
+  /* Clean up form control appearance */
   .form-control {
     font-size: 1rem;
     height: auto;
@@ -236,4 +261,30 @@
     height: 1.25rem;
     margin-left: -1.75rem;
   }
+  
+  /* Card styling */
+  .card {
+    margin-bottom: 0.75rem;
+  }
+  
+  .card-body {
+    padding: 1rem;
+  }
+  
+  /* Field styling */
+  .field-group {
+    margin-bottom: 0.75rem;
+  }
+  
+  .field-group:last-child {
+    margin-bottom: 0;
+  }
+} 
+
+/* Bottom spacer styling */
+.bottom-spacer {
+  width: 100%;
+  clear: both;
+  display: block;
+  height: 60px;
 } 

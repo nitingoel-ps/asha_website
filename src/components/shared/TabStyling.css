@@ -112,7 +112,13 @@
   .providers-container .app-button-tabs,
   .medications-list-container .app-button-tabs,
   .health-priorities-container .app-button-tabs,
-  .appointments-page .app-button-tabs {
+  .app-button-tabs {
     margin-top: 0px !important; /* Remove top margin when inside containers */
   }
+
+  .appointments-page .app-button-tabs {
+    margin-top: 40px !important;
+  }
+
+
 } 
