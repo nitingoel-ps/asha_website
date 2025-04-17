@@ -82,24 +82,155 @@ const NewVoiceChat = () => {
   const processingCompleteRef = useRef(false);
   const userInteractionRef = useRef(false);
   const isCleaningUpRef = useRef(false);
+  const visualizationIntervalRef = useRef(null);
+  const currentAudioLevelRef = useRef(0);
 
   // Get API base URL from environment
   const apiBaseURL = process.env.REACT_APP_API_BASE_URL || '';
   debugLog('API Base URL:', apiBaseURL);
 
+  // Initialize connection on mount
+  useEffect(() => {
+    // Track reconnection attempts to prevent infinite loops
+    let reconnectAttempts = 0;
+    const maxReconnectAttempts = 3;
+    let reconnectTimeout = null;
+    
+    // Check for browser support
+    if (!window.WebSocket) {
+      setError('Your browser does not support WebSockets, which are required for this feature.');
+      return;
+    }
+
+    if (!window.MediaRecorder) {
+      setError('Your browser does not support audio recording, which is required for this feature.');
+      return;
+    }
+
+    // Define event handlers for connection status
+    const handleOnline = () => {
+      debugLog('Network connection restored');
+      
+      // Only try to reconnect if not already connected/connecting and within attempt limits
+      if (!isConnected && !isConnecting && reconnectAttempts < maxReconnectAttempts) {
+        debugLog(`Attempting to reconnect WebSocket (attempt ${reconnectAttempts + 1}/${maxReconnectAttempts})`);
+        reconnectAttempts++;
+        
+        // Add a small delay to avoid immediate reconnection
+        if (reconnectTimeout) {
+          clearTimeout(reconnectTimeout);
+        }
+        
+        reconnectTimeout = setTimeout(() => {
+          setupWebSocket();
+        }, 2000); // 2 second delay between reconnection attempts
+      }
+    };
+
+    const handleOffline = () => {
+      debugLog('Network connection lost');
+      setError('Network connection lost. Please check your internet connection.');
+    };
+
+    // Set up event listeners for online/offline status
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    
+    // Initial connection setup
+    setupWebSocket();
+    
+    // Initialize audio context (defer actual creation until user interaction)
+    initAudioContext();
+    
+    // Return cleanup function for component unmount
+    return () => {
+      // Clean up event listeners
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+      
+      // Clear any pending reconnect timeout
+      if (reconnectTimeout) {
+        clearTimeout(reconnectTimeout);
+        reconnectTimeout = null;
+      }
+      
+      // Stop any ongoing recording or playback
+      if (isRecording) {
+        stopRecording(false);
+      }
+      
+      // Clean up audio resources
+      cleanupAudio();
+      
+      // Clean up WebSocket
+      if (socketRef.current) {
+        socketRef.current.close();
+        socketRef.current = null;
+      }
+      
+      // Clean up stream tracks
+      if (streamRef.current) {
+        const tracks = streamRef.current.getTracks();
+        tracks.forEach(track => track.stop());
+        streamRef.current = null;
+      }
+      
+      // Clean up the audio context
+      if (audioContextRef.current) {
+        audioContextRef.current.close().catch(e => {
+          console.error('Error closing audio context:', e);
+        });
+        audioContextRef.current = null;
+      }
+      
+      // Clean up visualization interval
+      if (visualizationIntervalRef.current) {
+        clearInterval(visualizationIntervalRef.current);
+        visualizationIntervalRef.current = null;
+      }
+      
+      // Clear other refs
+      audioAnalyserRef.current = null;
+      audioElementRef.current = null;
+      mediaRecorderRef.current = null;
+      audioQueueRef.current = [];
+      
+      // These state updates might not complete if component is unmounting,
+      // but setting them is safe
+      setIsPlaying(false);
+      setIsRecording(false);
+      setIsPaused(false);
+      setWaitingForPlayback(false);
+      setIsProcessing(false);
+      
+      // Reset ref values
+      isPlayingRef.current = false;
+      processingCompleteRef.current = false;
+      isCleaningUpRef.current = false;
+      currentAudioLevelRef.current = 0;
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Use empty dependency array to run once on mount
+
   // Setup WebSocket connection
   const setupWebSocket = () => {
     try {
-      // Check if already connecting
-      if (socketRef.current && socketRef.current.readyState === WebSocket.CONNECTING) {
-        debugLog('WebSocket connection already in progress');
-        return;
-      }
-
-      // Close any existing connection
+      // Don't try to reconnect if already connected or connecting
       if (socketRef.current) {
+        if (socketRef.current.readyState === WebSocket.CONNECTING) {
+          debugLog('WebSocket connection already in progress');
+          return;
+        }
+        
+        if (socketRef.current.readyState === WebSocket.OPEN) {
+          debugLog('WebSocket connection already established');
+          return;
+        }
+        
+        // Close any existing connection
         debugLog('Closing existing WebSocket connection');
         socketRef.current.close();
+        socketRef.current = null;
       }
 
       // Set connecting state
@@ -437,6 +568,13 @@ const NewVoiceChat = () => {
       return;
     }
     
+    // Ensure audio element is connected to analyzer for visualization
+    try {
+      ensureAudioElementConnected();
+    } catch (err) {
+      debugLog('Error connecting audio element to analyzer (non-critical):', err);
+    }
+    
     // Clean up any existing source
     if (audio.src) {
       try {
@@ -658,12 +796,13 @@ const NewVoiceChat = () => {
       // Set up play tracking
       const originalPlayHandler = audio.onplay;
       audio.onplay = () => {
-        debugLog(`[Chunk ${chunkId}] Format ${formatToTry.format} playback started`);
+        const chunkId = audio.getAttribute('data-chunk-id') || 'unknown';
+        debugLog(`[Chunk ${chunkId}] Audio playback started`);
         isPlayingRef.current = true;
         setIsPlaying(true);
         
-        // Restore original handler
-        audio.onplay = originalPlayHandler;
+        // Ensure visualization is active
+        startPlaybackVisualization();
       };
       
       // Set a timeout to detect if the audio is stuck loading
@@ -953,61 +1092,6 @@ const NewVoiceChat = () => {
     }, 200); // Add delay before processing next chunk to allow browser to release resources
   };
 
-  // Initialize connection on mount
-  useEffect(() => {
-    // Check for browser support
-    if (!window.WebSocket) {
-      setError('Your browser does not support WebSockets, which are required for this feature.');
-      return;
-    }
-
-    if (!window.MediaRecorder) {
-      setError('Your browser does not support audio recording, which is required for this feature.');
-      return;
-    }
-
-    // Setup WebSocket
-    setupWebSocket();
-
-    // Initialize audio context (defer actual creation until user interaction)
-    initAudioContext();
-
-    // Event listeners for online/offline status
-    const handleOnline = () => {
-      debugLog('Network connection restored');
-      if (!socketRef.current || socketRef.current.readyState !== WebSocket.OPEN) {
-        setupWebSocket();
-      }
-    };
-
-    const handleOffline = () => {
-      debugLog('Network connection lost');
-      setError('Network connection lost. Please check your internet connection.');
-    };
-
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
-
-    // Clean up on unmount
-    return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
-
-      if (socketRef.current) {
-        socketRef.current.close();
-      }
-
-      stopRecording(false);
-      cleanupAudio();
-
-      if (streamRef.current) {
-        const tracks = streamRef.current.getTracks();
-        tracks.forEach(track => track.stop());
-      }
-    };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);  // Intentionally empty dependency array for component mount/unmount only
-
   // Initialize audio context (called on mount and on first user interaction)
   const initAudioContext = async () => {
     try {
@@ -1223,6 +1307,9 @@ const NewVoiceChat = () => {
       // Reset waiting state
       setWaitingForPlayback(false);
       
+      // Ensure audio element is connected for visualization
+      ensureAudioElementConnected();
+      
       // Start playback
       playNextAudio();
     } catch (error) {
@@ -1291,6 +1378,9 @@ const NewVoiceChat = () => {
       debugLog(`[Chunk ${chunkId}] Audio playback started`);
       isPlayingRef.current = true;
       setIsPlaying(true);
+      
+      // Ensure visualization is active
+      startPlaybackVisualization();
     };
     
     audio.onended = () => {
@@ -1415,7 +1505,8 @@ const NewVoiceChat = () => {
       // Create an analyzer node if it doesn't exist
       if (!audioAnalyserRef.current) {
         audioAnalyserRef.current = audioContextRef.current.createAnalyser();
-        audioAnalyserRef.current.fftSize = 256;
+        audioAnalyserRef.current.fftSize = 128;
+        audioAnalyserRef.current.smoothingTimeConstant = 0.5;
       }
       
       // Create a media element source from the audio element
@@ -1426,10 +1517,180 @@ const NewVoiceChat = () => {
       audioAnalyserRef.current.connect(audioContextRef.current.destination);
       
       debugLog('Audio connected to analyzer for visualization');
+      
+      // Start updating the visualization
+      startPlaybackVisualization();
     } catch (error) {
       // This might fail if the audio is already connected
       debugLog('Error connecting audio to analyzer:', error);
     }
+  };
+
+  // Ensure audio element is connected to analyzer
+  const ensureAudioElementConnected = () => {
+    if (!audioElementRef.current || !audioContextRef.current) return;
+    
+    try {
+      // Check if the audio element is already connected
+      if (audioElementRef.current._isConnected) {
+        debugLog('Audio element already connected to analyzer');
+        return;
+      }
+      
+      // Create an analyzer node if it doesn't exist
+      if (!audioAnalyserRef.current) {
+        audioAnalyserRef.current = audioContextRef.current.createAnalyser();
+        audioAnalyserRef.current.fftSize = 128;
+        audioAnalyserRef.current.smoothingTimeConstant = 0.5;
+      }
+      
+      // Connect the audio element to the analyzer
+      try {
+        const source = audioContextRef.current.createMediaElementSource(audioElementRef.current);
+        source.connect(audioAnalyserRef.current);
+        audioAnalyserRef.current.connect(audioContextRef.current.destination);
+        
+        // Mark as connected to avoid reconnecting
+        audioElementRef.current._isConnected = true;
+        
+        debugLog('Audio element connected to analyzer successfully');
+        
+        // Start visualization immediately
+        startPlaybackVisualization();
+      } catch (innerError) {
+        debugLog('Error creating media element source (may be normal if already connected):', innerError);
+        
+        // Try reconnecting with a new audio context as a fallback
+        if (innerError.message && innerError.message.includes('already connected')) {
+          debugLog('Audio element already has source node, attempting alternative connection');
+          
+          // Try alternative approach - create a new audio context
+          try {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (AudioContext) {
+              // Create a temporary context just for analysis
+              const tempContext = new AudioContext();
+              audioAnalyserRef.current = tempContext.createAnalyser();
+              audioAnalyserRef.current.fftSize = 128;
+              audioAnalyserRef.current.smoothingTimeConstant = 0.5;
+              
+              // Use fake data and mark as simulated
+              audioAnalyserRef.current._simulated = true;
+              
+              // Start visualization with simulated data
+              startPlaybackVisualization();
+            }
+          } catch (fallbackError) {
+            debugLog('Fallback analyzer creation failed:', fallbackError);
+          }
+        }
+      }
+    } catch (error) {
+      debugLog('Error ensuring audio element connection:', error);
+      
+      // Try fallback approach with simulation
+      if (isPlayingRef.current) {
+        // Use a simple fallback approach for visualization
+        if (!audioAnalyserRef.current || !audioAnalyserRef.current._simulated) {
+          // Create a simulated analyzer for fallback
+          audioAnalyserRef.current = {
+            _simulated: true,
+            getByteFrequencyData: (array) => {
+              // Fill with simulated data
+              const time = Date.now() / 1000;
+              for (let i = 0; i < array.length; i++) {
+                // Create varying pattern based on frequency and time
+                const value = 128 + 
+                  Math.sin(i * 0.1 + time * 2) * 30 + 
+                  Math.sin(i * 0.2 + time * 3) * 40 + 
+                  Math.sin(i * 0.5 + time) * 20;
+                array[i] = Math.max(0, Math.min(255, value));
+              }
+            },
+            frequencyBinCount: 64
+          };
+        }
+        startPlaybackVisualization();
+      }
+    }
+  };
+
+  // Start updating visualization during playback
+  const startPlaybackVisualization = () => {
+    // Only start if not already playing
+    if (!isPlayingRef.current) return;
+    
+    // Clear any existing interval
+    if (visualizationIntervalRef.current) {
+      clearInterval(visualizationIntervalRef.current);
+      visualizationIntervalRef.current = null;
+    }
+    
+    // Update the audio level for visualization
+    const updateVisualization = () => {
+      if (!isPlayingRef.current) {
+        // Stop the interval if we're no longer playing
+        if (visualizationIntervalRef.current) {
+          clearInterval(visualizationIntervalRef.current);
+          visualizationIntervalRef.current = null;
+          setCurrentAudioLevel(0);
+        }
+        return;
+      }
+      
+      try {
+        // Check if we have analyzer data available
+        if (audioAnalyserRef.current) {
+          // Get frequency data
+          const dataArray = new Uint8Array(audioAnalyserRef.current.frequencyBinCount);
+          audioAnalyserRef.current.getByteFrequencyData(dataArray);
+          
+          // Calculate average level
+          let sum = 0;
+          for (let i = 0; i < dataArray.length; i++) {
+            sum += dataArray[i];
+          }
+          const average = sum / dataArray.length;
+          
+          // Scale to 0-100 for visualization
+          const scaledLevel = Math.min(100, Math.round((average / 255) * 100));
+          
+          // Apply smoothing to avoid jumps
+          const smoothingFactor = 0.3;
+          const currentLevel = currentAudioLevelRef.current;
+          const smoothedLevel = currentLevel * (1 - smoothingFactor) + scaledLevel * smoothingFactor;
+          
+          // Update state and ref
+          setCurrentAudioLevel(smoothedLevel);
+          currentAudioLevelRef.current = smoothedLevel;
+          
+          // If level is very low but we're playing, use a minimum level for visualization
+          if (smoothedLevel < 10 && audioElementRef.current && !audioElementRef.current.paused) {
+            const minLevel = 15 + Math.sin(Date.now() / 200) * 10;
+            setCurrentAudioLevel(minLevel);
+            currentAudioLevelRef.current = minLevel;
+          }
+        } else {
+          // Fallback to simulated values if no analyzer
+          const simulatedLevel = 30 + Math.sin(Date.now() / 200) * 20;
+          setCurrentAudioLevel(simulatedLevel);
+          currentAudioLevelRef.current = simulatedLevel;
+        }
+      } catch (error) {
+        debugLog('Error updating visualization:', error);
+        
+        // If analyzing fails, use a simulated pulsing value
+        const simulatedLevel = 30 + Math.sin(Date.now() / 200) * 20;
+        setCurrentAudioLevel(simulatedLevel);
+        currentAudioLevelRef.current = simulatedLevel;
+      }
+    };
+    
+    // Update visualization more frequently for smoother animation
+    visualizationIntervalRef.current = setInterval(updateVisualization, 30); // Faster updates (30ms)
+    
+    // Initial update
+    updateVisualization();
   };
 
   // Set up audio meter for visualization during recording
@@ -1497,6 +1758,9 @@ const NewVoiceChat = () => {
     setIsProcessing(false);
     setWaitingForPlayback(false);
     setIsPaused(false);
+    
+    // Reset visualization
+    setCurrentAudioLevel(0);
     
     // Reset error counter
     window.audioErrorCount = 0;
@@ -1718,6 +1982,9 @@ const NewVoiceChat = () => {
         });
       }
       
+      // Ensure audio is connected to analyzer for visualization
+      ensureAudioElementConnected();
+      
       // Check if we actually need to play
       if (audio.paused) {
         // Play the current audio with proper error handling
@@ -1729,6 +1996,9 @@ const NewVoiceChat = () => {
               debugLog('Playback resumed successfully');
               setIsPaused(false);
               isPlayingRef.current = true;
+              
+              // Ensure visualization is active
+              startPlaybackVisualization();
             })
             .catch(error => {
               debugLog('Error resuming playback:', error);
@@ -1751,12 +2021,18 @@ const NewVoiceChat = () => {
           debugLog('Play promise undefined, updating state optimistically');
           setIsPaused(false);
           isPlayingRef.current = true;
+          
+          // Ensure visualization is active
+          startPlaybackVisualization();
         }
       } else {
         // Already playing somehow, just update state
         debugLog('Audio was already playing at browser level');
         setIsPaused(false);
         isPlayingRef.current = true;
+        
+        // Ensure visualization is active
+        startPlaybackVisualization();
       }
     } catch (error) {
       debugLog('Error in resumePlayback function:', error);
@@ -1783,13 +2059,13 @@ const NewVoiceChat = () => {
 
   // Render component
   return (
-    <div className="new-voice-chat-container">
-      <Card className="new-voice-chat">
+    <div className="nvc-voice-chat-container">
+      <Card className="nvc-voice-chat">
         <Card.Body>
           {/* Connection status */}
-          <div className="connection-status">
-            <span className={`status-indicator ${isConnected ? 'connected' : isConnecting ? 'connecting' : 'disconnected'}`}></span>
-            <span className="status-text">
+          <div className="nvc-connection-status">
+            <span className={`nvc-status-indicator ${isConnected ? 'connected' : isConnecting ? 'connecting' : 'disconnected'}`}></span>
+            <span className="nvc-status-text">
               {isConnected ? 'Connected' : isConnecting ? 'Connecting...' : 'Disconnected'}
             </span>
           </div>
@@ -1798,7 +2074,7 @@ const NewVoiceChat = () => {
           {error && (
             <Alert 
               variant="danger" 
-              className="error-message" 
+              className="nvc-error-message" 
               dismissible 
               onClose={() => setError(null)}
             >
@@ -1807,9 +2083,9 @@ const NewVoiceChat = () => {
           )}
 
           {/* Main content area */}
-          <div className="main-content-container">
+          <div className="nvc-main-content-container">
             {/* Visualization */}
-            <div className={`visualization-container ${isRecording ? 'recording' : isPlaying ? 'playing' : ''}`}>
+            <div className={`nvc-visualization-container ${isRecording ? 'recording' : isPlaying ? 'playing' : ''}`}>
               <SimpleVoiceVisualizer
                 isRecording={isRecording}
                 isPlaying={isPlaying}
@@ -1819,12 +2095,12 @@ const NewVoiceChat = () => {
             </div>
 
             {/* Controls area */}
-            <div className="controls-area">
+            <div className="nvc-controls-area">
               {/* Show different controls based on state */}
               {!isRecording && !isProcessing && !isPlaying && !waitingForPlayback && (
-                <div className="voice-controls">
+                <div className="nvc-voice-controls">
                   <Button
-                    className="record-button"
+                    className="nvc-record-button"
                     onClick={handleRecordClick}
                     disabled={!isConnected}
                   >
@@ -1834,20 +2110,20 @@ const NewVoiceChat = () => {
               )}
 
               {isRecording && (
-                <div className="recording-controls">
-                  <div className="recording-indicator">
-                    <span className="pulse"></span>
+                <div className="nvc-recording-controls">
+                  <div className="nvc-recording-indicator">
+                    <span className="nvc-pulse"></span>
                     Recording...
                   </div>
-                  <div className="recording-buttons">
+                  <div className="nvc-recording-buttons">
                     <Button
-                      className="cancel-button"
+                      className="nvc-cancel-button"
                       onClick={() => stopRecording(false)}
                     >
                       <X size={20} />
                     </Button>
                     <Button
-                      className="send-button"
+                      className="nvc-send-button"
                       onClick={handleSendClick}
                     >
                       <Send size={20} />
@@ -1857,16 +2133,16 @@ const NewVoiceChat = () => {
               )}
 
               {isProcessing && !isPlaying && (
-                <div className="processing-indicator">
+                <div className="nvc-processing-indicator">
                   <Spinner animation="border" size="sm" />
                   <span>Processing...</span>
                 </div>
               )}
 
               {waitingForPlayback && (
-                <div className="playback-controls">
+                <div className="nvc-playback-controls">
                   <Button
-                    className="play-button"
+                    className="nvc-play-button"
                     onClick={handlePlayResponseClick}
                   >
                     <PlayCircle size={20} />
@@ -1876,16 +2152,16 @@ const NewVoiceChat = () => {
               )}
 
               {isPlaying && !isPaused && (
-                <div className="voice-playback">
-                  <div className="voice-playback__controls">
+                <div className="nvc-voice-playback">
+                  <div className="nvc-voice-playback__controls">
                     <Button
-                      className="voice-playback__button"
+                      className="nvc-voice-playback__button"
                       onClick={pausePlayback}
                     >
                       <Pause size={20} />
                     </Button>
                     <Button
-                      className="voice-playback__button voice-playback__button--stop"
+                      className="nvc-voice-playback__button nvc-voice-playback__button--stop"
                       onClick={stopPlayback}
                     >
                       <Square size={20} />
@@ -1895,16 +2171,16 @@ const NewVoiceChat = () => {
               )}
 
               {isPaused && (
-                <div className="voice-playback">
-                  <div className="voice-playback__controls">
+                <div className="nvc-voice-playback">
+                  <div className="nvc-voice-playback__controls">
                     <Button
-                      className="voice-playback__button"
+                      className="nvc-voice-playback__button"
                       onClick={resumePlayback}
                     >
                       <Play size={20} />
                     </Button>
                     <Button
-                      className="voice-playback__button voice-playback__button--stop"
+                      className="nvc-voice-playback__button nvc-voice-playback__button--stop"
                       onClick={stopPlayback}
                     >
                       <Square size={20} />
@@ -1914,10 +2190,10 @@ const NewVoiceChat = () => {
               )}
 
               {!isConnected && !isConnecting && (
-                <div className="disconnected-controls">
-                  <div className="connection-message">Disconnected from server</div>
+                <div className="nvc-disconnected-controls">
+                  <div className="nvc-connection-message">Disconnected from server</div>
                   <Button 
-                    className="retry-button"
+                    className="nvc-retry-button"
                     onClick={handleRetryConnection}
                   >
                     Retry Connection

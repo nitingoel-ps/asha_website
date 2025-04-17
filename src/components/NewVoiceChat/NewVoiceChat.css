@@ -1,5 +1,5 @@
 /* Container styles */
-.new-voice-chat-container {
+.nvc-voice-chat-container {
   height: 100vh;
   width: 100%;
   position: relative;
@@ -9,7 +9,7 @@
   overflow: hidden;
 }
 
-.new-voice-chat {
+.nvc-voice-chat {
   height: 100vh;
   width: 100%;
   margin: 0;
@@ -26,7 +26,7 @@
   background: transparent;
 }
 
-.new-voice-chat .card-body {
+.nvc-voice-chat .card-body {
   padding: 20px !important;
   padding-top: 80px !important;
   padding-bottom: 80px !important;
@@ -39,7 +39,7 @@
 }
 
 /* Connection status indicator */
-.connection-status {
+.nvc-connection-status {
   display: flex !important;
   align-items: center !important;
   font-size: 0.85rem !important;
@@ -59,7 +59,7 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
 }
 
-.status-indicator {
+.nvc-status-indicator {
   display: inline-block;
   width: 8px;
   height: 8px;
@@ -67,25 +67,25 @@
   margin-right: 6px;
 }
 
-.status-indicator.connected {
+.nvc-status-indicator.connected {
   background-color: #28a745;
 }
 
-.status-indicator.connecting {
+.nvc-status-indicator.connecting {
   background-color: #ffc107;
   animation: blink 1s infinite;
 }
 
-.status-indicator.disconnected {
+.nvc-status-indicator.disconnected {
   background-color: #dc3545;
 }
 
-.status-text {
+.nvc-status-text {
   margin-right: 10px;
 }
 
 /* Main content container */
-.main-content-container {
+.nvc-main-content-container {
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -99,7 +99,7 @@
 }
 
 /* Visualization container */
-.visualization-container {
+.nvc-visualization-container {
   display: flex !important;
   justify-content: center !important;
   align-items: center !important;
@@ -118,16 +118,16 @@
   animation: pulse-idle 2s infinite !important;
 }
 
-.visualization-container.recording {
+.nvc-visualization-container.recording {
   animation: pulse-recording 1.5s infinite !important;
 }
 
-.visualization-container.playing {
+.nvc-visualization-container.playing {
   animation: pulse-playing 1.5s infinite !important;
 }
 
 /* Voice Visualizer canvas */
-.voice-visualizer {
+.nvc-voice-visualizer {
   position: absolute !important;
   top: 0 !important;
   left: 0 !important;
@@ -138,7 +138,7 @@
 }
 
 /* Controls area */
-.controls-area {
+.nvc-controls-area {
   width: 100% !important;
   display: flex !important;
   flex-direction: column !important;
@@ -153,7 +153,7 @@
 }
 
 /* Voice controls */
-.voice-controls {
+.nvc-voice-controls {
   display: flex !important;
   flex-direction: column !important;
   align-items: center !important;
@@ -170,42 +170,48 @@
 }
 
 /* Record button */
-.record-button {
-  width: 64px !important;
-  height: 64px !important;
-  min-width: 64px !important;
-  min-height: 64px !important;
-  max-width: 64px !important;
-  max-height: 64px !important;
+.nvc-record-button {
+  width: 48px !important;
+  height: 48px !important;
+  min-width: 48px !important;
+  min-height: 48px !important;
+  max-width: 48px !important;
+  max-height: 48px !important;
   padding: 0 !important;
   border-radius: 50% !important;
   aspect-ratio: 1 !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  background-color: #019ea1 !important;
-  border-color: #019ea1 !important;
+  background-color: #dc3545 !important;
+  border-color: #dc3545 !important;
   border: none !important;
-  box-shadow: 0 4px 10px rgba(1, 158, 161, 0.3) !important;
+  box-shadow: 0 4px 10px rgba(220, 53, 69, 0.3) !important;
   z-index: 50 !important;
   overflow: hidden !important;
 }
 
-.record-button:hover {
+.nvc-record-button:hover {
   transform: scale(1.05) !important;
-  background-color: #018b8d !important;
-  border-color: #018b8d !important;
-  box-shadow: 0 6px 15px rgba(1, 158, 161, 0.4) !important;
+  background-color: #c82333 !important;
+  border-color: #c82333 !important;
+  box-shadow: 0 6px 15px rgba(220, 53, 69, 0.4) !important;
 }
 
-.record-button svg {
-  width: 32px !important;
-  height: 32px !important;
+.nvc-record-button svg {
+  width: 20px !important;
+  height: 20px !important;
   color: white !important;
+  position: absolute !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  transition: all 0.2s ease !important;
+  opacity: 0.9 !important;
 }
 
 /* Recording controls */
-.recording-controls {
+.nvc-recording-controls {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -214,14 +220,14 @@
   min-width: 200px !important;
 }
 
-.recording-buttons {
+.nvc-recording-buttons {
   display: flex;
   gap: 16px;
   width: 100%;
   justify-content: center;
 }
 
-.recording-indicator {
+.nvc-recording-indicator {
   color: #dc3545;
   display: flex;
   align-items: center;
@@ -231,8 +237,8 @@
 }
 
 /* Send/Cancel buttons */
-.send-button,
-.cancel-button {
+.nvc-send-button,
+.nvc-cancel-button {
   width: 48px !important;
   height: 48px !important;
   min-width: 48px !important;
@@ -251,50 +257,50 @@
   line-height: 1 !important;
 }
 
-.send-button {
+.nvc-send-button {
   background: #28a745 !important;
   color: white !important;
 }
 
-.send-button:hover {
+.nvc-send-button:hover {
   transform: translateY(-2px) !important;
   box-shadow: 0 4px 12px rgba(40, 167, 69, 0.2) !important;
   background: #218838 !important;
 }
 
-.cancel-button {
+.nvc-cancel-button {
   background: #dc3545 !important;
   color: white !important;
 }
 
-.cancel-button:hover {
+.nvc-cancel-button:hover {
   transform: translateY(-2px) !important;
   box-shadow: 0 4px 12px rgba(220, 53, 69, 0.2) !important;
   background: #c82333 !important;
 }
 
-.send-button svg,
-.cancel-button svg {
+.nvc-send-button svg,
+.nvc-cancel-button svg {
   width: 20px !important;
   height: 20px !important;
 }
 
 /* Processing indicator */
-.processing-indicator {
+.nvc-processing-indicator {
   display: flex;
   align-items: center;
   gap: 12px;
   color: #6c757d;
 }
 
-.processing-indicator .spinner-border {
+.nvc-processing-indicator .spinner-border {
   width: 1rem;
   height: 1rem;
   border-width: 0.15em;
 }
 
 /* Playback controls */
-.playback-controls {
+.nvc-playback-controls {
   display: flex;
   gap: 16px;
   align-items: center;
@@ -303,7 +309,7 @@
   min-width: 150px !important;
 }
 
-.play-button {
+.nvc-play-button {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -313,13 +319,13 @@
   border-color: #019ea1 !important;
 }
 
-.play-button:hover {
+.nvc-play-button:hover {
   background-color: #018b8d !important;
   border-color: #018b8d !important;
 }
 
 /* Playing indicator */
-.playing-indicator {
+.nvc-playing-indicator {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -327,19 +333,36 @@
   flex-direction: column;
 }
 
-.playing-text {
+.nvc-playing-text {
   margin-bottom: 10px;
 }
 
-.playback-buttons {
+.nvc-playback-buttons {
   display: flex;
   gap: 12px;
   align-items: center;
   justify-content: center;
 }
 
-/* Control button styles */
-.control-button {
+/* Voice playback controls */
+.nvc-voice-playback {
+  position: relative;
+  width: 100%;
+}
+
+.nvc-voice-playback__controls {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  justify-content: center;
+  width: auto !important;
+  min-width: 100px !important;
+  padding: 16px;
+  background: transparent;
+  z-index: 10;
+}
+
+.nvc-voice-playback__button.btn {
   width: 48px !important;
   height: 48px !important;
   min-width: 48px !important;
@@ -360,19 +383,19 @@
   line-height: 1 !important;
 }
 
-.control-button:hover {
+.nvc-voice-playback__button.btn:hover {
   transform: translateY(-1px) !important;
   box-shadow: 0 4px 12px rgba(25, 118, 210, 0.15) !important;
   background: #BBDEFB !important;
 }
 
-.control-button:active {
+.nvc-voice-playback__button.btn:active {
   transform: translateY(1px) !important;
   box-shadow: 0 1px 4px rgba(25, 118, 210, 0.1) !important;
   background: #90CAF9 !important;
 }
 
-.control-button svg {
+.nvc-voice-playback__button.btn svg {
   width: 20px !important;
   height: 20px !important;
   position: absolute !important;
@@ -383,195 +406,26 @@
   opacity: 0.9 !important;
 }
 
-.control-button:hover svg {
+.nvc-voice-playback__button.btn:hover svg {
   opacity: 1 !important;
 }
 
-/* Resume button */
-.resume-button {
-  background: #BBDEFB !important;
-  color: #073c72 !important;
-}
-
-.resume-button:hover {
-  transform: translateY(-1px) !important;
-  box-shadow: 0 4px 12px rgba(25, 118, 210, 0.15) !important;
-  background: #90CAF9 !important;
-}
-
-/* Pause button */
-.pause-button {
-  background: #BBDEFB !important;
-  color: #073c72 !important;
-}
-
-.pause-button:hover {
-  transform: translateY(-1px) !important;
-  box-shadow: 0 4px 12px rgba(25, 118, 210, 0.15) !important;
-  background: #90CAF9 !important;
-}
-
-/* Stop button */
-.stop-button {
+/* Stop button specific styles */
+.nvc-voice-playback__button--stop.btn {
   background: #f6bac3 !important;
   color: #D32F2F !important;
 }
 
-.stop-button:hover {
+.nvc-voice-playback__button--stop.btn:hover {
   background: #f67683 !important;
 }
 
-.stop-button:active {
+.nvc-voice-playback__button--stop.btn:active {
   background: #EF9A9A !important;
 }
 
-/* Disconnected controls */
-.disconnected-controls {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  width: auto !important;
-  min-width: 200px !important;
-  text-align: center;
-}
-
-.disconnected-controls .connection-message {
-  color: #dc3545;
-  font-weight: 500;
-  margin-bottom: 8px;
-}
-
-.retry-button {
-  font-size: 1em;
-  padding: 10px 20px;
-  border-radius: 50px;
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-}
-
-/* Error message */
-.error-message {
-  width: 100%;
-  max-width: 500px;
-  margin-bottom: 15px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 1rem;
-  padding: 10px 15px;
-  border-radius: 4px;
-  word-break: break-word;
-  max-height: none;
-  overflow-y: visible;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  position: absolute;
-  top: 50px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 50;
-}
-
-/* Messages area */
-.messages-area {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  padding: 0 15px;
-  margin-top: 20px;
-  overflow: hidden;
-  position: relative;
-}
-
-/* Transcription container */
-.transcription-container {
-  width: 90%;
-  max-width: 600px;
-  position: relative;
-  left: 50%;
-  transform: translateX(-50%);
-  background-color: rgba(255, 255, 255, 0.9);
-  border-radius: 8px;
-  padding: 15px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  z-index: 10;
-  max-height: 150px;
-  min-height: 60px;
-  overflow-y: auto;
-  margin-bottom: 20px;
-}
-
-.transcription-text {
-  font-size: 1.1rem;
-  line-height: 1.5;
-  color: #333;
-  white-space: pre-wrap;
-  word-break: break-word;
-}
-
-.transcription-text.current {
-  color: #019ea1;
-  font-style: italic;
-}
-
-.transcription-text.final {
-  color: #333;
-  font-weight: 500;
-}
-
-.transcription-empty {
-  color: #999;
-  font-style: italic;
-  font-size: 0.9rem;
-}
-
-/* AI Response container */
-.ai-response-container {
-  width: 90%;
-  max-width: 600px;
-  position: relative;
-  left: 50%;
-  transform: translateX(-50%);
-  background-color: rgba(240, 249, 255, 0.95);
-  border-radius: 8px;
-  padding: 15px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
-  z-index: 10;
-  max-height: 200px;
-  min-height: 80px;
-  overflow-y: auto;
-  border-left: 4px solid #019ea1;
-}
-
-.ai-response-label {
-  font-size: 0.9rem;
-  margin-bottom: 8px;
-  font-weight: 500;
-  color: #019ea1;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.ai-response-text {
-  font-size: 1.1rem;
-  line-height: 1.5;
-  color: #333;
-  white-space: pre-wrap;
-  word-break: break-word;
-}
-
-.ai-response-empty {
-  color: #8eb8ff;
-  font-style: italic;
-  font-size: 0.9rem;
-}
-
 /* Pulse animations */
-.pulse {
+.nvc-pulse {
   display: inline-block;
   width: 10px;
   height: 10px;
@@ -630,221 +484,62 @@
 
 /* Mobile adjustments */
 @media (max-width: 768px) {
-  .visualization-container {
+  .nvc-visualization-container {
     width: 200px !important;
     height: 200px !important;
     margin: 80px auto 20px !important;
   }
 
-  .error-message {
+  .nvc-error-message {
     max-width: 90%;
     font-size: 0.9rem;
     top: 60px;
   }
 
-  .connection-status {
+  .nvc-connection-status {
     top: 10px !important;
     font-size: 0.8rem !important;
   }
 
-  .transcription-container,
-  .ai-response-container {
-    width: 95%;
-    padding: 12px;
-  }
-
-  .transcription-text,
-  .ai-response-text {
-    font-size: 1rem;
-  }
-
-  .controls-area {
+  .nvc-controls-area {
     min-height: 120px !important;
   }
 
-  .send-button,
-  .cancel-button {
+  .nvc-send-button,
+  .nvc-cancel-button {
     width: 44px !important;
     height: 44px !important;
     min-width: 44px !important;
     min-height: 44px !important;
   }
 
-  .record-button {
-    width: 60px !important;
-    height: 60px !important;
-    min-width: 60px !important;
-    min-height: 60px !important;
-    max-width: 60px !important;
-    max-height: 60px !important;
-  }
-
-  .record-button svg {
-    width: 28px !important;
-    height: 28px !important;
-  }
-
-  .control-button {
-    width: 40px !important;
-    height: 40px !important;
-    min-width: 40px !important;
-    min-height: 40px !important;
-  }
-  
-  .control-button svg {
-    width: 20px !important;
-    height: 20px !important;
-  }
-}
-
-/* Voice playback controls */
-.voice-playback {
-  position: relative;
-  width: 100%;
-}
-
-.voice-playback__controls {
-  display: flex;
-  gap: 16px;
-  align-items: center;
-  justify-content: center;
-  width: auto !important;
-  min-width: 100px !important;
-  padding: 16px;
-  background: transparent;
-  z-index: 10;
-}
-
-.voice-playback__button.btn {
-  width: 48px !important;
-  height: 48px !important;
-  min-width: 48px !important;
-  min-height: 48px !important;
-  padding: 0 !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  border-radius: 9999px !important;
-  border: none !important;
-  background: #bfdbef !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12) !important;
-  transition: all 0.2s ease !important;
-  color: #073c72 !important;
-  position: relative !important;
-  overflow: hidden !important;
-  margin: 0 !important;
-  line-height: 1 !important;
-}
-
-.voice-playback__button.btn:hover {
-  transform: translateY(-1px) !important;
-  box-shadow: 0 4px 12px rgba(25, 118, 210, 0.15) !important;
-  background: #BBDEFB !important;
-}
-
-.voice-playback__button.btn:active {
-  transform: translateY(1px) !important;
-  box-shadow: 0 1px 4px rgba(25, 118, 210, 0.1) !important;
-  background: #90CAF9 !important;
-}
-
-.voice-playback__button.btn svg {
-  width: 20px !important;
-  height: 20px !important;
-  position: absolute !important;
-  top: 50% !important;
-  left: 50% !important;
-  transform: translate(-50%, -50%) !important;
-  transition: all 0.2s ease !important;
-  opacity: 0.9 !important;
-}
-
-.voice-playback__button.btn:hover svg {
-  opacity: 1 !important;
-}
-
-/* Stop button specific styles */
-.voice-playback__button--stop.btn {
-  background: #f6bac3 !important;
-  color: #D32F2F !important;
-}
-
-.voice-playback__button--stop.btn:hover {
-  background: #f67683 !important;
-}
-
-.voice-playback__button--stop.btn:active {
-  background: #EF9A9A !important;
-}
-
-@media (max-width: 768px) {
-  .visualization-container {
-    width: 200px !important;
-    height: 200px !important;
-    margin: 80px auto 20px !important;
-  }
-
-  .error-message {
-    max-width: 90%;
-    font-size: 0.9rem;
-    top: 60px;
-  }
-
-  .connection-status {
-    top: 10px !important;
-    font-size: 0.8rem !important;
-  }
-
-  .transcription-container,
-  .ai-response-container {
-    width: 95%;
-    padding: 12px;
-  }
-
-  .transcription-text,
-  .ai-response-text {
-    font-size: 1rem;
-  }
-
-  .controls-area {
-    min-height: 120px !important;
-  }
-
-  .send-button,
-  .cancel-button {
+  .nvc-record-button {
     width: 44px !important;
     height: 44px !important;
     min-width: 44px !important;
     min-height: 44px !important;
+    max-width: 44px !important;
+    max-height: 44px !important;
   }
 
-  .record-button {
-    width: 60px !important;
-    height: 60px !important;
-    min-width: 60px !important;
-    min-height: 60px !important;
-    max-width: 60px !important;
-    max-height: 60px !important;
+  .nvc-record-button svg {
+    width: 18px !important;
+    height: 18px !important;
   }
 
-  .record-button svg {
-    width: 28px !important;
-    height: 28px !important;
-  }
-
-  .voice-playback__controls {
+  .nvc-voice-playback__controls {
     padding: 12px !important;
     gap: 12px !important;
   }
   
-  .voice-playback__button.btn {
+  .nvc-voice-playback__button.btn {
     width: 44px !important;
     height: 44px !important;
     min-width: 44px !important;
     min-height: 44px !important;
   }
   
-  .voice-playback__button.btn svg {
+  .nvc-voice-playback__button.btn svg {
     width: 18px !important;
     height: 18px !important;
   }
