@@ -2,10 +2,12 @@ import React, { useState, useEffect } from "react";
 import axiosInstance from "../../utils/axiosInstance";
 import { useConnection } from "../../context/ConnectionContext";
 import { Button } from "react-bootstrap";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { MessageSquareMore, X } from "lucide-react";
 import "./AlertsCard.css";
 
 function AlertsCard({ maxItemsPerCategory = 2 }) {
+  const navigate = useNavigate();
   const [medicationInteractions, setMedicationInteractions] = useState([]);
   const [recommendedScreenings, setRecommendedScreenings] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -17,6 +19,8 @@ function AlertsCard({ maxItemsPerCategory = 2 }) {
   const [screeningsError, setScreeningsError] = useState(null);
   // Add state to track expanded items
   const [expandedItems, setExpandedItems] = useState({});
+  // Add state to track dismissed alerts
+  const [dismissedAlerts, setDismissedAlerts] = useState({});
   
   // Get connection status info from context
   const { getEmptyStateMessage, connectionStatus, isLoading: connectionLoading } = useConnection();
@@ -35,6 +39,35 @@ function AlertsCard({ maxItemsPerCategory = 2 }) {
     setExpandedItems(prev => ({
       ...prev,
       [`${category}-${id}`]: !prev[`${category}-${id}`]
+    }));
+  };
+
+  // Function to handle the "Learn More" action
+  const handleLearnMore = (e, alert, category) => {
+    e.stopPropagation(); // Prevent triggering parent card click
+    
+    // Create an initial message with context from the alert
+    const initialMessage = `I want to learn more about this health alert:\n\nCategory: ${
+      category === 'medications' ? 'Medication Interaction' : 
+      category === 'screenings' ? 'Recommended Screening' : 'Prescription Refill'
+    }\nTitle: ${alert.title}\nDetails: ${alert.description}`;
+    
+    // Navigate to AI chat with the message as state
+    navigate('/ai-chat', { 
+      state: { 
+        initialMessage 
+      }
+    });
+  };
+
+  // Function to handle the "Dismiss" action
+  const handleDismiss = (e, alertId, category) => {
+    e.stopPropagation(); // Prevent triggering parent card click
+    
+    // Update dismissed alerts state
+    setDismissedAlerts(prev => ({
+      ...prev,
+      [`${category}-${alertId}`]: true
     }));
   };
 
@@ -157,18 +190,20 @@ function AlertsCard({ maxItemsPerCategory = 2 }) {
     */
   ];
 
-  // Helper function to count severity levels
-  const countSeverityLevels = (items) => {
-    return items.reduce((counts, item) => {
-      counts[item.severity] = (counts[item.severity] || 0) + 1;
-      return counts;
-    }, {});
+  // Helper function to count severity levels of non-dismissed alerts
+  const countSeverityLevels = (items, category) => {
+    return items
+      .filter(item => !dismissedAlerts[`${category}-${item.id}`])
+      .reduce((counts, item) => {
+        counts[item.severity] = (counts[item.severity] || 0) + 1;
+        return counts;
+      }, {});
   };
 
   // Get counts for each category
-  const medicationCounts = countSeverityLevels(medicationInteractions);
-  const screeningCounts = countSeverityLevels(recommendedScreenings);
-  const prescriptionCounts = countSeverityLevels(prescriptionRefills);
+  const medicationCounts = countSeverityLevels(medicationInteractions, 'medications');
+  const screeningCounts = countSeverityLevels(recommendedScreenings, 'screenings');
+  const prescriptionCounts = countSeverityLevels(prescriptionRefills, 'refills');
 
   // Log state when medications section is being rendered
   useEffect(() => {
@@ -310,7 +345,10 @@ function AlertsCard({ maxItemsPerCategory = 2 }) {
               })()
             ) : (
               <ul className="alert-list">
-                {medicationInteractions.slice(0, showAllMedications ? undefined : maxItemsPerCategory).map(alert => (
+                {medicationInteractions
+                  .filter(alert => !dismissedAlerts[`medications-${alert.id}`]) // Filter out dismissed alerts
+                  .slice(0, showAllMedications ? undefined : maxItemsPerCategory)
+                  .map(alert => (
                   <li 
                     key={alert.id} 
                     className={`alert-item ${expandedItems[`medications-${alert.id}`] ? 'expanded' : ''}`}
@@ -324,18 +362,40 @@ function AlertsCard({ maxItemsPerCategory = 2 }) {
                     <div className="alert-content">
                       <div className="alert-title">{alert.title}</div>
                       {expandedItems[`medications-${alert.id}`] && (
-                        <div className="alert-description">{alert.description}</div>
+                        <>
+                          <div className="alert-description">{alert.description}</div>
+                          <div className="alert-actions">
+                            <button 
+                              className="alert-action-button learn-more"
+                              onClick={(e) => handleLearnMore(e, alert, 'medications')}
+                              title="Learn more about this alert"
+                            >
+                              <MessageSquareMore size={18} />
+                              <span>Learn More</span>
+                            </button>
+                            <button 
+                              className="alert-action-button dismiss"
+                              onClick={(e) => handleDismiss(e, alert.id, 'medications')}
+                              title="Dismiss this alert"
+                            >
+                              <X size={18} />
+                              <span>Dismiss</span>
+                            </button>
+                          </div>
+                        </>
                       )}
                     </div>
                   </li>
                 ))}
               </ul>
             )}
-            {!isLoading && !error && medicationInteractions.length > maxItemsPerCategory && (
+            {!isLoading && !error && medicationInteractions.length > 0 && (
               <div className="card-footer">
                 {!showAllMedications && (
                   <div className="more-alerts">
-                    {medicationInteractions.length - maxItemsPerCategory} more
+                    {medicationInteractions.filter(alert => !dismissedAlerts[`medications-${alert.id}`]).length > maxItemsPerCategory 
+                      ? medicationInteractions.filter(alert => !dismissedAlerts[`medications-${alert.id}`]).length - maxItemsPerCategory 
+                      : 0} more
                   </div>
                 )}
                 <button 
@@ -402,7 +462,10 @@ function AlertsCard({ maxItemsPerCategory = 2 }) {
               })()
             ) : (
               <ul className="alert-list">
-                {recommendedScreenings.slice(0, showAllScreenings ? undefined : maxItemsPerCategory).map(alert => (
+                {recommendedScreenings
+                  .filter(alert => !dismissedAlerts[`screenings-${alert.id}`]) // Filter out dismissed alerts
+                  .slice(0, showAllScreenings ? undefined : maxItemsPerCategory)
+                  .map(alert => (
                   <li 
                     key={alert.id} 
                     className={`alert-item ${expandedItems[`screenings-${alert.id}`] ? 'expanded' : ''}`}
@@ -419,18 +482,40 @@ function AlertsCard({ maxItemsPerCategory = 2 }) {
                     <div className="alert-content">
                       <div className="alert-title">{alert.title}</div>
                       {expandedItems[`screenings-${alert.id}`] && (
-                        <div className="alert-description">{alert.description}</div>
+                        <>
+                          <div className="alert-description">{alert.description}</div>
+                          <div className="alert-actions">
+                            <button 
+                              className="alert-action-button learn-more"
+                              onClick={(e) => handleLearnMore(e, alert, 'screenings')}
+                              title="Learn more about this screening"
+                            >
+                              <MessageSquareMore size={18} />
+                              <span>Learn More</span>
+                            </button>
+                            <button 
+                              className="alert-action-button dismiss"
+                              onClick={(e) => handleDismiss(e, alert.id, 'screenings')}
+                              title="Dismiss this screening"
+                            >
+                              <X size={18} />
+                              <span>Dismiss</span>
+                            </button>
+                          </div>
+                        </>
                       )}
                     </div>
                   </li>
                 ))}
               </ul>
             )}
-            {!screeningsLoading && !screeningsError && recommendedScreenings.length > maxItemsPerCategory && (
+            {!screeningsLoading && !screeningsError && recommendedScreenings.length > 0 && (
               <div className="card-footer">
                 {!showAllScreenings && (
                   <div className="more-alerts">
-                    {recommendedScreenings.length - maxItemsPerCategory} more
+                    {recommendedScreenings.filter(alert => !dismissedAlerts[`screenings-${alert.id}`]).length > maxItemsPerCategory 
+                      ? recommendedScreenings.filter(alert => !dismissedAlerts[`screenings-${alert.id}`]).length - maxItemsPerCategory 
+                      : 0} more
                   </div>
                 )}
                 <button 
@@ -470,7 +555,10 @@ function AlertsCard({ maxItemsPerCategory = 2 }) {
             </div>
             <div className="card-body">
               <ul className="alert-list">
-                {prescriptionRefills.slice(0, showAllRefills ? undefined : maxItemsPerCategory).map(alert => (
+                {prescriptionRefills
+                  .filter(alert => !dismissedAlerts[`refills-${alert.id}`]) // Filter out dismissed alerts
+                  .slice(0, showAllRefills ? undefined : maxItemsPerCategory)
+                  .map(alert => (
                   <li 
                     key={alert.id} 
                     className={`alert-item ${expandedItems[`refills-${alert.id}`] ? 'expanded' : ''}`}
@@ -485,17 +573,39 @@ function AlertsCard({ maxItemsPerCategory = 2 }) {
                     <div className="alert-content">
                       <div className="alert-title">{alert.title}</div>
                       {expandedItems[`refills-${alert.id}`] && (
-                        <div className="alert-description">{alert.description}</div>
+                        <>
+                          <div className="alert-description">{alert.description}</div>
+                          <div className="alert-actions">
+                            <button 
+                              className="alert-action-button learn-more"
+                              onClick={(e) => handleLearnMore(e, alert, 'refills')}
+                              title="Learn more about this prescription"
+                            >
+                              <MessageSquareMore size={18} />
+                              <span>Learn More</span>
+                            </button>
+                            <button 
+                              className="alert-action-button dismiss"
+                              onClick={(e) => handleDismiss(e, alert.id, 'refills')}
+                              title="Dismiss this prescription reminder"
+                            >
+                              <X size={18} />
+                              <span>Dismiss</span>
+                            </button>
+                          </div>
+                        </>
                       )}
                     </div>
                   </li>
                 ))}
               </ul>
-              {prescriptionRefills.length > maxItemsPerCategory && (
+              {prescriptionRefills.length > 0 && (
                 <div className="card-footer">
                   {!showAllRefills && (
                     <div className="more-alerts">
-                      {prescriptionRefills.length - maxItemsPerCategory} more
+                      {prescriptionRefills.filter(alert => !dismissedAlerts[`refills-${alert.id}`]).length > maxItemsPerCategory 
+                        ? prescriptionRefills.filter(alert => !dismissedAlerts[`refills-${alert.id}`]).length - maxItemsPerCategory 
+                        : 0} more
                     </div>
                   )}
                   <button 

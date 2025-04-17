@@ -668,9 +668,12 @@ const WebSocketVoice = () => {
       // Create a unique ID for this chunk for tracking
       const chunkId = chunkIdCounterRef.current++;
       
-      // Create blob URL from the audio data
-      const audioBlob = new Blob([arrayBuffer], { type: 'audio/mp3' });
+      // Create blob URL from the audio data - use audio/mp4 for better iOS compatibility
+      const audioBlob = new Blob([arrayBuffer], { type: 'audio/mp4' });
       const audioUrl = URL.createObjectURL(audioBlob);
+      
+      // Check if running on iOS for special handling
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
       
       // Store URL for potential replay from beginning
       allAudioChunksUrlsRef.current.push(audioUrl);
@@ -683,10 +686,11 @@ const WebSocketVoice = () => {
         size: arrayBuffer.byteLength,
         played: false,
         playedAt: null,
-        duration: null
+        duration: null,
+        data: isIOS ? arrayBuffer : null // Store original data for iOS as a backup
       });
       
-      debugLog(`[Chunk ${chunkId}] Created audio blob URL: ${audioUrl}, size: ${audioBlob.size} bytes`);
+      debugLog(`[Chunk ${chunkId}] Created audio blob URL: ${audioUrl}, size: ${audioBlob.size} bytes, isIOS: ${isIOS}`);
       
       // If this is the first chunk, we need to create the Audio element
       if (isFirstChunk) {
@@ -699,14 +703,16 @@ const WebSocketVoice = () => {
         debugLog(`[Chunk ${chunkId}] Adding chunk to queue (${pendingChunksRef.current.length} already in queue)`);
         pendingChunksRef.current.push({
           url: audioUrl,
-          id: chunkId
+          id: chunkId,
+          data: isIOS ? arrayBuffer : null // Include original data for iOS as backup
         });
       } else {
         // Otherwise play it immediately
         debugLog(`[Chunk ${chunkId}] Adding chunk to queue (${pendingChunksRef.current.length} already in queue)`);
         pendingChunksRef.current.push({
           url: audioUrl,
-          id: chunkId
+          id: chunkId,
+          data: isIOS ? arrayBuffer : null // Include original data for iOS as backup
         });
         
         // Start playing the first chunk
@@ -719,6 +725,14 @@ const WebSocketVoice = () => {
             
             // Try playing the audio
             audioBuffersRef.current.audio.src = audioUrl;
+            
+            // For iOS, set these additional attributes that may help playback
+            if (isIOS) {
+              audioBuffersRef.current.audio.setAttribute('playsinline', 'true');
+              audioBuffersRef.current.audio.setAttribute('webkit-playsinline', 'true');
+              audioBuffersRef.current.audio.load(); // Explicitly load for iOS
+            }
+            
             await audioBuffersRef.current.audio.play();
             
             // If play succeeds, update state

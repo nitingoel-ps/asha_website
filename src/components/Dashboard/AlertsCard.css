@@ -247,6 +247,7 @@
   word-break: break-word;
   margin-top: 0.5rem;
   padding-top: 0.5rem;
+  padding-bottom: 0.25rem;
   border-top: 1px dashed var(--border-color);
   animation: fadeIn 0.3s ease-in-out;
 }
@@ -397,4 +398,69 @@
 .card .card-header.alerts-header .category-indicators {
   width: 100% !important;
   margin-top: 0.25rem !important;
+}
+
+/* Alert Actions Styling */
+.alert-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  padding-bottom: 0.25rem;
+  border-top: 1px dashed var(--border-color);
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.alert-action-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: none;
+  border: none;
+  padding: 0.4rem 0.75rem;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: auto;
+  white-space: nowrap;
+}
+
+.alert-action-button svg {
+  flex-shrink: 0;
+}
+
+.alert-action-button.learn-more {
+  color: var(--primary);
+}
+
+.alert-action-button.learn-more:hover {
+  background-color: var(--primary-light);
+}
+
+.alert-action-button.dismiss {
+  color: var(--text-light);
+}
+
+.alert-action-button.dismiss:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+@media (max-width: 576px) {
+  .alert-actions {
+    flex-direction: row;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+  }
+  
+  .alert-action-button {
+    flex: 0 0 auto;
+    padding: 0.35rem 0.5rem;
+    min-width: 0;
+  }
+  
+  .alert-action-button span {
+    font-size: 0.8rem;
+  }
 } 
