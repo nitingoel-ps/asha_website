@@ -21,26 +21,45 @@ export const ConnectionProvider = ({ children }) => {
   useEffect(() => {
     const fetchConnectionStatus = async () => {
       try {
+        console.log("🔌 ConnectionContext: Fetching connection status...");
         setIsLoading(true);
         const response = await axiosInstance.get('/provider-connections/');
-        const connectionsData = response.data?.connections || [];
+        
+        // Response may be directly an array or nested in a connections property
+        let connectionsData = [];
+        if (Array.isArray(response.data)) {
+          connectionsData = response.data;
+          console.log("🔌 ConnectionContext: API returned array directly");
+        } else if (response.data?.connections && Array.isArray(response.data.connections)) {
+          connectionsData = response.data.connections;
+          console.log("🔌 ConnectionContext: API returned connections property");
+        }
+        
         setConnections(connectionsData);
         
+        console.log("🔌 ConnectionContext: Received connections data:", connectionsData);
+        
         // Determine the overall connection status
+        let newStatus;
         if (connectionsData.length === 0) {
-          setConnectionStatus(CONNECTION_STATUS.NO_CONNECTIONS);
-        } else if (connectionsData.some(conn => conn.status === 'SUCCESS')) {
-          setConnectionStatus(CONNECTION_STATUS.SUCCESS);
+          newStatus = CONNECTION_STATUS.NO_CONNECTIONS;
+        } else if (connectionsData.some(conn => conn.last_fetch_status === 'SUCCESS')) {
+          newStatus = CONNECTION_STATUS.SUCCESS;
         } else {
-          setConnectionStatus(CONNECTION_STATUS.PROCESSING);
+          newStatus = CONNECTION_STATUS.PROCESSING;
         }
+        
+        console.log(`🔌 ConnectionContext: Setting connection status to ${newStatus} (old: ${connectionStatus})`);
+        setConnectionStatus(newStatus);
       } catch (err) {
-        console.error("Error fetching connection status:", err);
+        console.error("❌ ConnectionContext: Error fetching connection status:", err);
         setError("Failed to fetch connection status");
         // Default to NO_CONNECTIONS on error
+        console.log("🔌 ConnectionContext: Setting status to NO_CONNECTIONS due to error");
         setConnectionStatus(CONNECTION_STATUS.NO_CONNECTIONS);
       } finally {
         setIsLoading(false);
+        console.log("🔌 ConnectionContext: Finished loading connection status");
       }
     };
 
@@ -52,8 +71,18 @@ export const ConnectionProvider = ({ children }) => {
     return () => clearInterval(intervalId);
   }, []);
 
+  // Log any connection status changes
+  useEffect(() => {
+    if (connectionStatus) {
+      console.log(`🔌 ConnectionContext: Connection status is now ${connectionStatus}`);
+      console.log(`🔌 ConnectionContext: isLoading = ${isLoading}, error = ${error}`);
+    }
+  }, [connectionStatus, isLoading, error]);
+
   // Function to get appropriate messages based on connection status and section
   const getEmptyStateMessage = (section) => {
+    console.log(`🔌 ConnectionContext: Getting empty state message for ${section} with status ${connectionStatus}`);
+    
     switch (connectionStatus) {
       case CONNECTION_STATUS.NO_CONNECTIONS:
         const sectionNoConnections = {
@@ -95,17 +124,23 @@ export const ConnectionProvider = ({ children }) => {
           }
         };
         
-        return sectionNoConnections[section] || {
+        const noConnectionsMessage = sectionNoConnections[section] || {
           message: "Connect to your healthcare providers to see your health information here.",
           action: "Connect Provider"
         };
+        
+        console.log(`🔌 ConnectionContext: Returning NO_CONNECTIONS message for ${section}:`, noConnectionsMessage);
+        return noConnectionsMessage;
       
       case CONNECTION_STATUS.PROCESSING:
-        return {
+        const processingMessage = {
           heading: "Processing Your Health Data",
           message: `We're currently analyzing your health records. Your ${section} will appear here soon.`,
           action: "Check back in a few minutes"
         };
+        
+        console.log(`🔌 ConnectionContext: Returning PROCESSING message for ${section}:`, processingMessage);
+        return processingMessage;
       
       case CONNECTION_STATUS.SUCCESS:
         const sectionMessages = {
@@ -156,18 +191,24 @@ export const ConnectionProvider = ({ children }) => {
           }
         };
         
-        return sectionMessages[section] || {
+        const successMessage = sectionMessages[section] || {
           heading: "No Data Available",
           message: "No information found for this section in your health records.",
           action: null
         };
+        
+        console.log(`🔌 ConnectionContext: Returning SUCCESS message for ${section}:`, successMessage);
+        return successMessage;
       
       default:
-        return {
+        const defaultMessage = {
           heading: "Loading...",
           message: "Please wait while we load your health information.",
           action: null
         };
+        
+        console.log(`🔌 ConnectionContext: Returning DEFAULT message for ${section}:`, defaultMessage);
+        return defaultMessage;
     }
   };
 
