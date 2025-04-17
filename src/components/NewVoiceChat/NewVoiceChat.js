@@ -279,6 +279,13 @@ const NewVoiceChat = () => {
           // If not currently playing, clean up the UI
           if (!isPlayingRef.current && audioQueueRef.current.length === 0) {
             handlePlaybackComplete();
+          } else if (!isPlayingRef.current) {
+            // We have chunks but playback hasn't started yet
+            setWaitingForPlayback(true);
+            setIsProcessing(false);
+          } else {
+            // We're already playing, so the onended handler will call handlePlaybackComplete
+            debugLog('Processing complete but playback in progress, will clean up after playback');
           }
           break;
 
@@ -294,6 +301,10 @@ const NewVoiceChat = () => {
           if (isRecording) {
             stopRecording(false);
           }
+          
+          // Reset UI state
+          setIsProcessing(false);
+          setWaitingForPlayback(false);
           break;
           
         case 'no_speech_detected':
@@ -304,11 +315,19 @@ const NewVoiceChat = () => {
           if (isRecording) {
             stopRecording(false);
           }
+          
+          // Reset UI state
+          setIsProcessing(false);
+          setWaitingForPlayback(false);
           break;
 
         case 'cancelled':
           debugLog('Server acknowledged cancellation');
           setIsProcessing(false);
+          setWaitingForPlayback(false);
+          
+          // Clean up any audio resources
+          cleanupAudio();
           break;
 
         default:
@@ -722,9 +741,9 @@ const NewVoiceChat = () => {
               try {
                 // Calculate a small offset - don't go over duration
                 if (audio.duration && audio.duration > 0.1) {
-                  // Use a small offset to avoid clipping but not lose content
-                  audio.currentTime = 0.02; // 20ms offset
-                  debugLog(`[Chunk ${chunkId}] Applied 20ms offset to avoid clipping`);
+                  // Use a larger offset to avoid clipping but not lose content
+                  audio.currentTime = 0.05; // 50ms offset
+                  debugLog(`[Chunk ${chunkId}] Applied 50ms offset to avoid clipping`);
                 }
               } catch (e) {
                 debugLog(`[Chunk ${chunkId}] Couldn't set currentTime: ${e.message}`);
@@ -732,7 +751,7 @@ const NewVoiceChat = () => {
               
               // Prime the audio system with a quick play/pause
               const primePromise = audio.play().then(() => {
-                // Immediately pause after a tiny playback
+                // Allow slightly longer playback for priming
                 setTimeout(() => {
                   audio.pause();
                   
@@ -742,7 +761,7 @@ const NewVoiceChat = () => {
                   
                   debugLog(`[Chunk ${chunkId}] Audio primed and ready for full playback`);
                   resolve();
-                }, 10);
+                }, 30); // Increased from 10ms to 30ms
               }).catch(error => {
                 debugLog(`[Chunk ${chunkId}] Priming failed, falling back: ${error.message}`);
                 // If priming fails, just proceed anyway
@@ -766,7 +785,7 @@ const NewVoiceChat = () => {
           
           // Wait for priming before normal playback
           prepareForPlayback.then(() => {
-            // Now attempt the normal playback with small delay
+            // Now attempt the normal playback with a longer delay
             setTimeout(() => {
               try {
                 const playPromise = audio.play();
@@ -1474,6 +1493,8 @@ const NewVoiceChat = () => {
     isPlayingRef.current = false;
     processingCompleteRef.current = false;
     setIsPlaying(false);
+    setIsProcessing(false);
+    setWaitingForPlayback(false);
     
     // Reset error counter
     window.audioErrorCount = 0;
@@ -1498,6 +1519,25 @@ const NewVoiceChat = () => {
         debugLog('Error cleaning up audio element:', error);
       }
     }
+    
+    // Clear any remaining chunks in the queue
+    while (audioQueueRef.current.length > 0) {
+      const chunk = audioQueueRef.current.shift();
+      if (chunk && chunk.blobs) {
+        chunk.blobs.forEach(b => {
+          if (b.url) {
+            try {
+              URL.revokeObjectURL(b.url);
+            } catch (e) {
+              // Ignore errors
+            }
+          }
+        });
+      }
+    }
+    
+    // Log the state cleanup
+    debugLog('UI state reset to initial state, ready for next recording');
     
     // Clear the guard flag
     setTimeout(() => {
@@ -1733,32 +1773,6 @@ const NewVoiceChat = () => {
                 </div>
               )}
             </div>
-
-            {/* Transcription and AI response display */}
-            {(transcription || aiResponse) && (
-              <div className="messages-area">
-                {transcription && (
-                  <div className="transcription-container">
-                    <div className={`transcription-text ${isRecording ? 'current' : 'final'}`}>
-                      {transcription || (
-                        <span className="transcription-empty">Waiting for speech...</span>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {aiResponse && (
-                  <div className="ai-response-container">
-                    <div className="ai-response-label">AI Response:</div>
-                    <div className="ai-response-text">
-                      {aiResponse || (
-                        <span className="ai-response-empty">Waiting for response...</span>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
           </div>
         </Card.Body>
       </Card>
