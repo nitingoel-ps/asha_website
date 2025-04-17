@@ -324,6 +324,105 @@
   align-items: center;
   gap: 10px;
   color: #019ea1;
+  flex-direction: column;
+}
+
+.playing-text {
+  margin-bottom: 10px;
+}
+
+.playback-buttons {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Control button styles */
+.control-button {
+  width: 48px !important;
+  height: 48px !important;
+  min-width: 48px !important;
+  min-height: 48px !important;
+  padding: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 9999px !important;
+  border: none !important;
+  background: #bfdbef !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12) !important;
+  transition: all 0.2s ease !important;
+  color: #073c72 !important;
+  position: relative !important;
+  overflow: hidden !important;
+  margin: 0 !important;
+  line-height: 1 !important;
+}
+
+.control-button:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(25, 118, 210, 0.15) !important;
+  background: #BBDEFB !important;
+}
+
+.control-button:active {
+  transform: translateY(1px) !important;
+  box-shadow: 0 1px 4px rgba(25, 118, 210, 0.1) !important;
+  background: #90CAF9 !important;
+}
+
+.control-button svg {
+  width: 20px !important;
+  height: 20px !important;
+  position: absolute !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  transition: all 0.2s ease !important;
+  opacity: 0.9 !important;
+}
+
+.control-button:hover svg {
+  opacity: 1 !important;
+}
+
+/* Resume button */
+.resume-button {
+  background: #BBDEFB !important;
+  color: #073c72 !important;
+}
+
+.resume-button:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(25, 118, 210, 0.15) !important;
+  background: #90CAF9 !important;
+}
+
+/* Pause button */
+.pause-button {
+  background: #BBDEFB !important;
+  color: #073c72 !important;
+}
+
+.pause-button:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(25, 118, 210, 0.15) !important;
+  background: #90CAF9 !important;
+}
+
+/* Stop button */
+.stop-button {
+  background: #f6bac3 !important;
+  color: #D32F2F !important;
+}
+
+.stop-button:hover {
+  background: #f67683 !important;
+}
+
+.stop-button:active {
+  background: #EF9A9A !important;
 }
 
 /* Disconnected controls */
@@ -583,5 +682,170 @@
   .record-button svg {
     width: 28px !important;
     height: 28px !important;
+  }
+
+  .control-button {
+    width: 40px !important;
+    height: 40px !important;
+    min-width: 40px !important;
+    min-height: 40px !important;
+  }
+  
+  .control-button svg {
+    width: 20px !important;
+    height: 20px !important;
+  }
+}
+
+/* Voice playback controls */
+.voice-playback {
+  position: relative;
+  width: 100%;
+}
+
+.voice-playback__controls {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  justify-content: center;
+  width: auto !important;
+  min-width: 100px !important;
+  padding: 16px;
+  background: transparent;
+  z-index: 10;
+}
+
+.voice-playback__button.btn {
+  width: 48px !important;
+  height: 48px !important;
+  min-width: 48px !important;
+  min-height: 48px !important;
+  padding: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 9999px !important;
+  border: none !important;
+  background: #bfdbef !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12) !important;
+  transition: all 0.2s ease !important;
+  color: #073c72 !important;
+  position: relative !important;
+  overflow: hidden !important;
+  margin: 0 !important;
+  line-height: 1 !important;
+}
+
+.voice-playback__button.btn:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(25, 118, 210, 0.15) !important;
+  background: #BBDEFB !important;
+}
+
+.voice-playback__button.btn:active {
+  transform: translateY(1px) !important;
+  box-shadow: 0 1px 4px rgba(25, 118, 210, 0.1) !important;
+  background: #90CAF9 !important;
+}
+
+.voice-playback__button.btn svg {
+  width: 20px !important;
+  height: 20px !important;
+  position: absolute !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  transition: all 0.2s ease !important;
+  opacity: 0.9 !important;
+}
+
+.voice-playback__button.btn:hover svg {
+  opacity: 1 !important;
+}
+
+/* Stop button specific styles */
+.voice-playback__button--stop.btn {
+  background: #f6bac3 !important;
+  color: #D32F2F !important;
+}
+
+.voice-playback__button--stop.btn:hover {
+  background: #f67683 !important;
+}
+
+.voice-playback__button--stop.btn:active {
+  background: #EF9A9A !important;
+}
+
+@media (max-width: 768px) {
+  .visualization-container {
+    width: 200px !important;
+    height: 200px !important;
+    margin: 80px auto 20px !important;
+  }
+
+  .error-message {
+    max-width: 90%;
+    font-size: 0.9rem;
+    top: 60px;
+  }
+
+  .connection-status {
+    top: 10px !important;
+    font-size: 0.8rem !important;
+  }
+
+  .transcription-container,
+  .ai-response-container {
+    width: 95%;
+    padding: 12px;
+  }
+
+  .transcription-text,
+  .ai-response-text {
+    font-size: 1rem;
+  }
+
+  .controls-area {
+    min-height: 120px !important;
+  }
+
+  .send-button,
+  .cancel-button {
+    width: 44px !important;
+    height: 44px !important;
+    min-width: 44px !important;
+    min-height: 44px !important;
+  }
+
+  .record-button {
+    width: 60px !important;
+    height: 60px !important;
+    min-width: 60px !important;
+    min-height: 60px !important;
+    max-width: 60px !important;
+    max-height: 60px !important;
+  }
+
+  .record-button svg {
+    width: 28px !important;
+    height: 28px !important;
+  }
+
+  .voice-playback__controls {
+    padding: 12px !important;
+    gap: 12px !important;
+  }
+  
+  .voice-playback__button.btn {
+    width: 44px !important;
+    height: 44px !important;
+    min-width: 44px !important;
+    min-height: 44px !important;
+  }
+  
+  .voice-playback__button.btn svg {
+    width: 18px !important;
+    height: 18px !important;
   }
 } 

@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Button, Card, Spinner, Alert } from 'react-bootstrap';
-import { Mic, Send, X, PlayCircle } from 'lucide-react';
+import { Mic, Send, X, PlayCircle, PauseCircle, StopCircle, Pause, Square, Play } from 'lucide-react';
 import { useParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import './NewVoiceChat.css';
@@ -65,6 +65,7 @@ const NewVoiceChat = () => {
   // Playback states
   const [isProcessing, setIsProcessing] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
   const [waitingForPlayback, setWaitingForPlayback] = useState(false);
   const [currentAudioLevel, setCurrentAudioLevel] = useState(0);
 
@@ -1495,6 +1496,7 @@ const NewVoiceChat = () => {
     setIsPlaying(false);
     setIsProcessing(false);
     setWaitingForPlayback(false);
+    setIsPaused(false);
     
     // Reset error counter
     window.audioErrorCount = 0;
@@ -1660,6 +1662,125 @@ const NewVoiceChat = () => {
     }
   };
 
+  // Pause playback
+  const pausePlayback = () => {
+    try {
+      if (!audioElementRef.current || !isPlaying || isPaused) {
+        debugLog('Cannot pause: Invalid state or already paused');
+        return;
+      }
+      
+      debugLog('Pausing audio playback');
+      
+      // Make sure we have an audio element
+      const audio = audioElementRef.current;
+      
+      // Check if audio is actually playing
+      if (!audio.paused) {
+        audio.pause();
+        debugLog('Audio paused successfully');
+      } else {
+        debugLog('Audio was already paused at browser level');
+      }
+      
+      // Update state
+      setIsPaused(true);
+      
+      // Keep isPlaying true to maintain the UI state showing we're in playback mode
+      // but update the ref to reflect actual playback status
+      isPlayingRef.current = false;
+    } catch (error) {
+      debugLog('Error pausing playback:', error);
+      // Reset state in case of error
+      setIsPaused(false);
+      isPlayingRef.current = true;
+    }
+  };
+
+  // Resume playback
+  const resumePlayback = () => {
+    try {
+      if (!audioElementRef.current || !isPaused) {
+        debugLog('Cannot resume: Invalid state or not paused');
+        return;
+      }
+      
+      debugLog('Resuming audio playback');
+      
+      // Get the audio element
+      const audio = audioElementRef.current;
+      
+      // Ensure audio context is resumed
+      if (audioContextRef.current && audioContextRef.current.state === 'suspended') {
+        debugLog('Resuming suspended audio context');
+        audioContextRef.current.resume().catch(e => {
+          debugLog('Error resuming audio context:', e);
+        });
+      }
+      
+      // Check if we actually need to play
+      if (audio.paused) {
+        // Play the current audio with proper error handling
+        const playPromise = audio.play();
+        
+        if (playPromise !== undefined) {
+          playPromise
+            .then(() => {
+              debugLog('Playback resumed successfully');
+              setIsPaused(false);
+              isPlayingRef.current = true;
+            })
+            .catch(error => {
+              debugLog('Error resuming playback:', error);
+              
+              if (error.name === 'NotAllowedError') {
+                // We need user interaction
+                debugLog('Playback blocked by browser, need user interaction');
+                setWaitingForPlayback(true);
+                setIsPaused(false);
+                setIsPlaying(false);
+              } else {
+                // Some other error, keep showing paused
+                debugLog('Playback failed, remaining in paused state');
+                setIsPaused(true);
+                isPlayingRef.current = false;
+              }
+            });
+        } else {
+          // Play returned undefined, update state optimistically
+          debugLog('Play promise undefined, updating state optimistically');
+          setIsPaused(false);
+          isPlayingRef.current = true;
+        }
+      } else {
+        // Already playing somehow, just update state
+        debugLog('Audio was already playing at browser level');
+        setIsPaused(false);
+        isPlayingRef.current = true;
+      }
+    } catch (error) {
+      debugLog('Error in resumePlayback function:', error);
+      // Leave in paused state if there's an error
+      setIsPaused(true);
+      isPlayingRef.current = false;
+    }
+  };
+
+  // Stop playback completely
+  const stopPlayback = () => {
+    try {
+      debugLog('Stopping audio playback');
+      
+      // Reset playback states
+      setIsPaused(false);
+      
+      // Perform cleanup
+      handlePlaybackComplete();
+    } catch (error) {
+      debugLog('Error stopping playback:', error);
+    }
+  };
+
   // Render component
   return (
     <div className="new-voice-chat-container">
@@ -1735,7 +1856,7 @@ const NewVoiceChat = () => {
                 </div>
               )}
 
-              {isProcessing && (
+              {isProcessing && !isPlaying && (
                 <div className="processing-indicator">
                   <Spinner animation="border" size="sm" />
                   <span>Processing...</span>
@@ -1754,10 +1875,41 @@ const NewVoiceChat = () => {
                 </div>
               )}
 
-              {isPlaying && (
-                <div className="playing-indicator">
-                  <span className="pulse"></span>
-                  Playing...
+              {isPlaying && !isPaused && (
+                <div className="voice-playback">
+                  <div className="voice-playback__controls">
+                    <Button
+                      className="voice-playback__button"
+                      onClick={pausePlayback}
+                    >
+                      <Pause size={20} />
+                    </Button>
+                    <Button
+                      className="voice-playback__button voice-playback__button--stop"
+                      onClick={stopPlayback}
+                    >
+                      <Square size={20} />
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {isPaused && (
+                <div className="voice-playback">
+                  <div className="voice-playback__controls">
+                    <Button
+                      className="voice-playback__button"
+                      onClick={resumePlayback}
+                    >
+                      <Play size={20} />
+                    </Button>
+                    <Button
+                      className="voice-playback__button voice-playback__button--stop"
+                      onClick={stopPlayback}
+                    >
+                      <Square size={20} />
+                    </Button>
+                  </div>
                 </div>
               )}
 
