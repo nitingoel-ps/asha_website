@@ -66,10 +66,10 @@ function AIChat() {
         // No session ID in URL, and no session selected yet - select most recent session
         console.log('No session ID in URL, selecting most recent session');
         
-        // Sort sessions by creation date (newest first)
+        // Sort sessions by update date (newest first)
         const sortedSessions = [...sessions].sort((a, b) => {
-          const dateA = a.created_at ? new Date(a.created_at) : new Date(0);
-          const dateB = b.created_at ? new Date(b.created_at) : new Date(0);
+          const dateA = a.updated_at ? new Date(a.updated_at) : (a.created_at ? new Date(a.created_at) : new Date(0));
+          const dateB = b.updated_at ? new Date(b.updated_at) : (b.created_at ? new Date(b.created_at) : new Date(0));
           return dateB - dateA;
         });
         

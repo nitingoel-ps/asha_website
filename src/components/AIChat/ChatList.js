@@ -30,16 +30,18 @@ function ChatList({ sessions = [], selectedSession, onSelectSession, onDeleteSes
       oldest: { title: 'Older', sessions: [] }
     };
     
-    // Sort sessions by creation date (newest first)
+    // Sort sessions by update date (newest first)
     const sortedSessions = [...sessions].sort((a, b) => {
-      const dateA = a.created_at ? new Date(a.created_at) : new Date(0);
-      const dateB = b.created_at ? new Date(b.created_at) : new Date(0);
+      const dateA = a.updated_at ? new Date(a.updated_at) : (a.created_at ? new Date(a.created_at) : new Date(0));
+      const dateB = b.updated_at ? new Date(b.updated_at) : (b.created_at ? new Date(b.created_at) : new Date(0));
       return dateB - dateA;
     });
     
     // Distribute sessions into groups
     sortedSessions.forEach(session => {
-      const sessionDate = session.created_at ? new Date(session.created_at) : new Date();
+      const sessionDate = session.updated_at 
+        ? new Date(session.updated_at) 
+        : (session.created_at ? new Date(session.created_at) : new Date());
       
       if (sessionDate >= startOfToday) {
         groups.today.sessions.push(session);
