@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Button, Card, Spinner, Alert } from 'react-bootstrap';
 import { Mic, Send, X, PlayCircle, PauseCircle, StopCircle, Pause, Square, Play } from 'lucide-react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import './NewVoiceChat.css';
 import SimpleVoiceVisualizer from './SimpleVoiceVisualizer';
@@ -53,6 +53,7 @@ const getWebSocketStateString = (readyState) => {
 const NewVoiceChat = () => {
   const { sessionId } = useParams();
   const { logout } = useAuth();
+  const navigate = useNavigate();
 
   // States for recording and connection
   const [isRecording, setIsRecording] = useState(false);
@@ -85,9 +86,11 @@ const NewVoiceChat = () => {
   const visualizationIntervalRef = useRef(null);
   const currentAudioLevelRef = useRef(0);
 
+  // Pending navigation from tools_update messages
+  const pendingNavigationRef = useRef(null);
+
   // Get API base URL from environment
   const apiBaseURL = process.env.REACT_APP_API_BASE_URL || '';
-  debugLog('API Base URL:', apiBaseURL);
 
   // Initialize connection on mount
   useEffect(() => {
@@ -360,15 +363,19 @@ const NewVoiceChat = () => {
 
       switch (data.type) {
         case 'transcript':
-        case 'transcript_update':
-          // Handle both transcript and transcript_update similarly
-          if (data.transcript) {
-            debugLog(`Received transcript: "${data.transcript}"`);
-            setTranscription(data.transcript);
-          } else if (data.full_transcript) {
-            // Some implementations might send full_transcript instead
-            debugLog(`Received full transcript: "${data.full_transcript}"`);
-            setTranscription(data.full_transcript);
+          setTranscription(data.text);
+          break;
+
+        case 'ai_response':
+          setAiResponse(data.text);
+          
+          // Check if AI response contains a navigation reference
+          if (data.text) {
+            const navRef = parseNavigationReference(data.text);
+            if (navRef) {
+              debugLog(`Extracted navigation target from AI response: ${navRef}`);
+              pendingNavigationRef.current = navRef;
+            }
           }
           break;
 
@@ -462,12 +469,50 @@ const NewVoiceChat = () => {
           cleanupAudio();
           break;
 
+        case 'tools_update':
+          // Process tools update message - currently supporting navigation
+          debugLog('Received tools_update message:', data);
+          
+          if (data.action === 'navigate' && data.target) {
+            // Store the navigation target for after playback completes
+            debugLog(`Storing navigation target: ${data.target}`);
+            pendingNavigationRef.current = data.target;
+          } else if (data.text) {
+            // Parse navigation references from text
+            const navRef = parseNavigationReference(data.text);
+            if (navRef) {
+              debugLog(`Extracted navigation target from text: ${navRef}`);
+              pendingNavigationRef.current = navRef;
+            }
+          }
+          break;
+
         default:
           debugLog('Unknown message type:', data.type, data);
       }
     } catch (error) {
       debugLog('Error parsing WebSocket message:', error);
     }
+  };
+
+  // Parse navigation references in the format <<Ref: section/med>> or <<Ref: med/14>>
+  const parseNavigationReference = (text) => {
+    // Match the reference pattern
+    const regexPattern = /<<Ref:\s*([\w\/]+)>>/;
+    const match = text.match(regexPattern);
+    
+    if (match && match[1]) {
+      const path = match[1].trim();
+      
+      // Map the reference to the appropriate route
+      if (path.startsWith('section/')) {
+        return `/patient-dashboard/${path.substring(8)}`;
+      } else {
+        return `/patient-dashboard/${path}`;
+      }
+    }
+    
+    return null;
   };
 
   // Handle audio chunks from server
@@ -1800,6 +1845,17 @@ const NewVoiceChat = () => {
           }
         });
       }
+    }
+    
+    // Check if there's a pending navigation request
+    if (pendingNavigationRef.current) {
+      debugLog(`Executing pending navigation to: ${pendingNavigationRef.current}`);
+      
+      // Small delay to allow UI to update before navigation
+      setTimeout(() => {
+        navigate(pendingNavigationRef.current);
+        pendingNavigationRef.current = null;
+      }, 300);
     }
     
     // Log the state cleanup
