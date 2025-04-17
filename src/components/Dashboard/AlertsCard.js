@@ -20,6 +20,15 @@ function AlertsCard({ maxItemsPerCategory = 2 }) {
   
   // Get connection status info from context
   const { getEmptyStateMessage, connectionStatus, isLoading: connectionLoading } = useConnection();
+  // Track if we've successfully reached the medication API
+  const [medicationsDataFetched, setMedicationsDataFetched] = useState(false);
+  const [screeningsDataFetched, setScreeningsDataFetched] = useState(false);
+
+  // Log connection status whenever it changes
+  useEffect(() => {
+    console.log("🔄 Connection status changed:", connectionStatus);
+    console.log("🔄 Connection loading:", connectionLoading);
+  }, [connectionStatus, connectionLoading]);
 
   // Function to toggle item expansion
   const toggleItemExpansion = (id, category) => {
@@ -39,10 +48,16 @@ function AlertsCard({ maxItemsPerCategory = 2 }) {
   useEffect(() => {
     const fetchMedicationInteractions = async () => {
       try {
+        console.log("⏳ Starting medication interactions fetch");
         setIsLoading(true);
         const response = await axiosInstance.get('/medication-review/');
+        setMedicationsDataFetched(true);
+        console.log("✅ Medication interactions API call successful");
+        
         // Add null check and default to empty array if notifications is undefined
         const notificationsData = response.data?.notifications || [];
+        console.log("📊 Medication notifications data:", notificationsData);
+        
         const transformedData = notificationsData.map((item, index) => ({
           id: index + 1,
           severity: item.severity,
@@ -57,13 +72,15 @@ function AlertsCard({ maxItemsPerCategory = 2 }) {
         );
         
         setMedicationInteractions(sortedData);
+        console.log("📋 Processed medication interactions:", sortedData.length);
       } catch (err) {
         setError('Failed to fetch medication interactions');
-        console.error('Error fetching medication interactions:', err);
+        console.error('❌ Error fetching medication interactions:', err);
         // Set empty array on error
         setMedicationInteractions([]);
       } finally {
         setIsLoading(false);
+        console.log("🏁 Medication interactions fetch complete, loading set to false");
       }
     };
 
@@ -74,10 +91,16 @@ function AlertsCard({ maxItemsPerCategory = 2 }) {
   useEffect(() => {
     const fetchRecommendedScreenings = async () => {
       try {
+        console.log("⏳ Starting screening recommendations fetch");
         setScreeningsLoading(true);
         const response = await axiosInstance.get('/screening-review/');
+        setScreeningsDataFetched(true);
+        console.log("✅ Screening recommendations API call successful");
+        
         // Add null check and default to empty array if screening_recommendations is undefined
         const screeningsData = response.data?.screening_recommendations || [];
+        console.log("📊 Screening recommendations data:", screeningsData);
+        
         const transformedData = screeningsData.map((item, index) => ({
           id: index + 1,
           severity: item.priority,
@@ -92,13 +115,15 @@ function AlertsCard({ maxItemsPerCategory = 2 }) {
         );
 
         setRecommendedScreenings(sortedData);
+        console.log("📋 Processed screening recommendations:", sortedData.length);
       } catch (err) {
         setScreeningsError('Failed to fetch screening recommendations');
-        console.error('Error fetching screening recommendations:', err);
+        console.error('❌ Error fetching screening recommendations:', err);
         // Set empty array on error
         setRecommendedScreenings([]);
       } finally {
         setScreeningsLoading(false);
+        console.log("🏁 Screening recommendations fetch complete, loading set to false");
       }
     };
 
@@ -145,9 +170,43 @@ function AlertsCard({ maxItemsPerCategory = 2 }) {
   const screeningCounts = countSeverityLevels(recommendedScreenings);
   const prescriptionCounts = countSeverityLevels(prescriptionRefills);
 
+  // Log state when medications section is being rendered
+  useEffect(() => {
+    console.log("🔍 Debug medication section state:", {
+      connectionStatus,
+      connectionLoading,
+      isLoading,
+      error,
+      medicationsDataFetched,
+      medicationInteractionsLength: medicationInteractions.length
+    });
+  }, [connectionStatus, connectionLoading, isLoading, error, medicationsDataFetched, medicationInteractions]);
+
+  // Log state when screenings section is being rendered
+  useEffect(() => {
+    console.log("🔍 Debug screenings section state:", {
+      connectionStatus,
+      connectionLoading,
+      screeningsLoading,
+      screeningsError,
+      screeningsDataFetched,
+      recommendedScreeningsLength: recommendedScreenings.length
+    });
+  }, [connectionStatus, connectionLoading, screeningsLoading, screeningsError, screeningsDataFetched, recommendedScreenings]);
+
   // Empty state renderer
-  const renderEmptyState = (section, loadingState, errorState) => {
+  const renderEmptyState = (section, loadingState, errorState, dataFetched = false) => {
+    console.log(`🖼️ Rendering empty state for ${section}:`, {
+      section,
+      loadingState,
+      errorState,
+      dataFetched,
+      connectionStatus,
+      connectionLoading
+    });
+    
     if (loadingState || connectionLoading) {
+      console.log(`⏳ Showing loading state for ${section} (loadingState: ${loadingState}, connectionLoading: ${connectionLoading})`);
       return (
         <div className="loading-state">
           <div className="loading-spinner"></div>
@@ -157,6 +216,7 @@ function AlertsCard({ maxItemsPerCategory = 2 }) {
     }
     
     if (errorState) {
+      console.log(`❌ Showing error state for ${section}: ${errorState}`);
       return (
         <div className="empty-state-container">
           <span className="empty-state-icon">{section === 'medications' ? '💊' : '🔍'}</span>
@@ -166,7 +226,19 @@ function AlertsCard({ maxItemsPerCategory = 2 }) {
       );
     }
     
+    // For SUCCESS connectionStatus, only show "No data" message if we've successfully fetched from API
+    if (connectionStatus === "SUCCESS" && !dataFetched) {
+      console.log(`⏳ Showing loading for ${section} because connectionStatus is SUCCESS but dataFetched is false`);
+      return (
+        <div className="loading-state">
+          <div className="loading-spinner"></div>
+          <p>Loading {section}...</p>
+        </div>
+      );
+    }
+    
     const emptyMessage = getEmptyStateMessage(section);
+    console.log(`📝 Using empty message for ${section}:`, emptyMessage);
     
     return (
       <div className="empty-state-container">
@@ -227,7 +299,15 @@ function AlertsCard({ maxItemsPerCategory = 2 }) {
             ) : error ? (
               <div className="error-state">{error}</div>
             ) : medicationInteractions.length === 0 ? (
-              renderEmptyState('medications', isLoading, error)
+              (() => {
+                console.log("🚩 Medication interactions decision point:", {
+                  connectionStatus,
+                  medicationsDataFetched,
+                  isLoading,
+                  error
+                });
+                return renderEmptyState('medications', isLoading, error, medicationsDataFetched);
+              })()
             ) : (
               <ul className="alert-list">
                 {medicationInteractions.slice(0, showAllMedications ? undefined : maxItemsPerCategory).map(alert => (
@@ -311,7 +391,15 @@ function AlertsCard({ maxItemsPerCategory = 2 }) {
             ) : screeningsError ? (
               <div className="error-state">{screeningsError}</div>
             ) : recommendedScreenings.length === 0 ? (
-              renderEmptyState('screenings', screeningsLoading, screeningsError)
+              (() => {
+                console.log("🚩 Screening recommendations decision point:", {
+                  connectionStatus,
+                  screeningsDataFetched,
+                  screeningsLoading,
+                  screeningsError
+                });
+                return renderEmptyState('screenings', screeningsLoading, screeningsError, screeningsDataFetched);
+              })()
             ) : (
               <ul className="alert-list">
                 {recommendedScreenings.slice(0, showAllScreenings ? undefined : maxItemsPerCategory).map(alert => (
