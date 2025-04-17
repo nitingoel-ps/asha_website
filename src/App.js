@@ -22,6 +22,7 @@ import AddHealthData from './components/Health/AddHealthData';
 import LoadingSpinner from './components/LoadingSpinner';
 import AIVoice from './components/AIVoice/AIVoice';
 import WebSocketVoice from './components/WebSocketVoice/WebSocketVoice';
+import NewVoiceChat from './components/NewVoiceChat/NewVoiceChat';
 import Appointments from './components/Appointments/Appointments';
 import RegistrationFlow from './components/NewRegistration/RegistrationFlow';
 import HealthPriorities from './components/HealthPriorities/HealthPriorities';
@@ -135,6 +136,22 @@ function AppContent() {
           element={
             <PrivateRoute>
               <WebSocketVoice />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/new-voice-chat"
+          element={
+            <PrivateRoute>
+              <NewVoiceChat />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/new-voice-chat/:sessionId"
+          element={
+            <PrivateRoute>
+              <NewVoiceChat />
             </PrivateRoute>
           }
         />
