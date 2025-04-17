@@ -693,75 +693,217 @@ const NewVoiceChat = () => {
         
         // Set up the audio element with the new source
         audio.src = formatToTry.url;
+        
+        // Set to preload everything immediately - critical for mobile
+        audio.preload = 'auto';
+        
+        // Force load - important for mobile browsers
         audio.load();
         
-        // Attempt to play with a small delay to let browser prepare
-        setTimeout(() => {
-          try {
-            const playPromise = audio.play();
-            if (playPromise) {
-              playPromise.catch(error => {
-                debugLog(`[Chunk ${chunkId}] Play error: ${error.name}`);
-                
-                // If autoplay was prevented, we need user interaction
-                if (error.name === 'NotAllowedError') {
-                  debugLog(`[Chunk ${chunkId}] Autoplay prevented, needs user interaction`);
-                  setWaitingForPlayback(true);
-                  isPlayingRef.current = false;
-                  setIsPlaying(false);
-                } else {
-                  // Reset audio element to release resources
-                  try {
-                    audio.pause();
-                    if (audio.src) {
-                      const oldSrc = audio.src;
-                      audio.src = '';
-                      audio.removeAttribute('src');
-                      audio.load();
-                      URL.revokeObjectURL(oldSrc);
-                    }
-                  } catch (e) {
-                    // Ignore errors
-                  }
-                  
-                  // For other errors, try the next format
-                  if (audio.onerror) {
-                    const fakeError = new ErrorEvent('error', { 
-                      message: error.message,
-                      error: error 
-                    });
-                    audio.dispatchEvent(fakeError);
-                  }
+        // For mobile browsers, set volume to 0 and play a tiny bit to "prime" the audio
+        // This helps avoid the initial audio clipping on mobile devices
+        if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+          debugLog(`[Chunk ${chunkId}] Mobile device detected, applying special handling`);
+          
+          // Create a promise to track when we can safely play the full audio
+          const prepareForPlayback = new Promise((resolve) => {
+            // Listen for the loadedmetadata event before proceeding
+            const handleLoadedMetadata = () => {
+              debugLog(`[Chunk ${chunkId}] Metadata loaded, priming audio playback`);
+              audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
+              
+              // Store the original volume
+              const originalVolume = audio.volume;
+              
+              // Set volume to 0 to silently prime the audio
+              audio.volume = 0;
+              
+              // Set a small currentTime offset to avoid initial clipping (10-20ms)
+              try {
+                // Calculate a small offset - don't go over duration
+                if (audio.duration && audio.duration > 0.1) {
+                  // Use a small offset to avoid clipping but not lose content
+                  audio.currentTime = 0.02; // 20ms offset
+                  debugLog(`[Chunk ${chunkId}] Applied 20ms offset to avoid clipping`);
                 }
-              });
-            }
-          } catch (error) {
-            debugLog(`[Chunk ${chunkId}] Error starting playback: ${error}`);
-            
-            // Reset audio element to release resources
-            try {
-              audio.pause();
-              if (audio.src) {
-                const oldSrc = audio.src;
-                audio.src = '';
-                audio.removeAttribute('src');
-                audio.load();
-                URL.revokeObjectURL(oldSrc);
+              } catch (e) {
+                debugLog(`[Chunk ${chunkId}] Couldn't set currentTime: ${e.message}`);
               }
-            } catch (e) {
-              // Ignore errors
-            }
-            
-            // Try next format
-            if (audio.onerror) {
-              const fakeError = new ErrorEvent('error', { 
-                message: error.message,
-                error: error 
+              
+              // Prime the audio system with a quick play/pause
+              const primePromise = audio.play().then(() => {
+                // Immediately pause after a tiny playback
+                setTimeout(() => {
+                  audio.pause();
+                  
+                  // Reset position to beginning and restore volume
+                  audio.currentTime = 0;
+                  audio.volume = originalVolume;
+                  
+                  debugLog(`[Chunk ${chunkId}] Audio primed and ready for full playback`);
+                  resolve();
+                }, 10);
+              }).catch(error => {
+                debugLog(`[Chunk ${chunkId}] Priming failed, falling back: ${error.message}`);
+                // If priming fails, just proceed anyway
+                audio.volume = originalVolume;
+                resolve();
               });
-              audio.dispatchEvent(fakeError);
+            };
+            
+            // Wait for metadata to load before attempting to prime
+            audio.addEventListener('loadedmetadata', handleLoadedMetadata);
+            
+            // If metadata doesn't load within a reasonable time, proceed anyway
+            setTimeout(() => {
+              if (audio.readyState === 0) {
+                debugLog(`[Chunk ${chunkId}] Metadata load timeout, proceeding anyway`);
+                audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
+                resolve();
+              }
+            }, 1000);
+          });
+          
+          // Wait for priming before normal playback
+          prepareForPlayback.then(() => {
+            // Now attempt the normal playback with small delay
+            setTimeout(() => {
+              try {
+                const playPromise = audio.play();
+                if (playPromise) {
+                  playPromise.catch(error => {
+                    debugLog(`[Chunk ${chunkId}] Play error after priming: ${error.name}`);
+                    
+                    // If autoplay was prevented, we need user interaction
+                    if (error.name === 'NotAllowedError') {
+                      debugLog(`[Chunk ${chunkId}] Autoplay prevented, needs user interaction`);
+                      setWaitingForPlayback(true);
+                      isPlayingRef.current = false;
+                      setIsPlaying(false);
+                    } else {
+                      // Reset audio element to release resources
+                      try {
+                        audio.pause();
+                        if (audio.src) {
+                          const oldSrc = audio.src;
+                          audio.src = '';
+                          audio.removeAttribute('src');
+                          audio.load();
+                          URL.revokeObjectURL(oldSrc);
+                        }
+                      } catch (e) {
+                        // Ignore errors
+                      }
+                      
+                      // For other errors, try the next format
+                      if (audio.onerror) {
+                        const fakeError = new ErrorEvent('error', { 
+                          message: error.message,
+                          error: error 
+                        });
+                        audio.dispatchEvent(fakeError);
+                      }
+                    }
+                  });
+                }
+              } catch (error) {
+                debugLog(`[Chunk ${chunkId}] Error starting playback after priming: ${error}`);
+                
+                // Reset audio element to release resources
+                try {
+                  audio.pause();
+                  if (audio.src) {
+                    const oldSrc = audio.src;
+                    audio.src = '';
+                    audio.removeAttribute('src');
+                    audio.load();
+                    URL.revokeObjectURL(oldSrc);
+                  }
+                } catch (e) {
+                  // Ignore errors
+                }
+                
+                // Try next format
+                if (audio.onerror) {
+                  const fakeError = new ErrorEvent('error', { 
+                    message: error.message,
+                    error: error 
+                  });
+                  audio.dispatchEvent(fakeError);
+                }
+              }
+            }, 100);
+          });
+        } else {
+          // Desktop browser - use normal playback
+          // Attempt to play with a small delay to let browser prepare
+          setTimeout(() => {
+            try {
+              const playPromise = audio.play();
+              if (playPromise) {
+                playPromise.catch(error => {
+                  debugLog(`[Chunk ${chunkId}] Play error: ${error.name}`);
+                  
+                  // If autoplay was prevented, we need user interaction
+                  if (error.name === 'NotAllowedError') {
+                    debugLog(`[Chunk ${chunkId}] Autoplay prevented, needs user interaction`);
+                    setWaitingForPlayback(true);
+                    isPlayingRef.current = false;
+                    setIsPlaying(false);
+                  } else {
+                    // Reset audio element to release resources
+                    try {
+                      audio.pause();
+                      if (audio.src) {
+                        const oldSrc = audio.src;
+                        audio.src = '';
+                        audio.removeAttribute('src');
+                        audio.load();
+                        URL.revokeObjectURL(oldSrc);
+                      }
+                    } catch (e) {
+                      // Ignore errors
+                    }
+                    
+                    // For other errors, try the next format
+                    if (audio.onerror) {
+                      const fakeError = new ErrorEvent('error', { 
+                        message: error.message,
+                        error: error 
+                      });
+                      audio.dispatchEvent(fakeError);
+                    }
+                  }
+                });
+              }
+            } catch (error) {
+              debugLog(`[Chunk ${chunkId}] Error starting playback: ${error}`);
+              
+              // Reset audio element to release resources
+              try {
+                audio.pause();
+                if (audio.src) {
+                  const oldSrc = audio.src;
+                  audio.src = '';
+                  audio.removeAttribute('src');
+                  audio.load();
+                  URL.revokeObjectURL(oldSrc);
+                }
+              } catch (e) {
+                // Ignore errors
+              }
+              
+              // Try next format
+              if (audio.onerror) {
+                const fakeError = new ErrorEvent('error', { 
+                  message: error.message,
+                  error: error 
+                });
+                audio.dispatchEvent(fakeError);
+              }
             }
-          }
-        }, 100);
+          }, 100);
+        }
       } catch (error) {
         debugLog(`[Chunk ${chunkId}] Setup error: ${error}`);
         
