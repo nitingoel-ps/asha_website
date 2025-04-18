@@ -208,6 +208,15 @@
   top: 0;
 }
 
+/* Style for citation count indicator */
+.ai-chat-reference small {
+  font-size: 0.8em;
+  color: #777;
+  font-weight: normal;
+  font-style: italic;
+  margin-left: 2px;
+}
+
 /* Internal reference styles */
 .ai-chat-internal-reference {
   color: #198754; /* Green color for internal references */

@@ -72,6 +72,54 @@ export const processReferenceLinks = (content) => {
       `<sup class="ai-chat-reference"><a href="${url}" target="_blank" rel="noopener noreferrer">[[${number}]]</a></sup>`
   );
   
+  // Find sequences of consecutive citation numbers and limit them
+  updatedContent = updatedContent.replace(
+    /(\[\d+\])(\[\d+\])+/g,
+    (match) => {
+      // Extract all numbers from the citation sequence
+      const numbers = match.match(/\[(\d+)\]/g);
+      
+      if (numbers && numbers.length > 2) {
+        // If we have more than 2 consecutive references, limit to the first 2
+        const firstNum = numbers[0];
+        const secondNum = numbers[1];
+        const totalCount = numbers.length;
+        
+        // Format as: [1][2] (and 6 more)
+        return `${firstNum}${secondNum} <sup class="ai-chat-reference"><small>(and ${totalCount - 2} more)</small></sup>`;
+      }
+      
+      // If 2 or fewer, return the original match
+      return match;
+    }
+  );
+  
+  // Also find sequences of consecutive HTML citations and limit them
+  // This needs to run before we convert individual citations to HTML
+  const citationPattern = /(\[\d+\]){3,}/g;
+  if (citationPattern.test(updatedContent)) {
+    // This is a temporary pass to mark sequences for later processing
+    updatedContent = updatedContent.replace(
+      citationPattern,
+      (match) => {
+        // Extract all numbers from the citation sequence
+        const numbers = match.match(/\[(\d+)\]/g);
+        
+        if (numbers && numbers.length > 2) {
+          // If we have more than 2 consecutive references, limit to the first 2
+          const firstNum = numbers[0];
+          const secondNum = numbers[1];
+          const totalCount = numbers.length;
+          
+          // Format with a special marker that won't be affected by later replacements
+          return `${firstNum}${secondNum}__CITATION_LIMIT_MARKER__${totalCount - 2}__`;
+        }
+        
+        return match;
+      }
+    );
+  }
+  
   // Replace standalone reference numbers (e.g., [1], [2]) with clickable links that open in a new tab
   updatedContent = updatedContent.replace(
     /\[(\d+)\](?!:)/g,
@@ -91,6 +139,12 @@ export const processReferenceLinks = (content) => {
         return `<sup class="ai-chat-reference">[[${number}]]</sup>`;
       }
     }
+  );
+  
+  // Now replace our citation limit markers with the appropriate HTML
+  updatedContent = updatedContent.replace(
+    /__CITATION_LIMIT_MARKER__(\d+)__/g,
+    (match, count) => `<sup class="ai-chat-reference"><small>(and ${count} more)</small></sup>`
   );
   
   // Also make any URLs in the reference section clickable and open in a new tab
