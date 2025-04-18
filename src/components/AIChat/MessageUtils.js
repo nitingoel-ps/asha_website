@@ -60,7 +60,7 @@ export const processReferenceLinks = (content) => {
       // Split by commas and create a link for each path
       const pathArray = paths.split(',').map(p => p.trim());
       return pathArray.map(path => 
-        `<sup><a class="ai-chat-reference" href="/patient-dashboard/${path}">[ref]</a></sup>`
+        `<sup><a class="ai-chat-internal-reference" href="/patient-dashboard/${path}">[ref]</a></sup>`
       ).join(' ');
     }
   );

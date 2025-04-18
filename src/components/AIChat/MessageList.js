@@ -186,12 +186,18 @@ const Message = ({ role, content, isStreaming }) => {
   useEffect(() => {
     if (messageRef.current) {
       // Find all citation reference links that start with http
-      const links = messageRef.current.querySelectorAll('.ai-chat-reference a[href^="http"]');
-      links.forEach(link => {
+      const externalLinks = messageRef.current.querySelectorAll('.ai-chat-reference a[href^="http"]');
+      externalLinks.forEach(link => {
         // Set target and rel attributes for each external link
         link.setAttribute('target', '_blank');
         link.setAttribute('rel', 'noopener noreferrer');
         console.log('Updated external link to open in new tab:', link.href);
+      });
+      
+      // Also ensure internal reference links have proper styling
+      const internalLinks = messageRef.current.querySelectorAll('.ai-chat-internal-reference');
+      internalLinks.forEach(link => {
+        console.log('Found internal reference link:', link.href);
       });
     }
   }, [content]); // Re-run when content changes

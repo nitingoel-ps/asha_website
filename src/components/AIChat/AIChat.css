@@ -132,6 +132,11 @@
   line-height: 1.5;
 }
 
+/* Remove underlines from all links in chat messages */
+.ai-chat-message a {
+  text-decoration: none;
+}
+
 .ai-chat-message ol {
   margin: 0.5em 0;
   padding-left: 1.0em;
@@ -182,46 +187,78 @@
   display: inline-block;
 }
 
-/* Reference Styles */
-.ai-chat-reference {
-  color: #0066cc;
-  font-size: 0.9em;
-  font-weight: 500;
-  vertical-align: super;
+/* Ensure sup elements with references are consistently positioned */
+.ai-chat-message sup {
+  font-size: 0.75em;
   line-height: 0;
-  padding: 0 1px;
+  position: relative;
+  vertical-align: baseline;
+  top: -0.5em;
 }
 
-/* Style for clickable reference links */
-.ai-chat-reference a {
-  color: #0066cc;
+/* Reference Styles */
+.ai-chat-reference {
+  color: #f37021; /* Orange for external citations */
+  font-size: 0.9em;
+  font-weight: 500;
+  vertical-align: text-top;
+  line-height: 1;
+  padding: 0 1px;
+  position: relative;
+  top: 0;
+}
+
+/* Internal reference styles */
+.ai-chat-internal-reference {
+  color: #198754; /* Green color for internal references */
   text-decoration: none;
-  border-bottom: 1px dotted #0066cc;
+  font-size: 0.9em;
+  font-weight: 500;
   transition: all 0.2s ease;
+  vertical-align: text-top; /* Change from super to text-top for better positioning */
+  line-height: 1; /* Adjust line height */
+  padding: 0 1px;
+  position: relative;
+  top: 0; /* Reset top position */
+}
+
+.ai-chat-internal-reference:hover {
+  color: #156c43; /* Darker green on hover */
+  opacity: 0.8;
+}
+
+/* Style for internal reference links */
+.ai-chat-reference a:not([target="_blank"]) {
+  color: #198754; /* Green color for internal references */
+  text-decoration: none;
+  border-bottom: none;
+  transition: all 0.2s ease;
+  font-size: 1em; /* Consistent size with regular text */
 }
 
 /* External link style (those that open in new tab) */
 .ai-chat-reference a[target="_blank"] {
-  color: #1a8a42;
-  border-bottom-color: #1a8a42;
+  color: #f37021; /* Orange color for external citations */
+  border-bottom-color: transparent;
+  font-size: 0.75em; /* Same size as internal references */
 }
 
-/* Hover effect for reference links */
-.ai-chat-reference a:hover {
-  color: #004499;
-  border-bottom: 1px solid #004499;
+/* Hover effect for internal reference links */
+.ai-chat-reference a:not([target="_blank"]):hover {
+  color: #156c43; /* Darker green on hover */
+  opacity: 0.8;
 }
 
 /* Hover effect for external reference links */
 .ai-chat-reference a[target="_blank"]:hover {
-  color: #116d32;
-  border-bottom: 1px solid #116d32;
+  color: #d96016; /* Slightly darker orange on hover */
+  opacity: 0.8;
 }
 
 /* Reference tooltips */
 .ai-chat-reference[title] {
   cursor: help;
-  border-bottom: 1px dotted #0066cc;
+  border-bottom: none;
 }
 
 /* Pre-formatted text */
