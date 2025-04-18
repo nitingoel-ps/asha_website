@@ -3,7 +3,7 @@ import axiosInstance from "../../utils/axiosInstance";
 import { useConnection } from "../../context/ConnectionContext";
 import { Button } from "react-bootstrap";
 import { Link, useNavigate } from "react-router-dom";
-import { MessageSquareMore, X } from "lucide-react";
+import { MessageSquareMore, X, Bell, Check } from "lucide-react";
 import "./AlertsCard.css";
 
 function AlertsCard({ maxItemsPerCategory = 2 }) {
@@ -21,6 +21,8 @@ function AlertsCard({ maxItemsPerCategory = 2 }) {
   const [expandedItems, setExpandedItems] = useState({});
   // Add state to track dismissed alerts
   const [dismissedAlerts, setDismissedAlerts] = useState({});
+  // Add state to track added reminders
+  const [remindersAdded, setRemindersAdded] = useState({});
   
   // Get connection status info from context
   const { getEmptyStateMessage, connectionStatus, isLoading: connectionLoading } = useConnection();
@@ -47,10 +49,9 @@ function AlertsCard({ maxItemsPerCategory = 2 }) {
     e.stopPropagation(); // Prevent triggering parent card click
     
     // Create an initial message with context from the alert
-    const initialMessage = `I want to learn more about this health alert:\n\nCategory: ${
-      category === 'medications' ? 'Medication Interaction' : 
-      category === 'screenings' ? 'Recommended Screening' : 'Prescription Refill'
-    }\nTitle: ${alert.title}\nDetails: ${alert.description}`;
+    const initialMessage = category === 'medications' 
+      ? `Perform research about ${alert.title} based on my health data context.`
+      : `I need information about this recommended screening: ${alert.title}`;
     
     // Navigate to AI chat with the message as state
     navigate('/ai-chat', { 
@@ -68,6 +69,17 @@ function AlertsCard({ maxItemsPerCategory = 2 }) {
     setDismissedAlerts(prev => ({
       ...prev,
       [`${category}-${alertId}`]: true
+    }));
+  };
+
+  // Function to handle the "Add Reminder" action
+  const handleAddReminder = (e, alertId) => {
+    e.stopPropagation(); // Prevent triggering parent card click
+    
+    // Update reminders added state
+    setRemindersAdded(prev => ({
+      ...prev,
+      [`screenings-${alertId}`]: true
     }));
   };
 
@@ -501,6 +513,25 @@ function AlertsCard({ maxItemsPerCategory = 2 }) {
                               <X size={18} />
                               <span>Dismiss</span>
                             </button>
+                            {remindersAdded[`screenings-${alert.id}`] ? (
+                              <button 
+                                className="alert-action-button reminder-added"
+                                disabled
+                                title="Reminder has been added"
+                              >
+                                <Check size={18} />
+                                <span>Reminder added</span>
+                              </button>
+                            ) : (
+                              <button 
+                                className="alert-action-button add-reminder"
+                                onClick={(e) => handleAddReminder(e, alert.id)}
+                                title="Add reminder for this screening"
+                              >
+                                <Bell size={18} />
+                                <span>Add Reminder</span>
+                              </button>
+                            )}
                           </div>
                         </>
                       )}
@@ -624,4 +655,4 @@ function AlertsCard({ maxItemsPerCategory = 2 }) {
   );
 }
 
-export default AlertsCard; 
+export default AlertsCard;
