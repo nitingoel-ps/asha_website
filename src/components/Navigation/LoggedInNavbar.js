@@ -136,7 +136,7 @@ function LoggedInNavbar() {
     
     // Other routes
     if (path.includes('add-health-data')) return 'Add Records';
-    if (path.includes('websocket-voice')) return 'Talk to Asha';
+    if (path.includes('new-voice-chat')) return 'Talk to Asha';
     if (path.includes('add-providers')) return 'Provider Connections';
     return 'Asha AI';
   };
@@ -166,7 +166,7 @@ function LoggedInNavbar() {
 
   // Check if we're on the AI Voice page
   const isAIVoicePage = () => {
-    return location.pathname.includes('/websocket-voice') || 
+    return location.pathname.includes('/new-voice-chat') || 
            location.pathname.includes('/ai-voice');
   };
 
@@ -229,9 +229,9 @@ function LoggedInNavbar() {
       // If we're on the AI Chat page with a session ID, pass it to the voice page
       if (isAIChatPage() && pathSegments.length > 1) {
         const chatSessionId = pathSegments[1];
-        navigate(`/websocket-voice?session_id=${chatSessionId}`);
+        navigate(`/new-voice-chat?session_id=${chatSessionId}`);
       } else {
-        navigate('/websocket-voice');
+        navigate('/new-voice-chat');
       }
     }
   };
@@ -335,7 +335,7 @@ function LoggedInNavbar() {
   };
 
   const isVoicePage = () => {
-    return location.pathname.includes('/websocket-voice') || location.pathname.includes('/ai-voice');
+    return location.pathname.includes('/new-voice-chat') || location.pathname.includes('/ai-voice');
   };
 
   // Render dynamic mobile action button based on icon name
@@ -385,7 +385,7 @@ function LoggedInNavbar() {
       </Nav.Link>
       <Nav.Link 
         as={Link} 
-        to="/websocket-voice" 
+        to="/new-voice-chat" 
         className={`nav-item ${isAIVoicePage() ? 'active' : ''}`}
         onClick={closeMenu}
       >
@@ -415,7 +415,7 @@ function LoggedInNavbar() {
                 <Nav.Link as={Link} to="/add-health-data" className="main-nav-item">
                   <FaPlusCircle className="main-nav-icon" /> Add Health Data
                 </Nav.Link>
-                <Nav.Link as={Link} to="/websocket-voice" className="main-nav-item">
+                <Nav.Link as={Link} to="/new-voice-chat" className="main-nav-item">
                   <FaMicrophone className="main-nav-icon" /> Talk to AI
                 </Nav.Link>
               </Nav>

@@ -12,7 +12,7 @@ function WelcomeCard({ user }) {
   const quickActions = [
     { icon: "📋", title: "View Records", link: "/patient-dashboard" },
     { icon: "➕", title: "Add Records", link: "/add-health-data" },
-    { icon: "🎙️", title: "Talk to Asha", link: "/websocket-voice" },
+    { icon: "🎙️", title: "Talk to Asha", link: "/new-voice-chat" },
     { icon: "💬", title: "Chat with Asha", link: "/ai-chat" },
   ];
 
