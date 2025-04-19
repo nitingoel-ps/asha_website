@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
 import { isActivityMessage, extractActivityText, parseContentWithActivities, processReferenceLinks } from './MessageUtils';
+import MessageFeedback from './MessageFeedback';
 // Use dynamic imports with error handling for optional dependencies
 let SyntaxHighlighter, a11yDark, remarkGfm;
 
@@ -176,7 +177,7 @@ const ContentParser = ({ content, isStreaming }) => {
   );
 };
 
-const Message = ({ role, content, isStreaming }) => {
+const Message = ({ role, content, isStreaming, messageId, sessionId, isHelpful }) => {
   console.log(`Rendering message - role: ${role}, streaming: ${isStreaming}, content length: ${content?.length}, content: "${content?.substring(0, 30)}${content?.length > 30 ? '...' : ''}"`);
   
   // Add a ref to access the DOM element
@@ -203,15 +204,28 @@ const Message = ({ role, content, isStreaming }) => {
   }, [content]); // Re-run when content changes
   
   return (
-    <div className={`ai-chat-message ai-chat-${role}-message`} ref={messageRef}>
+    <div 
+      className={`ai-chat-message ai-chat-${role}-message`} 
+      ref={messageRef}
+      id={`ai-message-${messageId || Math.random().toString(36).substr(2, 9)}`}
+    >
       <div className={`ai-chat-message-content ${isStreaming ? 'is-streaming' : ''}`}>
         <ContentParser content={content} isStreaming={isStreaming} />
       </div>
+      
+      {/* Add feedback controls for AI messages that are not streaming */}
+      {role === 'assistant' && !isStreaming && (
+        <MessageFeedback 
+          messageId={messageId} 
+          sessionId={sessionId}
+          initialFeedback={isHelpful}
+        />
+      )}
     </div>
   );
 };
 
-const MessageList = ({ messages }) => {
+const MessageList = ({ messages, sessionId }) => {
   useEffect(() => {
     console.log('MessageList rendered with messages:', messages);
     
@@ -221,7 +235,7 @@ const MessageList = ({ messages }) => {
     
     // Log each message in a clearer format
     messages.forEach((msg, i) => {
-      console.log(`Message ${i}: ${msg.role} - ${msg.content?.substring(0, 30)}${msg.content?.length > 30 ? '...' : ''}`);
+      console.log(`Message ${i}: ${msg.role} - ${msg.content?.substring(0, 30)}${msg.content?.length > 30 ? '...' : ''} - isHelpful: ${msg.is_helpful}`);
     });
   }, [messages]);
 
@@ -233,6 +247,9 @@ const MessageList = ({ messages }) => {
           role={message.role}
           content={message.content}
           isStreaming={message.isStreaming}
+          messageId={message.id || `msg-${index}`}
+          sessionId={sessionId}
+          isHelpful={message.is_helpful}
         />
       ))}
     </div>

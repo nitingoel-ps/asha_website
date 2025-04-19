@@ -194,7 +194,12 @@ function ChatWindow({ session, onSessionCreated, sessions = [], onSelectSession,
       console.log('Existing messages before streaming (from ref):', existingMessages);
       
       // Create assistant message to append
-      const assistantMessage = { role: 'assistant', content: '', isStreaming: true };
+      const assistantMessage = { 
+        role: 'assistant', 
+        content: '', 
+        isStreaming: true,
+        id: `msg-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`
+      };
       
       // Ensure we have the user message in the array
       let messagesToUpdate = [...existingMessages];
@@ -202,7 +207,11 @@ function ChatWindow({ session, onSessionCreated, sessions = [], onSelectSession,
       // If no user message is found, add it first
       if (!messagesToUpdate.some(msg => msg.role === 'user' && msg.content === messageText)) {
         console.log('User message not found, adding it first');
-        messagesToUpdate.push({ role: 'user', content: messageText });
+        messagesToUpdate.push({ 
+          role: 'user', 
+          content: messageText,
+          id: `msg-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`
+        });
       }
       
       // Then add the assistant message
@@ -355,7 +364,9 @@ function ChatWindow({ session, onSessionCreated, sessions = [], onSelectSession,
       const formattedMessages = response.data.session?.messages?.map(msg => ({
         role: msg.role || (msg.is_user ? 'user' : 'assistant'),
         content: msg.content || msg.text || '',
-        isStreaming: false
+        isStreaming: false,
+        id: msg.id || `msg-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
+        is_helpful: msg.is_helpful // Include is_helpful value from the server
       })) || [];
       
       setMessages(formattedMessages);
@@ -495,7 +506,7 @@ function ChatWindow({ session, onSessionCreated, sessions = [], onSelectSession,
             </Button>
           </div>
         ) : (
-          <MessageList messages={messages} />
+          <MessageList messages={messages} sessionId={session?.id} />
         )}
         <div ref={messageEndRef} />
       </div>
