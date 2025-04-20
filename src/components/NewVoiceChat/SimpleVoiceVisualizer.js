@@ -23,9 +23,9 @@ const SimpleVoiceVisualizer = ({
       accent: '#017374'        // Dark teal
     },
     idle: {
-      primary: '#6c757d',      // Gray
-      secondary: '#adb5bd',    // Light gray
-      accent: '#495057'        // Dark gray
+      primary: '#019ea1',      // Teal (same as playing)
+      secondary: '#5ddadc',    // Light teal (same as playing)
+      accent: '#017374'        // Dark teal (same as playing)
     }
   };
 
@@ -270,9 +270,9 @@ const SimpleVoiceVisualizer = ({
     // Get color theme
     const colorSet = colors.idle;
     
-    // Create subtle pulsing animation
+    // Create subtle pulsing animation with slightly more pronounced effect
     const time = Date.now() / 1000;
-    const pulseAmount = Math.sin(time * 0.5) * 0.05;
+    const pulseAmount = Math.sin(time * 0.7) * 0.08; // Slightly faster and larger pulse
     
     // Calculate radius with subtle pulse
     const baseRadius = Math.min(width, height) * 0.35;
@@ -294,7 +294,7 @@ const SimpleVoiceVisualizer = ({
     ctx.fillStyle = gradient;
     ctx.fill();
     
-    // Draw subtle inner circle
+    // Draw inner circle
     const innerRadius = radius * 0.7;
     ctx.beginPath();
     ctx.arc(centerX, centerY, innerRadius, 0, Math.PI * 2);

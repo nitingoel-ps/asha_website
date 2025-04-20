@@ -2210,7 +2210,9 @@ const NewVoiceChat = () => {
                     onClick={handleRecordClick}
                     disabled={!isConnected}
                   >
-                    <Mic size={24} />
+                    <div className="nvc-record-button-inner">
+                      <Mic className="nvc-record-icon" size={20} />
+                    </div>
                   </Button>
                 </div>
               )}
