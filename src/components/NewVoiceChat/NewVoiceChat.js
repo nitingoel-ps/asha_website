@@ -478,12 +478,19 @@ const NewVoiceChat = () => {
             debugLog(`Storing navigation target: ${data.target}`);
             pendingNavigationRef.current = data.target;
           } else if (data.text) {
+            // Log the exact text content for debugging
+            debugLog(`Parsing navigation reference from text: "${data.text}"`);
+            
             // Parse navigation references from text
             const navRef = parseNavigationReference(data.text);
             if (navRef) {
               debugLog(`Extracted navigation target from text: ${navRef}`);
               pendingNavigationRef.current = navRef;
+            } else {
+              debugLog('No navigation reference found in text');
             }
+          } else {
+            debugLog('tools_update message missing both action/target and text fields');
           }
           break;
 
@@ -495,18 +502,46 @@ const NewVoiceChat = () => {
     }
   };
 
-  // Parse navigation references in the format <<Ref: section/med>> or <<Ref: med/14>>
+  // Parse navigation references in the format <<Ref: section/med>> or <<Ref: med/14>> or <<Ref: app/x>>
   const parseNavigationReference = (text) => {
-    // Match the reference pattern
-    const regexPattern = /<<Ref:\s*([\w\/]+)>>/;
+    if (!text) return null;
+    
+    // Use a more robust regex pattern that handles the exact format with potential special characters
+    const regexPattern = /<<Ref:\s*([\w\/-]+(?:-[\w]+)*)>>/;
+    
+    // Try to match the pattern
     const match = text.match(regexPattern);
+    
+    debugLog('In parseNavigationReference with text:', text);
+    debugLog('Matched pattern result:', match);
     
     if (match && match[1]) {
       const path = match[1].trim();
+      debugLog('Extracted path:', path);
       
       // Map the reference to the appropriate route
       if (path.startsWith('section/')) {
         return `/patient-dashboard/${path.substring(8)}`;
+      } else if (path.startsWith('app/')) {
+        // Handle new app reference pattern - direct navigation to the path after "app/"
+        return `/${path.substring(4)}`;
+      } else {
+        return `/patient-dashboard/${path}`;
+      }
+    }
+    
+    // Try an alternative pattern as a fallback
+    const altPattern = /<<Ref:\s*([^>]+)>>/;
+    const altMatch = text.match(altPattern);
+    
+    if (altMatch && altMatch[1]) {
+      debugLog('Using alternative pattern match:', altMatch[1]);
+      const path = altMatch[1].trim();
+      
+      if (path.startsWith('section/')) {
+        return `/patient-dashboard/${path.substring(8)}`;
+      } else if (path.startsWith('app/')) {
+        return `/${path.substring(4)}`;
       } else {
         return `/patient-dashboard/${path}`;
       }
