@@ -1328,7 +1328,7 @@ const NewVoiceChat = () => {
   };
 
   // Stop recording
-  const stopRecording = (sendEndStream = true) => {
+  const stopRecording = (sendEndStream = true, sendCancel = false) => {
     // Stop MediaRecorder if it exists and is recording
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
       try {
@@ -1350,8 +1350,23 @@ const NewVoiceChat = () => {
       streamRef.current = null;
     }
 
+    // Send cancel message if requested
+    if (sendCancel && socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
+      debugLog('Sending cancel message');
+      try {
+        socketRef.current.send(JSON.stringify({
+          type: 'cancel',
+          session_id: sessionId || null,
+          timestamp: new Date().toISOString()
+        }));
+        
+        debugLog('Cancel message sent');
+      } catch (error) {
+        debugLog('Error sending cancel message:', error);
+      }
+    }
     // Send end_stream message if requested
-    if (sendEndStream && socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
+    else if (sendEndStream && socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
       debugLog('Sending end_stream message');
       try {
         socketRef.current.send(JSON.stringify({
@@ -2209,7 +2224,7 @@ const NewVoiceChat = () => {
                   <div className="nvc-recording-buttons">
                     <Button
                       className="nvc-cancel-button"
-                      onClick={() => stopRecording(false)}
+                      onClick={() => stopRecording(false, true)}
                     >
                       <X size={20} />
                     </Button>
