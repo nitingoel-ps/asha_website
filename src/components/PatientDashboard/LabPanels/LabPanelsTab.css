@@ -54,58 +54,181 @@
   font-size: 16px;
 }
 
-.lp-panel-card {
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  border: 1px solid rgba(0,0,0,.125);
-  border-radius: 8px;
-  margin-bottom: 15px;
-  overflow: hidden;
-  width: 100%; /* Full width of container */
+/* Panel List Styles */
+.lp-panel-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
 }
 
-.lp-panel-header-content {
+.lp-panel-wrapper {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  border: 1px solid #edf2f7;
+  overflow: hidden;
+}
+
+.lp-panel-item {
+  display: flex;
+  align-items: center;
+  padding: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  background: white;
+}
+
+.lp-panel-item:hover {
+  background-color: #f7fafc;
+}
+
+.lp-panel-item:after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background-color: transparent;
+  transition: background-color 0.2s ease;
+}
+
+.lp-panel-item:hover:after {
+  background-color: #4299e1;
+}
+
+.lp-panel-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 14px;
+}
+
+.lp-panel-content {
   flex: 1;
+  min-width: 0; /* Ensures text truncation works */
+}
+
+.lp-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.lp-panel-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0;
+  color: #2d3748;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.lp-panel-card .card-header {
-  background-color: #f8f9fa;
+.lp-panel-badge {
+  background-color: #ebf8ff;
+  color: #3182ce;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 4px 8px;
+  border-radius: 20px;
+  white-space: nowrap;
 }
 
-.lp-panel-card .accordion-button {
-  padding: 1rem;
-  background-color: #f8f9fa;
+.lp-panel-indicators {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
-.accordion-button:not(.collapsed) {
-  background-color: #f8f9fa;
-  box-shadow: none;
+.lp-indicator-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
-.accordion-button:focus {
-  box-shadow: none;
-  border-color: rgba(0,0,0,.125);
+.lp-indicator {
+  height: 6px;
+  border-radius: 3px;
 }
 
-.panel-header-content {
-  flex: 1;
+.lp-indicator-normal {
+  background-color: #48bb78;
+}
+
+.lp-indicator-abnormal {
+  background-color: #f6ad55;
+  position: relative;
+  overflow: hidden;
+}
+
+.lp-indicator-abnormal::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 20%;
+  background: rgba(255, 255, 255, 0.3);
+  animation: abnormal-pulse 2s infinite;
+}
+
+@keyframes abnormal-pulse {
+  0% { left: -20%; }
+  100% { left: 100%; }
+}
+
+.lp-indicator-count {
+  font-size: 12px;
+  color: #4a5568;
+}
+
+.lp-no-result {
+  margin-top: 5px;
+}
+
+.lp-no-result-text {
+  font-size: 11px;
+  color: #718096;
+  font-style: italic;
+}
+
+.lp-panel-arrow {
+  margin-left: 10px;
+  display: flex;
+  align-items: center;
+  color: #a0aec0;
+}
+
+.lp-panel-arrow-icon {
+  transition: transform 0.2s ease;
+}
+
+/* Observation List Styles */
+.lp-observation-list {
+  border-top: 1px solid #edf2f7;
 }
 
 .lp-observation-item {
   padding: 15px;
   transition: background-color 0.2s;
+  border-left: none !important;
+  border-right: none !important;
 }
 
 .lp-observation-item:hover {
   background-color: #f8f9fa;
 }
 
-.lp-observation-name {
-  flex: 1;
-  padding-right: 15px;
-  overflow: hidden;
+.lp-observation-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 4px;
 }
 
 .lp-observation-title {
@@ -115,6 +238,43 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lp-abnormal-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #f6ad55;
+  margin-left: 6px;
+  position: relative;
+}
+
+.lp-abnormal-dot::after {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  border-radius: 50%;
+  border: 1px solid #f6ad55;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.7);
+    opacity: 0;
+  }
 }
 
 .lp-observation-subtitle {
@@ -130,11 +290,18 @@
 
 .lp-observation-value {
   text-align: right;
+  white-space: nowrap;
+  min-width: 80px;
 }
 
 .lp-observation-value-number {
   font-weight: 600;
   color: #2c3e50;
+}
+
+.lp-observation-value-number.text-warning {
+  color: #b5782d !important;
+  font-weight: 800;
 }
 
 .lp-observation-value-unit {
@@ -152,54 +319,31 @@
   margin-top: 5px;
 }
 
-.lp-observation-count {
-  font-size: 0.875rem;
-  font-weight: normal;
-}
-
-.accordion-body {
-  padding: 0;
-  max-height: none;
-  overflow: visible;
-}
-
-/* Override default accordion styles */
-.accordion-item {
-  border: none;
-}
-
-.accordion {
-  --bs-accordion-border-width: 0;
-  overflow: visible;
-}
-
-/* Override accordion button styles to remove the arrow */
-.accordion-button::after {
-  display: none;
-}
-
-/* Remove hover background effect from accordion button */
-.accordion-button:hover {
-  background-color: #f8f9fa !important;
-}
-
-/* Ensure expanded content is visible */
-.accordion-collapse {
-  overflow: visible !important;
-}
-
 /* Mobile responsiveness */
 @media (max-width: 767.98px) {
   .lp-panels-container {
-    padding: 10px;
-    width: 95%; /* Use most of available width on mobile */
+    padding: 12px;
+    width: 100%; /* Use full width on mobile */
     min-height: calc(100vh - 100px);
-    padding-bottom: 120px; /* Increase bottom padding on mobile */
-    overflow-y: auto; /* Keep auto here for mobile scrolling */
+    padding-bottom: 100px; /* Increase bottom padding on mobile */
   }
   
   .lp-search-container {
     padding: 5px 0;
+    margin-bottom: 12px !important;
+  }
+  
+  .lp-panel-item {
+    padding: 14px;
+  }
+  
+  .lp-panel-title {
+    font-size: 15px;
+  }
+  
+  .lp-panel-badge {
+    font-size: 11px;
+    padding: 3px 6px;
   }
   
   .lp-observation-item {
@@ -207,41 +351,18 @@
   }
   
   .lp-observation-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    width: 100%;
-    margin-bottom: 4px;
+    flex-direction: row;
+    align-items: center;
   }
   
   .lp-observation-title {
     font-size: 0.95rem;
-    margin: 0;
+    margin-bottom: 0;
   }
   
-  .lp-observation-subtitle {
-    font-size: 0.8rem;
-    margin: 4px 0;
-  }
-
   .lp-observation-value {
     text-align: right;
-    white-space: nowrap;
-  }
-  
-  .lp-observation-date {
-    display: block;
-    text-align: left;
-  }
-  
-  /* Reset flex direction for mobile */
-  .lp-observation-item .d-flex {
-    flex-direction: column;
-  }
-  
-  /* Ensure the header row stays horizontal */
-  .lp-observation-item .d-flex > div:first-child {
-    width: 100%;
+    margin-top: 0;
   }
 }
 
@@ -267,9 +388,4 @@
     max-width: 1000px;
     padding-bottom: 100px; /* Consistent bottom padding */
   }
-}
-
-/* Add bottom margin to the last accordion item */
-.lp-panel-card:last-child {
-  margin-bottom: 60px;
 }

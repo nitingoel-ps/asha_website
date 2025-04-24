@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { Card, ListGroup, Badge, Accordion, Form, InputGroup } from 'react-bootstrap';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { Form, InputGroup, Accordion, ListGroup, Badge } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
-import { FlaskConical, Search } from 'lucide-react';
+import { FlaskConical, Search, Heart, Activity, Zap, Droplets, Coffee, Salad, X, AlertTriangle, Sun, Bookmark } from 'lucide-react';
 import EmptyStateMessage from '../../Common/EmptyStateMessage';
 import { ConnectionProvider } from '../../../context/ConnectionContext';
 import '../../Common/EmptyStateMessage.css';
@@ -11,25 +11,152 @@ function LabPanelsTab({ standardPanels }) {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredPanels, setFilteredPanels] = useState([]);
-  const [activeKeys, setActiveKeys] = useState([]);
+  const [containerWidth, setContainerWidth] = useState(0);
+  const contentRef = useRef(null);
+  const [expandedPanels, setExpandedPanels] = useState({});
+
+  // Map panel names to icons
+  const getPanelIcon = (panelName) => {
+    const panelNameLower = panelName.toLowerCase();
+    
+    if (panelNameLower.includes('metabolic') || panelNameLower.includes('chemistry')) {
+      return <FlaskConical size={24} color="#667EEA" />;
+    } else if (panelNameLower.includes('blood') || panelNameLower.includes('hematology') || panelNameLower.includes('cbc')) {
+      return <Droplets size={24} color="#F56565" />;
+    } else if (panelNameLower.includes('heart') || panelNameLower.includes('cardiac') || panelNameLower.includes('cardio')) {
+      return <Heart size={24} color="#F56565" />;
+    } else if (panelNameLower.includes('electrolyte')) {
+      return <Zap size={24} color="#ECC94B" />;
+    } else if (panelNameLower.includes('urine') || panelNameLower.includes('urinalysis')) {
+      return <Droplets size={24} color="#4299E1" />;
+    } else if (panelNameLower.includes('thyroid')) {
+      return <Sun size={24} color="#9F7AEA" />;
+    } else if (panelNameLower.includes('vitamin') || panelNameLower.includes('nutrient')) {
+      return <Salad size={24} color="#48BB78" />;
+    } else if (panelNameLower.includes('liver') || panelNameLower.includes('hepatic')) {
+      return <Bookmark size={24} color="#ED8936" />;
+    } else if (panelNameLower.includes('kidney') || panelNameLower.includes('renal')) {
+      return <Droplets size={24} color="#3182CE" />;
+    } else if (panelNameLower.includes('glucose') || panelNameLower.includes('sugar') || panelNameLower.includes('diabetes')) {
+      return <Activity size={24} color="#DD6B20" />;
+    } else if (panelNameLower.includes('hormone') || panelNameLower.includes('endocrin')) {
+      return <Activity size={24} color="#D53F8C" />;
+    } else if (panelNameLower.includes('lipid') || panelNameLower.includes('cholesterol')) {
+      return <Activity size={24} color="#805AD5" />;
+    } else {
+      return <FlaskConical size={24} color="#667EEA" />;
+    }
+  };
+
+  // Define getLatestObservation before it's used in calculateTestCounts
+  const getLatestObservation = (values) => {
+    if (!values || values.length === 0) return null;
+    return values.sort((a, b) => new Date(b.date) - new Date(a.date))[0];
+  };
+
+  // Calculate normal and abnormal test counts for each panel
+  const calculateTestCounts = (panel) => {
+    let normalCount = 0;
+    let abnormalCount = 0;
+    let noResultCount = 0;
+
+    panel.observations.forEach(observation => {
+      const latestObs = getLatestObservation(observation.values);
+      if (latestObs) {
+        if (latestObs.is_normal === false) {
+          abnormalCount++;
+        } else if (latestObs.is_normal === true) {
+          normalCount++;
+        } else {
+          // For cases where is_normal is undefined/null but we have a value
+          normalCount++;
+        }
+      } else {
+        // No result available
+        noResultCount++;
+      }
+    });
+
+    return { 
+      normalCount, 
+      abnormalCount, 
+      noResultCount,
+      totalCount: panel.observations.length 
+    };
+  };
+
+  // Memoized calculation of maximum counts across all panels for consistent scaling
+  const maxCounts = useMemo(() => {
+    if (!filteredPanels || filteredPanels.length === 0) return { maxNormal: 0, maxAbnormal: 0, maxTotal: 0 };
+
+    let maxNormal = 0;
+    let maxAbnormal = 0;
+    let maxTotal = 0;
+
+    filteredPanels.forEach(panel => {
+      const { normalCount, abnormalCount } = calculateTestCounts(panel);
+      const total = normalCount + abnormalCount;
+
+      if (normalCount > maxNormal) maxNormal = normalCount;
+      if (abnormalCount > maxAbnormal) maxAbnormal = abnormalCount;
+      if (total > maxTotal) maxTotal = total;
+    });
+
+    return { maxNormal, maxAbnormal, maxTotal };
+  }, [filteredPanels]);
+
+  // Function to calculate bar widths based on container width and counts
+  const calculateBarWidth = (count) => {
+    if (!count || count === 0) return 0;
+    
+    // Calculate available width for bars (approximately 40% of container width)
+    const availableWidth = Math.max(100, containerWidth * 0.4);
+    
+    // Get the maximum total count across all panels
+    const { maxTotal } = maxCounts;
+    
+    // Calculate a consistent scaling factor (pixels per test)
+    const pixelsPerTest = availableWidth / maxTotal;
+    
+    // Calculate the width by multiplying count by pixels-per-test
+    const width = count * pixelsPerTest;
+    
+    // Apply a minimum width (12px) to ensure very small counts are still visible
+    return Math.max(12, width);
+  };
+
+  // Use effect to measure the available width
+  useEffect(() => {
+    if (contentRef.current) {
+      const updateWidth = () => {
+        const newWidth = contentRef.current.getBoundingClientRect().width;
+        setContainerWidth(newWidth);
+      };
+      
+      // Initial measurement
+      updateWidth();
+      
+      // Update on resize
+      window.addEventListener('resize', updateWidth);
+      return () => window.removeEventListener('resize', updateWidth);
+    }
+  }, []);
 
   useEffect(() => {
     if (!standardPanels) return;
     
     if (!searchTerm.trim()) {
       setFilteredPanels(standardPanels);
-      setActiveKeys([]);
       return;
     }
 
     const term = searchTerm.toLowerCase().trim();
-    const newActiveKeys = [];
     
     // Filter panels that match the search term or have matching observations
     const panels = standardPanels.map(panel => {
       const isPanelMatch = 
         panel.name.toLowerCase().includes(term) || 
-        panel.long_name.toLowerCase().includes(term);
+        panel.long_name?.toLowerCase().includes(term);
       
       // Filter observations within each panel
       const matchingObservations = panel.observations.filter(obs => 
@@ -39,9 +166,6 @@ function LabPanelsTab({ standardPanels }) {
       
       // Return the panel with only matching observations if there are any matches
       if (isPanelMatch || matchingObservations.length > 0) {
-        // Add this panel to active keys to ensure it's expanded
-        newActiveKeys.push(panel.name);
-        
         return isPanelMatch 
           ? panel 
           : { ...panel, observations: matchingObservations };
@@ -51,17 +175,20 @@ function LabPanelsTab({ standardPanels }) {
     }).filter(Boolean);
     
     setFilteredPanels(panels);
-    setActiveKeys(newActiveKeys);
+    
+    // Auto-expand panels with matches when searching
+    if (term) {
+      const newExpandedState = {};
+      panels.forEach(panel => {
+        newExpandedState[panel.name] = true;
+      });
+      setExpandedPanels(newExpandedState);
+    }
   }, [searchTerm, standardPanels]);
 
   const formatDate = (dateString) => {
     const options = { year: 'numeric', month: 'short', day: 'numeric' };
     return new Date(dateString).toLocaleDateString(undefined, options);
-  };
-
-  const getLatestObservation = (values) => {
-    if (!values || values.length === 0) return null;
-    return values.sort((a, b) => new Date(b.date) - new Date(a.date))[0];
   };
 
   const getReferenceRange = (observation, latestValue) => {
@@ -82,6 +209,13 @@ function LabPanelsTab({ standardPanels }) {
     }
     
     return 'No reference range available';
+  };
+
+  const togglePanel = (panelName) => {
+    setExpandedPanels(prev => ({
+      ...prev,
+      [panelName]: !prev[panelName]
+    }));
   };
 
   const handleObservationClick = (observationId) => {
@@ -123,7 +257,7 @@ function LabPanelsTab({ standardPanels }) {
               className="lp-search-clear" 
               onClick={clearSearch}
             >
-              ✕
+              <X size={16} />
             </InputGroup.Text>
           )}
         </InputGroup>
@@ -132,78 +266,136 @@ function LabPanelsTab({ standardPanels }) {
       {filteredPanels.length === 0 ? (
         <div className="lp-no-results">No matching lab panels or tests found</div>
       ) : (
-        <Accordion activeKey={searchTerm ? activeKeys : undefined}>
-          {filteredPanels.map((panel, index) => (
-            <Accordion.Item 
-              key={panel.name} 
-              eventKey={panel.name} 
-              className="lp-panel-card mb-4"
-            >
-              <Accordion.Header>
-                <div className="d-flex align-items-center w-100">
-                  <FlaskConical size={24} className="me-2" color="#667EEA" />
-                  <div className="lp-panel-header-content">
-                    <h5 className="mb-0">{panel.name}</h5>
+        <div ref={contentRef} className="lp-panel-list">
+          {filteredPanels.map((panel) => {
+            const { normalCount, abnormalCount, noResultCount, totalCount } = calculateTestCounts(panel);
+            const isPanelExpanded = expandedPanels[panel.name];
+            
+            return (
+              <div key={panel.name} className="lp-panel-wrapper">
+                <div 
+                  className="lp-panel-item"
+                  onClick={() => togglePanel(panel.name)}
+                >
+                  <div className="lp-panel-icon">
+                    {getPanelIcon(panel.name)}
                   </div>
-                  <Badge bg="primary" className="ms-auto lp-observation-count">
-                    {panel.observations.length} tests
-                  </Badge>
-                </div>
-              </Accordion.Header>
-              <Accordion.Body className="p-0">
-                <ListGroup variant="flush">
-                  {panel.observations.map((observation) => {
-                    const latestObs = getLatestObservation(observation.values);
-                    const referenceRange = getReferenceRange(observation, latestObs);
+                  
+                  <div className="lp-panel-content">
+                    <div className="lp-panel-header">
+                      <h5 className="lp-panel-title">{panel.name}</h5>
+                      <span className="lp-panel-badge">
+                        {panel.observations.length} {panel.observations.length === 1 ? 'test' : 'tests'}
+                      </span>
+                    </div>
                     
-                    return (
-                      <ListGroup.Item 
-                        key={observation.name}
-                        action
-                        onClick={() => handleObservationClick(observation.id)}
-                        className="lp-observation-item"
-                      >
-                        <div className="d-flex flex-column">
-                          <div className="lp-observation-header">
-                            <div className="lp-observation-title">
-                              {observation.name}
-                              {latestObs?.is_normal === false && (
-                                <Badge bg="warning">Out of range</Badge>
-                              )}
-                            </div>
-                            {latestObs && (
-                              <div className="lp-observation-value">
-                                <span className="lp-observation-value-number">
-                                  {latestObs.observation_value}
-                                </span>
-                                <span className="lp-observation-value-unit">
-                                  {' '}{observation.uom}
-                                </span>
-                              </div>
-                            )}
-                          </div>
-                          <div className="lp-observation-subtitle">
-                            {observation.long_name}
-                          </div>
-                          {latestObs && (
-                            <div className="lp-observation-date">
-                              {formatDate(latestObs.date)}
-                            </div>
-                          )}
-                          <div className="lp-reference-range">
-                            <small className="text-muted">
-                              Reference Range: {referenceRange}
-                            </small>
-                          </div>
+                    <div className="lp-panel-indicators">
+                      {normalCount > 0 && (
+                        <div className="lp-indicator-group">
+                          <div 
+                            className="lp-indicator lp-indicator-normal"
+                            style={{ 
+                              width: `${calculateBarWidth(normalCount)}px` 
+                            }}
+                          ></div>
+                          <span className="lp-indicator-count">{normalCount}</span>
                         </div>
-                      </ListGroup.Item>
-                    );
-                  })}
-                </ListGroup>
-              </Accordion.Body>
-            </Accordion.Item>
-          ))}
-        </Accordion>
+                      )}
+                      
+                      {abnormalCount > 0 && (
+                        <div className="lp-indicator-group">
+                          <div 
+                            className="lp-indicator lp-indicator-abnormal"
+                            style={{ 
+                              width: `${calculateBarWidth(abnormalCount)}px` 
+                            }}
+                          ></div>
+                          <span className="lp-indicator-count">{abnormalCount}</span>
+                        </div>
+                      )}
+                      
+                      {noResultCount > 0 && (
+                        <div className="lp-indicator-group lp-no-result">
+                          <span className="lp-indicator-count lp-no-result-text">
+                            {noResultCount} {noResultCount === 1 ? 'test' : 'tests'} without results
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div className="lp-panel-arrow">
+                    <svg 
+                      width="8" 
+                      height="12" 
+                      viewBox="0 0 8 12" 
+                      fill="none" 
+                      xmlns="http://www.w3.org/2000/svg"
+                      style={{ transform: isPanelExpanded ? 'rotate(90deg)' : 'rotate(0deg)' }}
+                      className="lp-panel-arrow-icon"
+                    >
+                      <path d="M1.5 1L6.5 6L1.5 11" stroke="#A0AEC0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </div>
+                </div>
+                
+                {isPanelExpanded && (
+                  <div className="lp-observation-list">
+                    <ListGroup variant="flush">
+                      {panel.observations.map((observation) => {
+                        const latestObs = getLatestObservation(observation.values);
+                        const referenceRange = getReferenceRange(observation, latestObs);
+                        
+                        return (
+                          <ListGroup.Item 
+                            key={observation.name}
+                            action
+                            onClick={() => handleObservationClick(observation.id)}
+                            className="lp-observation-item"
+                          >
+                            <div className="d-flex flex-column">
+                              <div className="lp-observation-header">
+                                <div className="lp-observation-title">
+                                  {observation.name}
+                                  {latestObs?.is_normal === false && (
+                                    <span className="lp-abnormal-dot" title="Out of range"></span>
+                                  )}
+                                </div>
+                                {latestObs && (
+                                  <div className="lp-observation-value">
+                                    <span className={`lp-observation-value-number ${latestObs?.is_normal === false ? 'text-warning' : ''}`}>
+                                      {latestObs.observation_value}
+                                    </span>
+                                    <span className="lp-observation-value-unit">
+                                      {' '}{observation.uom}
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+                              <div className="lp-observation-subtitle">
+                                {observation.long_name}
+                              </div>
+                              {latestObs && (
+                                <div className="lp-observation-date">
+                                  {formatDate(latestObs.date)}
+                                </div>
+                              )}
+                              <div className="lp-reference-range">
+                                <small className="text-muted">
+                                  Reference Range: {referenceRange}
+                                </small>
+                              </div>
+                            </div>
+                          </ListGroup.Item>
+                        );
+                      })}
+                    </ListGroup>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
       )}
     </div>
   );
