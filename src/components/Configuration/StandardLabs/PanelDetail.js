@@ -30,8 +30,7 @@ function PanelDetail() {
 
   const handleAddObservation = async (observationId) => {
     try {
-      await axiosInstance.post('/admin/panel-observations/add/', {
-        panel_id: panelId,
+      await axiosInstance.post(`/admin/panels/${panelId}/observations/`, {
         observation_id: observationId
       });
       fetchPanelDetail();
@@ -44,10 +43,7 @@ function PanelDetail() {
   const handleRemoveObservation = async (observationId) => {
     if (window.confirm('Are you sure you want to remove this observation from the panel?')) {
       try {
-        await axiosInstance.post('/admin/panel-observations/remove/', {
-          panel_id: panelId,
-          observation_id: observationId
-        });
+        await axiosInstance.delete(`/admin/panels/${panelId}/observations/${observationId}/`);
         fetchPanelDetail();
       } catch (err) {
         setError(err.message || 'Failed to remove observation from panel');
