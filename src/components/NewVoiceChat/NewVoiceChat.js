@@ -674,7 +674,6 @@ const NewVoiceChat = () => {
     }
     
     // Give browser a moment to release resources from previous audio playback
-    // This is critical to prevent the alternating chunk issue
     setTimeout(() => {
       // Get the next audio from the queue
       if (audioQueueRef.current.length === 0) {
@@ -685,7 +684,6 @@ const NewVoiceChat = () => {
       }
       
       // Get the next chunk but don't remove it from the queue yet
-      // We'll only remove it once we've successfully played it
       const nextChunk = audioQueueRef.current[0];
       if (!nextChunk || !nextChunk.blobs || nextChunk.blobs.length === 0) {
         debugLog('Invalid audio chunk in queue, removing and trying next', nextChunk);
