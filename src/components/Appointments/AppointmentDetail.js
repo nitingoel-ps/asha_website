@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { Container, Row, Col, Card, Button, Spinner, Badge, Alert, Form } from "react-bootstrap";
+import { Container, Row, Col, Card, Button, Spinner, Badge, Alert, Form, Modal } from "react-bootstrap";
 import { useParams, useNavigate } from "react-router-dom";
-import { fetchAppointmentById, updateAppointment, updateAppointmentStatus } from "../../utils/appointmentsService";
+import { fetchAppointmentById, updateAppointment, updateAppointmentStatus, deleteAppointment } from "../../utils/appointmentsService";
 import "./AppointmentDetail.css";
 
 function AppointmentDetail() {
@@ -14,6 +14,8 @@ function AppointmentDetail() {
   const [saving, setSaving] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const navigate = useNavigate();
 
   // Set up mobile title and edit action button
@@ -63,7 +65,7 @@ function AppointmentDetail() {
         // Format the start_time for datetime-local input
         const formattedData = {
           ...data,
-          start_time: data.start_time ? new Date(data.start_time).toISOString().slice(0, 16) : ""
+          start_time: data.start_time ? formatDateTimeForInput(data.start_time) : ""
         };
         setEditData(formattedData);
       } catch (err) {
@@ -77,6 +79,22 @@ function AppointmentDetail() {
     getAppointmentDetails();
   }, [appointmentId]);
 
+  // Helper function to format datetime for input while preserving local time
+  const formatDateTimeForInput = (dateString) => {
+    // Create a Date object from the UTC time
+    const date = new Date(dateString);
+    
+    // Get the local time components
+    const year = date.getFullYear();
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, '0');
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    
+    // Return in the format required by datetime-local input
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  };
+
   const handleEdit = async (e) => {
     e.preventDefault();
     try {
@@ -87,10 +105,23 @@ function AppointmentDetail() {
       
       // If start_time was changed, ensure it's in ISO format for the API
       if (dataToSubmit.start_time) {
-        // The datetime-local input gives us a local datetime string
-        // Make sure it's converted to a proper ISO string for the API
-        const dateObj = new Date(dataToSubmit.start_time);
-        dataToSubmit.start_time = dateObj.toISOString();
+        // Parse the local datetime string into its components
+        const [datePart, timePart] = dataToSubmit.start_time.split('T');
+        const [year, month, day] = datePart.split('-').map(Number);
+        const [hours, minutes] = timePart.split(':').map(Number);
+        
+        // Create a Date object in local time
+        const startTime = new Date(year, month - 1, day, hours, minutes);
+        
+        // Get the timezone offset in minutes and convert to hours
+        const timezoneOffset = -startTime.getTimezoneOffset() / 60;
+        const timezoneSign = timezoneOffset >= 0 ? '+' : '-';
+        const timezoneHours = Math.abs(timezoneOffset).toString().padStart(2, '0');
+        
+        // Format the datetime with timezone offset (ISO 8601)
+        const formattedDate = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+        const formattedTime = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:00`;
+        dataToSubmit.start_time = `${formattedDate}T${formattedTime}${timezoneSign}${timezoneHours}:00`;
       }
       
       const response = await updateAppointment(appointmentId, dataToSubmit);
@@ -101,7 +132,7 @@ function AppointmentDetail() {
         const formattedData = {
           ...response.appointment,
           start_time: response.appointment.start_time ? 
-            new Date(response.appointment.start_time).toISOString().slice(0, 16) : ""
+            formatDateTimeForInput(response.appointment.start_time) : ""
         };
         setEditData(formattedData);
         
@@ -135,11 +166,25 @@ function AppointmentDetail() {
     const formattedData = {
       ...appointment,
       start_time: appointment.start_time ? 
-        new Date(appointment.start_time).toISOString().slice(0, 16) : ""
+        formatDateTimeForInput(appointment.start_time) : ""
     };
     setEditData(formattedData);
     setIsEditing(false);
     setError(null);
+  };
+
+  const handleDelete = async () => {
+    try {
+      setDeleting(true);
+      await deleteAppointment(appointmentId);
+      setShowDeleteModal(false);
+      navigate('/appointments');
+    } catch (err) {
+      console.error("Error deleting appointment:", err);
+      setError("Failed to delete appointment. Please try again.");
+    } finally {
+      setDeleting(false);
+    }
   };
 
   // Format date from ISO string to readable format
@@ -281,13 +326,20 @@ function AppointmentDetail() {
           
           {!isEditing ? (
             !isMobile && (
-              <Button 
-                variant="outline-primary"
-                className="ms-auto"
-                onClick={() => setIsEditing(true)}
-              >
-                Edit Appointment
-              </Button>
+              <div className="ms-auto d-flex gap-2">
+                <Button 
+                  variant="outline-primary"
+                  onClick={() => setIsEditing(true)}
+                >
+                  Edit Appointment
+                </Button>
+                <Button 
+                  variant="outline-danger"
+                  onClick={() => setShowDeleteModal(true)}
+                >
+                  Delete Appointment
+                </Button>
+              </div>
             )
           ) : (
             <div className={`${isMobile ? 'edit-buttons-mobile' : 'ms-auto'}`}>
@@ -350,7 +402,7 @@ function AppointmentDetail() {
                       <Form.Control
                         type="datetime-local"
                         name="start_time"
-                        value={editData.start_time ? new Date(editData.start_time).toISOString().slice(0, 16) : ""}
+                        value={editData.start_time || ""}
                         onChange={handleInputChange}
                         required
                       />
@@ -415,6 +467,19 @@ function AppointmentDetail() {
                   </div>
                 </Card.Body>
               </Card>
+
+              {/* Add delete button for mobile after Discussion Topics card */}
+              {isMobile && !isEditing && (
+                <div className="mb-4">
+                  <Button 
+                    variant="outline-danger" 
+                    className="w-100"
+                    onClick={() => setShowDeleteModal(true)}
+                  >
+                    Delete Appointment
+                  </Button>
+                </div>
+              )}
             </Col>
 
             <Col md={4}>
@@ -485,6 +550,39 @@ function AppointmentDetail() {
       ) : (
         <Alert variant="warning">Appointment not found.</Alert>
       )}
+
+      {/* Delete Confirmation Modal */}
+      <Modal show={showDeleteModal} onHide={() => setShowDeleteModal(false)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Delete Appointment</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          Are you sure you want to delete this appointment? This action cannot be undone.
+        </Modal.Body>
+        <Modal.Footer>
+          <Button 
+            variant="secondary" 
+            onClick={() => setShowDeleteModal(false)}
+            disabled={deleting}
+          >
+            Cancel
+          </Button>
+          <Button 
+            variant="danger" 
+            onClick={handleDelete}
+            disabled={deleting}
+          >
+            {deleting ? (
+              <>
+                <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" />
+                <span className="ms-2">Deleting...</span>
+              </>
+            ) : (
+              'Delete Appointment'
+            )}
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </Container>
   );
 }

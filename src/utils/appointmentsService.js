@@ -62,6 +62,7 @@ export const updateAppointmentStatus = async (appointmentId, status) => {
 export const createAppointment = async (appointmentData) => {
   try {
     const response = await axiosInstance.post('/appointments/', appointmentData);
+    // Return the entire response data which includes both message and appointment
     return response.data;
   } catch (error) {
     console.error('Error creating appointment:', error);
@@ -81,6 +82,21 @@ export const updateAppointment = async (appointmentId, appointmentData) => {
     return response.data;
   } catch (error) {
     console.error(`Error updating appointment ${appointmentId}:`, error);
+    throw error;
+  }
+};
+
+/**
+ * Deletes an appointment
+ * @param {number} appointmentId - The ID of the appointment to delete
+ * @returns {Promise} Promise that resolves when the appointment is deleted
+ */
+export const deleteAppointment = async (appointmentId) => {
+  try {
+    const response = await axiosInstance.delete(`/appointments/${appointmentId}/`);
+    return response.data;
+  } catch (error) {
+    console.error(`Error deleting appointment ${appointmentId}:`, error);
     throw error;
   }
 }; 

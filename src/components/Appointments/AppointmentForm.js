@@ -55,21 +55,51 @@ function AppointmentForm() {
       setLoading(true);
       setError(null);
       
-      // Calculate end_time based on start_time and duration
-      const startTime = new Date(formData.start_time);
+      // Get the local datetime string from the input
+      const localDateTime = formData.start_time;
+      
+      // Parse the local datetime string into its components
+      const [datePart, timePart] = localDateTime.split('T');
+      const [year, month, day] = datePart.split('-').map(Number);
+      const [hours, minutes] = timePart.split(':').map(Number);
+      
+      // Create a Date object in local time
+      const startTime = new Date(year, month - 1, day, hours, minutes);
+      
+      // Get the timezone offset in minutes and convert to hours
+      const timezoneOffset = -startTime.getTimezoneOffset() / 60;
+      const timezoneSign = timezoneOffset >= 0 ? '+' : '-';
+      const timezoneHours = Math.abs(timezoneOffset).toString().padStart(2, '0');
+      
+      // Format the datetime with timezone offset (ISO 8601)
+      // Use the local time components directly instead of converting to UTC
+      const formattedDate = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+      const formattedTime = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:00`;
+      const startTimeWithTimezone = `${formattedDate}T${formattedTime}${timezoneSign}${timezoneHours}:00`;
+      
+      // Calculate end time with the same timezone
       const endTime = new Date(startTime.getTime() + formData.duration_minutes * 60000);
+      const endHours = endTime.getHours();
+      const endMinutes = endTime.getMinutes();
+      const endTimeWithTimezone = `${formattedDate}T${endHours.toString().padStart(2, '0')}:${endMinutes.toString().padStart(2, '0')}:00${timezoneSign}${timezoneHours}:00`;
       
       // Prepare data for API
       const appointmentData = {
         ...formData,
         status: "booked",
-        end_time: endTime.toISOString(),
+        start_time: startTimeWithTimezone,
+        end_time: endTimeWithTimezone,
+        timezone_offset: timezoneOffset // Include the timezone offset for reference
       };
       
       const response = await createAppointment(appointmentData);
       
       // Navigate to the appointment detail page
-      navigate(`/appointments/${response.id}`);
+      if (response.appointment && response.appointment.id) {
+        navigate(`/appointments/${response.appointment.id}`);
+      } else {
+        throw new Error("Invalid response format from server");
+      }
     } catch (err) {
       console.error("Error creating appointment:", err);
       setError("Failed to record appointment. Please try again.");
