@@ -3,8 +3,26 @@ import { Card, Form, Button, Alert, Row, Col, Spinner } from 'react-bootstrap';
 import { ArrowLeft, Save, MapPin } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import axiosInstance from '../../../utils/axiosInstance';
-import { format } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 import './Symptoms.css';
+
+// Helper function to format date with timezone offset
+const formatDateWithTimezone = (date) => {
+  const d = new Date(date);
+  const offset = d.getTimezoneOffset();
+  const hours = Math.abs(Math.floor(offset / 60));
+  const minutes = Math.abs(offset % 60);
+  const sign = offset <= 0 ? '+' : '-';
+  const tzOffset = `${sign}${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+  return format(d, "yyyy-MM-dd'T'HH:mm") + tzOffset;
+};
+
+// Helper function to convert UTC date to local date
+const convertUTCToLocal = (utcDate) => {
+  if (!utcDate) return '';
+  const date = parseISO(utcDate);
+  return format(date, "yyyy-MM-dd'T'HH:mm");
+};
 
 const CreateSymptomLog = () => {
   const navigate = useNavigate();
@@ -18,7 +36,7 @@ const CreateSymptomLog = () => {
   const [formData, setFormData] = useState({
     symptom_id: symptomId,
     severity: '',
-    onset_time: format(new Date(), "yyyy-MM-dd'T'HH:mm"),
+    onset_time: formatDateWithTimezone(new Date()),
     end_time: '',
     triggers: '',
     notes: ''
@@ -105,11 +123,14 @@ const CreateSymptomLog = () => {
         ...formData,
         symptom_id: parseInt(symptomId),
         severity: parseInt(formData.severity),
-        end_time: formData.end_time || null
+        // Format both onset_time and end_time with timezone offset
+        onset_time: formatDateWithTimezone(formData.onset_time),
+        end_time: formData.end_time ? formatDateWithTimezone(formData.end_time) : null,
+        triggers: formData.triggers,
+        notes: formData.notes
       };
       
       console.log('Creating symptom log with payload:', payload);
-      // Updated to use the RESTful endpoint
       const response = await axiosInstance.post('/symptom-logs/', payload);
       console.log('Create log response:', response.data);
       

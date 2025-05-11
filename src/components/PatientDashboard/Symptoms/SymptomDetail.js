@@ -34,6 +34,24 @@ ChartJS.register(
   Legend
 );
 
+// Helper function to format date with timezone offset
+const formatDateWithTimezone = (date) => {
+  const d = new Date(date);
+  const offset = d.getTimezoneOffset();
+  const hours = Math.abs(Math.floor(offset / 60));
+  const minutes = Math.abs(offset % 60);
+  const sign = offset <= 0 ? '+' : '-';
+  const tzOffset = `${sign}${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+  return format(d, "yyyy-MM-dd'T'HH:mm") + tzOffset;
+};
+
+// Helper function to convert UTC date to local date
+const convertUTCToLocal = (utcDate) => {
+  if (!utcDate) return '';
+  const date = parseISO(utcDate);
+  return format(date, "yyyy-MM-dd'T'HH:mm");
+};
+
 const SymptomDetail = () => {
   const { symptomId } = useParams();
   const navigate = useNavigate();
@@ -129,8 +147,8 @@ const SymptomDetail = () => {
     setSelectedLog(log);
     setFormValues({
       severity: log.severity,
-      onset_time: format(new Date(log.onset_time), "yyyy-MM-dd'T'HH:mm"),
-      end_time: log.end_time ? format(new Date(log.end_time), "yyyy-MM-dd'T'HH:mm") : '',
+      onset_time: convertUTCToLocal(log.onset_time),
+      end_time: log.end_time ? convertUTCToLocal(log.end_time) : '',
       triggers: log.triggers || '',
       notes: log.notes || ''
     });
@@ -165,15 +183,16 @@ const SymptomDetail = () => {
   const handleSubmitEdit = async (e) => {
     e.preventDefault();
     try {
-      // Updated to use symptom_id instead of symptom
-      await axiosInstance.put(`/symptom-logs/${selectedLog.id}/`, {
+      const payload = {
         symptom_id: parseInt(symptomId),
         severity: parseInt(formValues.severity),
-        onset_time: formValues.onset_time,
-        end_time: formValues.end_time || null,
+        onset_time: formatDateWithTimezone(formValues.onset_time),
+        end_time: formValues.end_time ? formatDateWithTimezone(formValues.end_time) : null,
         triggers: formValues.triggers,
         notes: formValues.notes
-      });
+      };
+      
+      await axiosInstance.put(`/symptom-logs/${selectedLog.id}/`, payload);
       fetchSymptomLogs();
       setShowEditModal(false);
     } catch (err) {
