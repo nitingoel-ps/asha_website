@@ -30,10 +30,6 @@ body.has-loggedout-navbar {
   transition: color 0.3s ease;
 }
 
-.loggedout-navbar .nav-link:hover {
-  color: white !important;
-}
-
 /* Custom toggler button for mobile */
 .loggedout-navbar-toggler {
   border: none;

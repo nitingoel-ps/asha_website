@@ -36,7 +36,7 @@ function UserDropdown({ user, handleLogout, closeMenu, windowWidth }) {
               {getInitials()}
             </div>
           )}
-          <span className="user-name ms-2">{displayName}</span>
+          <span className="top-navbar-item ms-2">{displayName}</span>
         </div>
       } 
       id="user-dropdown"

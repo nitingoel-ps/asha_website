@@ -17,7 +17,7 @@
   top: 2000px;
 }
 
-.nav-item {
+.nav-menu .nav-item {
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -28,18 +28,18 @@
   font-size: 0.9rem;
 }
 
-.nav-item:hover {
+.nav-menu .nav-item:hover {
   background-color: #F7FAFC;
   color: #2D3748;
 }
 
-.nav-item.active {
+.nav-menu .nav-item.active {
   background-color: #EBF8FF;
   color: #3182CE;
   font-weight: 500;
 }
 
-.nav-item svg {
+.nav-menu .nav-item svg {
   margin-right: 10px;
   stroke-width: 2px;
 }

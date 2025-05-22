@@ -28,10 +28,7 @@
     color: white !important;
   }
   
-  .navbar-nav .nav-link {
-    color: white !important;
-  }
-  
+ 
   .card {
     background-color: var(--card-bg-color);
     border: 1px solid #e0e0e0;

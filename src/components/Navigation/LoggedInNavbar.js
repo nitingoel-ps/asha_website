@@ -355,14 +355,13 @@ function LoggedInNavbar() {
   };
 
   const renderMainNav = () => (
-    <Nav className="ms-auto">
+    <Nav className="mx-auto">
       <Nav.Link 
         as={Link} 
         to="/health-priorities" 
         className={`nav-item ${location.pathname.includes('/health-priorities') ? 'active' : ''}`}
         onClick={closeMenu}
       >
-        <FaHeartbeat className="nav-icon" />
         <span className="nav-text">Health Priorities</span>
       </Nav.Link>
       <Nav.Link 
@@ -371,26 +370,23 @@ function LoggedInNavbar() {
         className={`nav-item ${location.pathname.includes('/patient-dashboard') ? 'active' : ''}`}
         onClick={closeMenu}
       >
-        <FaTachometerAlt className="nav-icon" />
-        <span className="nav-text">Records</span>
+        <span className="nav-text">Health Records</span>
       </Nav.Link>
       <Nav.Link 
         as={Link} 
-        to="/ai-chat" 
-        className={`nav-item ${isAIChatPage() ? 'active' : ''}`}
+        to="/add-health-data" 
+        className="nav-item"
         onClick={closeMenu}
       >
-        <FaComments className="nav-icon" />
-        <span className="nav-text">Chat</span>
+        <span className="nav-text">Add Data</span>
       </Nav.Link>
       <Nav.Link 
         as={Link} 
         to="/new-voice-chat" 
-        className={`nav-item ${isAIVoicePage() ? 'active' : ''}`}
+        className="nav-item"
         onClick={closeMenu}
       >
-        <PiUserSound className="nav-icon" />
-        <span className="nav-text">Voice</span>
+        <span className="nav-text">Chat with AI</span>
       </Nav.Link>
     </Nav>
   );
@@ -405,23 +401,28 @@ function LoggedInNavbar() {
               <FaHome className="nav-icon" /> ASHA AI
             </Navbar.Brand>
             <Navbar.Collapse id="basic-navbar-nav">
-              <Nav className="main-nav-items mx-auto">
-                <Nav.Link as={Link} to="/health-priorities" className="main-nav-item">
-                  <FaHeartbeat className="main-nav-icon" /> Health Priorities
+              <Nav className="mx-auto">
+                <Nav.Link as={Link} to="/" className="top-navbar-item">
+                  Home
                 </Nav.Link>
-                <Nav.Link as={Link} to="/patient-dashboard" className="main-nav-item">
-                  <FaHeartbeat className="main-nav-icon" /> Health Records
+                <Nav.Link as={Link} to="/patient-dashboard" className="top-navbar-item">
+                  Health Records
                 </Nav.Link>
-                <Nav.Link as={Link} to="/add-health-data" className="main-nav-item">
-                  <FaPlusCircle className="main-nav-icon" /> Add Health Data
+                <Nav.Link as={Link} to="/add-health-data" className="top-navbar-item">
+                  Add Data
                 </Nav.Link>
-                <Nav.Link as={Link} to="/new-voice-chat" className="main-nav-item">
-                  <FaMicrophone className="main-nav-icon" /> Talk to AI
+                <Nav.Link as={Link} to="/new-voice-chat" className="top-navbar-item">
+                  Chat with AI
                 </Nav.Link>
               </Nav>
               <Nav className="user-nav-section">
                 <NavDropdown 
-                  title={<span className="user-name">{user?.first_name || user?.username || "User"}</span>}
+                  title={
+                    <span className="top-navbar-item">
+                      <FaUserCircle style={{ marginRight: '0.5em', verticalAlign: 'middle', color: '#fff' }} />
+                      {user?.first_name || user?.username || "User"}
+                    </span>
+                  }
                   id="user-dropdown"
                   align="end"
                 >

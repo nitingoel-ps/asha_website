@@ -2,44 +2,48 @@
 
 .mobile-friendly-navbar {
   padding: 0.5rem 0;
+  background-color: #019ea1;
 }
 
 /* Make all icons consistent size and color */
 .nav-icon {
   margin-right: 0.5rem;
-  font-size: 1.1rem; /* Standardize icon size */
-  color: rgba(255, 255, 255, 0.9); /* Brighter icon color for better contrast */
+  font-size: 1.1rem;
+  color: rgba(255, 255, 255, 0.9);
 }
 
 /* Special styling for navbar brand icon */
 .navbar-brand .nav-icon {
-  font-size: 1.25rem; /* Slightly larger for brand */
+  font-size: 1.25rem;
 }
 
 /* Main navigation items - centered with bright white icons */
 .main-nav-items {
   display: flex;
   align-items: center;
+  gap: 1rem; /* Add consistent spacing between items */
 }
 
 .main-nav-item {
-  padding: 0 1.5rem !important; /* More spacing between main nav items */
-  font-weight: 500; /* Make text slightly bolder */
-  color: rgba(255, 255, 255, 0.9) !important; /* Start with slightly off-white */
-  transition: color 0.2s ease !important; /* Smooth transition for color */
-}
-
-/* More subtle hover effect that maintains readability */
-.main-nav-item:hover,
-.main-nav-item:focus {
-  color: #ffffff !important; /* Pure white on hover, but not too different from default */
-  background-color: transparent !important; /* No background color change */
+  padding: 0.5rem 1rem !important;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.9) !important;
+  transition: all 0.2s ease !important;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .main-nav-icon {
-  margin-right: 0.5rem;
-  font-size: 1.2rem; /* Slightly larger icon for main nav items */
-  color: #ffffff !important; /* Bright white color for main navigation icons */
+  font-size: 1.2rem;
+  color: #ffffff !important;
+  transition: transform 0.2s ease;
+}
+
+/* Add icon animation on hover */
+.main-nav-item:hover .main-nav-icon {
+  transform: scale(1.1);
 }
 
 /* User avatar styles - more subtle styling */
@@ -119,68 +123,20 @@
   background-color: transparent !important;
   padding: 8px !important;
   border-radius: 4px;
-  transition: background-color 0.2s ease;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-/* Remove default Bootstrap hover styling for dropdown toggle */
+/* Unify hover effect for user dropdown toggle */
 .user-dropdown-menu .dropdown-toggle:hover,
 .user-dropdown-menu .dropdown-toggle:focus,
 .user-dropdown-menu .dropdown-toggle:active,
 .user-dropdown-menu.show .dropdown-toggle {
-  background-color: rgba(255, 255, 255, 0.1) !important; /* Very subtle highlight */
-  box-shadow: none !important;
-  color: #ffffff !important; /* Ensure text stays white on hover */
-}
-
-/* Additional stronger selector to override Bootstrap defaults */
-.navbar-dark .navbar-nav .nav-item.user-dropdown-menu .nav-link.dropdown-toggle:hover,
-.navbar-dark .navbar-nav .nav-item.user-dropdown-menu .nav-link.dropdown-toggle:focus,
-.navbar-dark .navbar-nav .nav-item.user-dropdown-menu .nav-link.dropdown-toggle:active {
-  background-color: rgba(255, 255, 255, 0.1) !important;
+  background-color: rgba(255, 255, 255, 0.15) !important;
   color: #ffffff !important;
   box-shadow: none !important;
 }
 
-/* Add styles for logged out navbar items */
-.logged-out-nav-item {
-  color: rgba(255, 255, 255, 0.85) !important;
-  transition: color 0.2s ease, background-color 0.2s ease !important;
-  padding: 0.5rem 1rem !important;
-}
-
-.logged-out-nav-item:hover, 
-.logged-out-nav-item:focus {
-  color: #ffffff !important;
-  background-color: rgba(255, 255, 255, 0.1) !important;
-}
-
-/* Add more specificity for Bootstrap override */
-.navbar-dark .navbar-nav .nav-link.logged-out-nav-item {
-  color: rgba(255, 255, 255, 0.85) !important;
-}
-
-.navbar-dark .navbar-nav .nav-link.logged-out-nav-item:hover,
-.navbar-dark .navbar-nav .nav-link.logged-out-nav-item:focus {
-  color: #ffffff !important;
-  background-color: rgba(255, 255, 255, 0.1) !important;
-}
-
-/* Override button styles for NavDropdown in LoggedInNavbar */
-.btn-reset {
-  all: unset;
-  display: flex;
-  align-items: center;
-  cursor: pointer;
-}
-
-/* Make sure there's no white background on hover */
-.user-dropdown-menu .dropdown-toggle::after {
-  margin-left: 0.5em;
-  vertical-align: middle;
-  color: rgba(255, 255, 255, 0.7); /* More subtle dropdown arrow */
-}
-
-/* Fix dropdown items for better readability */
+/* Dropdown menu styling */
 .user-dropdown-menu .dropdown-menu {
   background-color: #fff;
   padding: 0.5rem 0;
@@ -193,17 +149,19 @@
 .user-dropdown-menu .dropdown-item {
   color: #212529;
   padding: 0.5rem 1rem;
-  transition: background-color 0.15s ease;
+  border-radius: 4px;
+  transition: background-color 0.15s ease, color 0.15s ease;
 }
 
+/* Ensure user dropdown menu items use the same subtle hover as top navbar items */
 .user-dropdown-menu .dropdown-item:hover,
 .user-dropdown-menu .dropdown-item:focus {
-  background-color: #f8f9fa; /* Light gray background on hover */
-  color: #16181b; /* Slightly darker text for better contrast */
+  background: rgba(255,255,255,0.15) !important;
+  color: #019ea1 !important;
 }
 
 .user-dropdown-menu .dropdown-item .nav-icon {
-  color: #495057; /* Darker icon color for better visibility */
+  color: #495057;
 }
 
 /* Override Bootstrap's default styles that might be causing issues */
@@ -225,6 +183,7 @@
 .navbar-dark .navbar-nav .nav-link:focus {
   color: rgba(255, 255, 255, 1);
 }
+
 
 /* User nav section styles */
 .user-nav-section {
@@ -576,4 +535,58 @@
 /* Adjust the position of other elements if needed due to the special microphone size */
 .mobile-nav-item.microphone-nav-item {
   margin-top: -10px; /* Adjust this value to align the microphone icon nicely */
+}
+
+/* Ensure user dropdown toggle (navbar-user-dropdown-name) matches main nav item hover */
+.navbar-user-dropdown-name {
+  display: inline-flex;
+  align-items: center;
+  font-weight: 500;
+  color: #fff;
+  transition: background-color 0.2s, color 0.2s;
+  border-radius: 4px;
+  padding: 0.5rem 1rem;
+}
+
+.navbar-user-dropdown-name:hover,
+.user-dropdown-menu .dropdown-toggle:hover,
+.user-dropdown-menu .dropdown-toggle:focus,
+.user-dropdown-menu .dropdown-toggle:active,
+.user-dropdown-menu.show .dropdown-toggle {
+  background-color: rgba(255, 255, 255, 0.15) !important;
+  color: #fff !important;
+}
+
+.navbar-user-dropdown-name svg {
+  color: #fff !important;
+  transition: color 0.2s;
+}
+
+/* Universal top navbar item style for both logged-in and logged-out navbars */
+.top-navbar-item {
+  color: #fff !important;
+  background: transparent;
+  border-radius: 4px;
+  transition: background 0.18s, color 0.18s;
+  padding: 0.5rem 1rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.top-navbar-item:hover,
+.top-navbar-item:focus {
+  background: rgba(255,255,255,0.15) !important;
+  color: #fff !important;
+  text-decoration: none;
+}
+
+/* Remove/override any previous main-nav-item or user-name hover styles */
+.main-nav-item:hover,
+.main-nav-item:focus,
+.navbar-user-dropdown-name:hover {
+  background: none !important;
+  color: inherit !important;
+  transform: none !important;
 }

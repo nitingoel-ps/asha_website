@@ -24,9 +24,6 @@
   transition: color 0.3s ease;
 }
 
-.site-navbar .nav-link:hover {
-  color: white !important;
-}
 
 /* Logged In Navbar */
 .navbar {
@@ -48,10 +45,6 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-}
-
-.navbar .nav-link:hover {
-  color: white !important;
 }
 
 .navbar-brand {

@@ -26,18 +26,6 @@
   margin-bottom: 10px;
 }
 
-.nav-link {
-  color: #495057;
-  padding: 8px 16px;
-  margin: 2px 0;
-  border-radius: 4px;
-}
-
-.nav-link:hover {
-  background-color: #e9ecef;
-  color: #212529;
-}
-
 /*
 .content-area {
   padding: 20px;
