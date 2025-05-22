@@ -27,6 +27,7 @@ import Appointments from './components/Appointments/Appointments';
 import RegistrationFlow from './components/NewRegistration/RegistrationFlow';
 import HealthPriorities from './components/HealthPriorities/HealthPriorities';
 import HealthPriorityDetail from './components/HealthPriorities/HealthPriorityDetail';
+import WebRTCVoiceChat from './components/WebRTCVoiceChat/WebRTCVoiceChat';
 
 import './theme.css';
 import './components/shared/TabStyling.css';
@@ -152,6 +153,14 @@ function AppContent() {
           element={
             <PrivateRoute>
               <NewVoiceChat />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/webrtc-voice-chat"
+          element={
+            <PrivateRoute>
+              <WebRTCVoiceChat />
             </PrivateRoute>
           }
         />
