@@ -26,7 +26,6 @@ const WebRTCVoiceChat = () => {
   const [isConnecting, setIsConnecting] = useState(false);
   const [error, setError] = useState(null);
   const [connectionState, setConnectionState] = useState('disconnected');
-  const [isMicrophoneEnabled, setIsMicrophoneEnabled] = useState(false);
   const [debugMessages, setDebugMessages] = useState([]);
   const [isClientReady, setIsClientReady] = useState(false);
 
@@ -63,7 +62,7 @@ const WebRTCVoiceChat = () => {
       // Create RTVIClient with full configuration
       const client = new RTVIClient({
         transport,
-        enableMic: false,  // Start with mic disabled, we'll enable it manually
+        enableMic: true,  // Start with mic enabled so the track is created
         callbacks: {
           onPartialTranscript: (transcript) => {
             addDebugMessage(`Partial transcript: ${transcript}`);
@@ -79,25 +78,21 @@ const WebRTCVoiceChat = () => {
             addDebugMessage(`Connection state changed to: ${state}`);
             setConnectionState(state);
             // Handle all possible connection states
-            switch (state) {
-              case 'connecting':
-                setIsConnected(false);
-                setIsClientReady(false);
-                break;
-              case 'connected':
-              case 'ready':
-                setIsConnected(true);
-                setIsClientReady(true);
-                addDebugMessage('Client is now ready for audio');
-                break;
-              case 'disconnected':
-              case 'error':
-                setIsConnected(false);
-                setIsClientReady(false);
-                addDebugMessage('Client disconnected or encountered an error');
-                break;
-              default:
-                addDebugMessage(`Unhandled connection state: ${state}`);
+            if (state === 'connected' || state === 'ready') {
+              setConnectionState('connected');
+              setIsConnected(true);
+              setIsClientReady(true);
+              addDebugMessage('Client is now ready for audio');
+            } else if (state === 'disconnected' || state === 'error') {
+              setConnectionState('disconnected');
+              setIsConnected(false);
+              setIsClientReady(false);
+              addDebugMessage('Client disconnected or encountered an error');
+            } else if (state === 'connecting') {
+              setIsConnected(false);
+              setIsClientReady(false);
+            } else {
+              addDebugMessage(`Unhandled connection state: ${state}`);
             }
           },
           onTransportStateChanged: (state) => {
@@ -113,6 +108,11 @@ const WebRTCVoiceChat = () => {
               setIsConnected(false);
               setIsClientReady(false);
               addDebugMessage('Transport disconnected or encountered an error');
+            } else if (state === 'connecting') {
+              setIsConnected(false);
+              setIsClientReady(false);
+            } else {
+              addDebugMessage(`Unhandled transport state: ${state}`);
             }
           }
         },
@@ -170,6 +170,7 @@ const WebRTCVoiceChat = () => {
         setConnectionState('connected');
         setIsConnected(true);
         setIsClientReady(true);
+        addDebugMessage('Microphone enabled (UI state synced after connect)');
       } catch (connectError) {
         addDebugMessage(`Client connect error: ${connectError.message}`);
         if (connectError.stack) {
@@ -189,24 +190,6 @@ const WebRTCVoiceChat = () => {
       setIsClientReady(false);
     } finally {
       setIsConnecting(false);
-    }
-  };
-
-  // Toggle microphone
-  const toggleMicrophone = async () => {
-    try {
-      if (!clientRef.current) {
-        throw new Error('Client not initialized');
-      }
-
-      const newState = !isMicrophoneEnabled;
-      addDebugMessage(`Attempting to ${newState ? 'enable' : 'disable'} microphone...`);
-      await clientRef.current.enableMic(newState);
-      setIsMicrophoneEnabled(newState);
-      addDebugMessage(`Microphone ${newState ? 'enabled' : 'disabled'}`);
-    } catch (error) {
-      addDebugMessage(`Error toggling microphone: ${error.message}`);
-      setError(error.message);
     }
   };
 
@@ -236,6 +219,12 @@ const WebRTCVoiceChat = () => {
     };
   }, []);
 
+  useEffect(() => {
+    const msg = `RENDER: isConnected=${isConnected}, isClientReady=${isClientReady}`;
+    addDebugMessage(msg);
+    console.log('[WebRTCVoiceChat]', msg);
+  }, [isConnected, isClientReady]);
+
   return (
     <Card className="p-4">
       <Card.Body>
@@ -255,7 +244,7 @@ const WebRTCVoiceChat = () => {
         )}
 
         {/* Controls */}
-        <div className="d-flex gap-2 mb-3">
+        <div className="voice-chat-controls">
           {!isConnected && !isConnecting && (
             <Button
               variant="primary"
@@ -265,14 +254,6 @@ const WebRTCVoiceChat = () => {
               {isConnecting ? 'Connecting...' : 'Connect'}
             </Button>
           )}
-          <Button
-            variant={isMicrophoneEnabled ? 'danger' : 'primary'}
-            onClick={toggleMicrophone}
-            disabled={!isClientReady || isConnecting}
-          >
-            {isMicrophoneEnabled ? <MicOff size={20} /> : <Mic size={20} />}
-            {isMicrophoneEnabled ? 'Disable Microphone' : 'Enable Microphone'}
-          </Button>
         </div>
 
         {/* Audio Provider */}

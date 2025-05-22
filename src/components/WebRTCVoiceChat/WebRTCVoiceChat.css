@@ -19,6 +19,48 @@
   background-color: #dc3545;
 }
 
+/* Microphone button styles */
+.voice-chat-controls {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.mic-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.mic-button:not(:disabled) {
+  cursor: pointer;
+  opacity: 1;
+}
+
+.mic-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.mic-button.enabled {
+  background-color: #dc3545;
+  color: white;
+}
+
+.mic-button.disabled {
+  background-color: #0d6efd;
+  color: white;
+}
+
+.mic-button svg {
+  width: 20px;
+  height: 20px;
+}
+
 @keyframes pulse {
   0% {
     opacity: 1;
