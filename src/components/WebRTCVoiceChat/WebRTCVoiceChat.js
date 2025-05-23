@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Button, Card, Alert } from 'react-bootstrap';
-import { Mic, MicOff } from 'lucide-react';
+import { Button, Card, Alert, Form } from 'react-bootstrap';
+import { Mic, MicOff, Users } from 'lucide-react';
 import axiosInstance from '../../utils/axiosInstance';
 import { RTVIClient } from '@pipecat-ai/client-js';
 import { DailyTransport } from '@pipecat-ai/daily-transport';
@@ -30,6 +30,8 @@ const WebRTCVoiceChat = () => {
   const [connectionState, setConnectionState] = useState('disconnected');
   const [debugMessages, setDebugMessages] = useState([]);
   const [isClientReady, setIsClientReady] = useState(false);
+  const [showDebug, setShowDebug] = useState(false);
+  const [participants, setParticipants] = useState([]);
 
   // Refs for maintaining connection state
   const clientRef = useRef(null);
@@ -38,6 +40,19 @@ const WebRTCVoiceChat = () => {
   // Add debug message to the list
   const addDebugMessage = (message) => {
     setDebugMessages(prev => [...prev, `${new Date().toISOString()}: ${message}`].slice(-10));
+  };
+
+  // Helper function to determine the current status
+  const getCurrentStatus = () => {
+    if (!isConnected) return 'disconnected';
+    if (participants.length === 0) return 'waiting';
+    return 'ready';
+  };
+
+  // Helper function to format transcript data
+  const formatTranscriptMessage = (data) => {
+    const timestamp = new Date(data.timestamp).toLocaleTimeString();
+    return `[${timestamp}] ${data.text}`;
   };
 
   // Initialize connection
@@ -51,15 +66,9 @@ const WebRTCVoiceChat = () => {
       const connectEndpoint = '/voice/connect/';
       const fullUrl = `${baseUrl}${connectEndpoint}`;
       
-      addDebugMessage(`Full connection URL will be: ${fullUrl}`);
-      addDebugMessage(`Auth token exists: ${!!localStorage.getItem('access_token')}`);
-
       // Create transport
       const transport = new DailyTransport();
-      addDebugMessage('Created DailyTransport instance');
       transportRef.current = transport;
-
-      addDebugMessage('Creating RTVIClient...');
 
       // Create RTVIClient with full configuration
       const client = new RTVIClient({
@@ -69,20 +78,24 @@ const WebRTCVoiceChat = () => {
           onParticipantJoined: p => {
             addDebugMessage(`${p.name || p.id} joined - Full participant data: ${JSON.stringify(p, null, 2)}`);
             console.log('[WebRTCVoiceChat] participantJoined:', p);
+            setParticipants(prev => [...prev, p]);
           },
           onParticipantLeft: p => {
             addDebugMessage(`${p.name || p.id} left - Full participant data: ${JSON.stringify(p, null, 2)}`);
             console.log('[WebRTCVoiceChat] participantLeft:', p);
+            setParticipants(prev => prev.filter(participant => participant.id !== p.id));
           },
           onParticipantUpdated: p => {
             addDebugMessage(`participantUpdated: ${JSON.stringify(p)}`);
             console.log('[WebRTCVoiceChat] participantUpdated:', p);
           },
-          onPartialTranscript: (transcript) => {
-            addDebugMessage(`Partial transcript: ${transcript}`);
+          onUserTranscript: (data) => {
+            if (data.final) {
+              addDebugMessage(`User: ${formatTranscriptMessage(data)}`);
+            }
           },
-          onFinalTranscript: (transcript) => {
-            addDebugMessage(`Final transcript: ${transcript}`);
+          onBotTranscript: (data) => {
+            addDebugMessage(`Bot: ${formatTranscriptMessage(data)}`);
           },
           onError: (error) => {
             addDebugMessage(`Error: ${error.message}`);
@@ -143,22 +156,16 @@ const WebRTCVoiceChat = () => {
           }
         },
         customConnectHandler: async (params, timeout, abortController) => {
-          addDebugMessage('Custom connect handler called');
-          addDebugMessage(`Params: ${JSON.stringify(params)}`);
-          
           try {
             const response = await axiosInstance.post(params.endpoints.connect);
             const { url: roomUrl, token } = response.data;
-            addDebugMessage(`Connect response: ${JSON.stringify(response.data)}`);
             
             // Configure the transport with the credentials
-            addDebugMessage('Configuring transport with Daily.co credentials...');
             await transportRef.current.preAuth({
               url: roomUrl,
               token: token,
               userName: user?.first_name || 'Guest'
             });
-            addDebugMessage('Transport configured successfully');
             
             if (timeout) {
               clearTimeout(timeout);
@@ -206,7 +213,6 @@ const WebRTCVoiceChat = () => {
       }
     } catch (error) {
       addDebugMessage(`Error initializing connection: ${error.message}`);
-      addDebugMessage(`Error stack: ${error.stack}`);
       setError(error.message);
       setConnectionState('disconnected');
       setIsConnected(false);
@@ -255,8 +261,22 @@ const WebRTCVoiceChat = () => {
         
         {/* Connection Status */}
         <div className="mb-3">
-          <span className={`status-indicator ${connectionState}`}></span>
-          <span className="ms-2">Status: {connectionState}</span>
+          <span className={`status-indicator ${getCurrentStatus()}`}></span>
+          <span className="ms-2">Status: {
+            getCurrentStatus() === 'disconnected' ? 'Disconnected' :
+            getCurrentStatus() === 'waiting' ? 'Waiting for agent...' :
+            'Ready to talk'
+          }</span>
+        </div>
+
+        {/* Participants Display */}
+        <div className="mb-3 participants-display">
+          <Users size={20} className="me-2" />
+          <span>
+            {participants.length === 0 
+              ? "No other participants in room"
+              : `Participants: ${participants.map(p => p.name || p.id).join(', ')}`}
+          </span>
         </div>
 
         {/* Error Display */}
@@ -286,16 +306,28 @@ const WebRTCVoiceChat = () => {
           </RTVIClientProvider>
         )}
 
-        {/* Debug Messages */}
-        <div className="debug-messages mt-4">
-          <h4>Debug Messages</h4>
-          <div className="debug-messages-container">
-            {debugMessages.map((message, index) => (
-              <div key={index} className="debug-message">
-                {message}
+        {/* Debug Toggle and Messages */}
+        <div className="mt-4">
+          <Form.Check 
+            type="switch"
+            id="debug-toggle"
+            label="Show Debug Messages"
+            checked={showDebug}
+            onChange={(e) => setShowDebug(e.target.checked)}
+          />
+          
+          {showDebug && (
+            <div className="debug-messages mt-3">
+              <h4>Debug Messages</h4>
+              <div className="debug-messages-container">
+                {debugMessages.map((message, index) => (
+                  <div key={index} className="debug-message">
+                    {message}
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            </div>
+          )}
         </div>
       </Card.Body>
     </Card>
