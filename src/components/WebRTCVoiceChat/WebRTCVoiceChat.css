@@ -112,43 +112,43 @@
 .audio-levels {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 4px;
+  flex: 1;
+  max-width: 100px;
 }
 
-.audio-level-indicator {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.audio-level-label {
+.audio-level-row {
+  flex: 1;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  font-size: 0.875rem;
-  color: #6c757d;
 }
 
-.audio-level-label svg {
-  transition: color 0.2s ease;
+.audio-label {
+  font-size: 12px;
+  color: #6b7280;
+  width: 30px;
 }
 
-.audio-level-label svg.speaking {
-  color: #0d6efd;
-  animation: pulse 1.5s infinite;
-}
-
-.audio-level-bar {
-  height: 4px;
-  background-color: #e9ecef;
-  border-radius: 2px;
+.audio-bar {
+  width: 100%;
+  height: 8px;
+  background: #e5e7eb;
+  border-radius: 4px;
   overflow: hidden;
 }
 
-.audio-level-fill {
+.audio-fill {
   height: 100%;
-  background-color: #0d6efd;
+  border-radius: 4px;
   transition: width 0.1s ease, opacity 0.2s ease;
+}
+
+.audio-fill.user {
+  background: #3b82f6;
+}
+
+.audio-fill.bot {
+  background: #8b5cf6;
 }
 
 @keyframes pulse {
@@ -156,9 +156,176 @@
     opacity: 1;
   }
   50% {
-    opacity: 0.5;
+    opacity: 0.7;
   }
   100% {
     opacity: 1;
+  }
+}
+
+.floating-overlay {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  user-select: none;
+}
+
+.overlay-container {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 8px;
+  padding: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  width: 150px;
+  height: 60px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.overlay-content {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  gap: 8px;
+}
+
+.status-indicator {
+  font-size: 20px;
+  text-align: center;
+  transition: all 0.3s ease;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.status-indicator.disconnected {
+  color: #dc2626;
+}
+
+.status-indicator.connecting {
+  color: #d97706;
+  animation: spin 2s linear infinite;
+}
+
+.status-indicator.ready {
+  color: #16a34a;
+}
+
+.status-indicator.speaking {
+  color: #2563eb;
+}
+
+.status-indicator.thinking {
+  color: #7e22ce;
+  animation: pulse 1.5s infinite;
+}
+
+.status-circle {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  position: relative;
+  transition: all 0.1s ease;
+}
+
+/* Disconnected state - solid red */
+.status-circle.disconnected {
+  background: #dc3545;
+  box-shadow: 0 0 20px rgba(220, 53, 69, 0.4);
+}
+
+/* Connecting state - hollow spinning gradient */
+.status-circle.connecting {
+  background: transparent;
+  border: 4px solid transparent;
+  border-top: 4px solid #dc3545;
+  border-right: 4px solid #ffc107;
+  border-bottom: 4px solid #28a745;
+  border-left: 4px solid #dc3545;
+  animation: spin 2s linear infinite;
+}
+
+/* Ready state - solid green with gradient */
+.status-circle.ready {
+  background: linear-gradient(135deg, #28a745, #20c997);
+  box-shadow: 0 0 20px rgba(40, 167, 69, 0.4);
+}
+
+/* Speaking state - pulsing green */
+.status-circle.speaking {
+  background: linear-gradient(135deg, #28a745, #20c997);
+  box-shadow: 0 0 20px rgba(40, 167, 69, 0.4);
+  transition: transform 0.1s ease;
+}
+
+/* Thinking state - hollow spinning gradient */
+.status-circle.thinking {
+  background: transparent;
+  border: 4px solid transparent;
+  border-top: 4px solid #6f42c1;
+  border-right: 4px solid #8a63d2;
+  border-bottom: 4px solid #a78bdb;
+  border-left: 4px solid #6f42c1;
+  animation: spin 1.5s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.thinking-spinner {
+  width: 50px;
+  height: 50px;
+  position: relative;
+}
+
+.spinner-segment {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border: 4px solid transparent;
+  border-top-color: #6f42c1;
+  border-radius: 50%;
+  animation: spin 1.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+.spinner-segment:nth-child(2) {
+  border-top-color: #8a63d2;
+  animation-delay: 0.3s;
+  animation-duration: 1.8s;
+}
+
+.spinner-segment:nth-child(3) {
+  border-top-color: #a78bdb;
+  animation-delay: 0.6s;
+  animation-duration: 2.1s;
+}
+
+@keyframes breathe {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.3;
+  }
+  50% {
+    transform: scale(1.3);
+    opacity: 0.6;
+  }
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
   }
 } 

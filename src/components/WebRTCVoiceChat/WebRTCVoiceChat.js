@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Button, Card, Alert, Form } from 'react-bootstrap';
-import { Mic, MicOff, Users, Volume2 } from 'lucide-react';
+import { Mic, MicOff, Users, Volume2, Brain } from 'lucide-react';
 import axiosInstance from '../../utils/axiosInstance';
 import { RTVIClient } from '@pipecat-ai/client-js';
 import { DailyTransport } from '@pipecat-ai/daily-transport';
@@ -36,6 +36,13 @@ const WebRTCVoiceChat = () => {
   const [botAudioLevel, setBotAudioLevel] = useState(0);
   const [isUserSpeaking, setIsUserSpeaking] = useState(false);
   const [isBotSpeaking, setIsBotSpeaking] = useState(false);
+  const [isBotThinking, setIsBotThinking] = useState(false);
+  const [overlayPosition, setOverlayPosition] = useState({ x: window.innerWidth / 2, y: window.innerHeight / 2 });
+  const [isDragging, setIsDragging] = useState(false);
+  const dragStartPos = useRef({ x: 0, y: 0 });
+  const overlayRef = useRef(null);
+  const lastTouchPos = useRef({ x: 0, y: 0 });
+  const [audioLevel, setAudioLevel] = useState(0);
 
   // Refs for maintaining connection state
   const clientRef = useRef(null);
@@ -104,6 +111,7 @@ const WebRTCVoiceChat = () => {
           onError: (error) => {
             addDebugMessage(`Error: ${error.message}`);
             setError(error.message);
+            setIsConnecting(false);
           },
           onConnectionState: (state) => {
             addDebugMessage(`Connection state changed to: ${state}`);
@@ -113,15 +121,18 @@ const WebRTCVoiceChat = () => {
               setConnectionState('connected');
               setIsConnected(true);
               setIsClientReady(true);
+              setIsConnecting(false);
               addDebugMessage('Client is now ready for audio');
             } else if (state === 'disconnected' || state === 'error') {
               setConnectionState('disconnected');
               setIsConnected(false);
               setIsClientReady(false);
+              setIsConnecting(false);
               addDebugMessage('Client disconnected or encountered an error');
             } else if (state === 'connecting') {
               setIsConnected(false);
               setIsClientReady(false);
+              setIsConnecting(true);
             } else {
               addDebugMessage(`Unhandled connection state: ${state}`);
             }
@@ -133,42 +144,63 @@ const WebRTCVoiceChat = () => {
               setConnectionState('connected');
               setIsConnected(true);
               setIsClientReady(true);
+              setIsConnecting(false);
               addDebugMessage('Transport is ready for audio');
             } else if (state === 'disconnected' || state === 'error') {
               setConnectionState('disconnected');
               setIsConnected(false);
               setIsClientReady(false);
+              setIsConnecting(false);
               addDebugMessage('Transport disconnected or encountered an error');
             } else if (state === 'connecting') {
               setIsConnected(false);
               setIsClientReady(false);
+              setIsConnecting(true);
             } else {
               addDebugMessage(`Unhandled transport state: ${state}`);
             }
           },
           onLocalAudioLevel: (level) => {
             setUserAudioLevel(level);
+            if (isUserSpeaking) {
+              setAudioLevel(Math.max(level, 0.5));
+            }
           },
           onRemoteAudioLevel: (level, participant) => {
             setBotAudioLevel(level);
+            if (isBotSpeaking) {
+              setAudioLevel(Math.max(level, 0.5));
+            }
           },
           onBotStartedSpeaking: () => {
             setIsBotSpeaking(true);
+            setAudioLevel(0);
             addDebugMessage('Bot started speaking');
           },
           onBotStoppedSpeaking: () => {
             setIsBotSpeaking(false);
             setBotAudioLevel(0);
+            setAudioLevel(0);
             addDebugMessage('Bot stopped speaking');
           },
           onUserStartedSpeaking: () => {
             setIsUserSpeaking(true);
+            setAudioLevel(0);
             addDebugMessage('User started speaking');
           },
           onUserStoppedSpeaking: () => {
             setIsUserSpeaking(false);
             setUserAudioLevel(0);
+            setAudioLevel(0);
             addDebugMessage('User stopped speaking');
+          },
+          onBotLlmStarted: () => {
+            setIsBotThinking(true);
+            addDebugMessage('Bot started thinking');
+          },
+          onBotLlmStopped: () => {
+            setIsBotThinking(false);
+            addDebugMessage('Bot finished thinking');
           },
         },
         params: {
@@ -220,6 +252,7 @@ const WebRTCVoiceChat = () => {
         setConnectionState('connected');
         setIsConnected(true);
         setIsClientReady(true);
+        setIsConnecting(false);
 
         // Log current participants after a short delay (to allow map to populate)
         setTimeout(() => {
@@ -237,6 +270,7 @@ const WebRTCVoiceChat = () => {
         setConnectionState('disconnected');
         setIsConnected(false);
         setIsClientReady(false);
+        setIsConnecting(false);
         throw connectError;
       }
     } catch (error) {
@@ -245,7 +279,6 @@ const WebRTCVoiceChat = () => {
       setConnectionState('disconnected');
       setIsConnected(false);
       setIsClientReady(false);
-    } finally {
       setIsConnecting(false);
     }
   };
@@ -301,97 +334,178 @@ const WebRTCVoiceChat = () => {
     </div>
   );
 
-  return (
-    <Card className="p-4">
-      <Card.Body>
-        <h2>WebRTC Voice Chat</h2>
-        
-        {/* Connection Status */}
-        <div className="mb-3">
-          <span className={`status-indicator ${getCurrentStatus()}`}></span>
-          <span className="ms-2">Status: {
-            getCurrentStatus() === 'disconnected' ? 'Disconnected' :
-            getCurrentStatus() === 'waiting' ? 'Waiting for agent...' :
-            'Ready to talk'
-          }</span>
-        </div>
+  // Floating overlay component
+  const FloatingOverlay = () => {
+    const getStatusText = () => {
+      if (isBotThinking) return '🤔';
+      if (isBotSpeaking) return '🤖';
+      if (isUserSpeaking) return '👤';
+      if (isConnected) return '✓';
+      if (isConnecting) return '⟳';
+      return '✕';
+    };
 
-        {/* Audio Level Indicators */}
-        <div className="audio-levels mb-3">
-          <AudioLevelIndicator 
-            level={userAudioLevel}
-            isSpeaking={isUserSpeaking}
-            label="You"
-          />
-          <AudioLevelIndicator 
-            level={botAudioLevel}
-            isSpeaking={isBotSpeaking}
-            label="Bot"
-          />
-        </div>
+    const getStatusClass = () => {
+      if (isBotThinking) return 'thinking';
+      if (isBotSpeaking || isUserSpeaking) return 'speaking';
+      if (isConnected) return 'ready';
+      if (isConnecting) return 'connecting';
+      return 'disconnected';
+    };
 
-        {/* Participants Display */}
-        <div className="mb-3 participants-display">
-          <Users size={20} className="me-2" />
-          <span>
-            {participants.length === 0 
-              ? "No other participants in room"
-              : `Participants: ${participants.map(p => p.name || p.id).join(', ')}`}
-          </span>
-        </div>
-
-        {/* Error Display */}
-        {error && (
-          <Alert variant="danger" className="mb-3">
-            {error}
-          </Alert>
-        )}
-
-        {/* Controls */}
-        <div className="voice-chat-controls">
-          {!isConnected && !isConnecting && (
-            <Button
-              variant="primary"
-              onClick={initializeConnection}
-              disabled={isConnecting}
-            >
-              {isConnecting ? 'Connecting...' : 'Connect'}
-            </Button>
-          )}
-        </div>
-
-        {/* Audio Provider */}
-        {isClientReady && clientRef.current && (
-          <RTVIClientProvider client={clientRef.current}>
-            <RTVIClientAudio />
-          </RTVIClientProvider>
-        )}
-
-        {/* Debug Toggle and Messages */}
-        <div className="mt-4">
-          <Form.Check 
-            type="switch"
-            id="debug-toggle"
-            label="Show Debug Messages"
-            checked={showDebug}
-            onChange={(e) => setShowDebug(e.target.checked)}
-          />
-          
-          {showDebug && (
-            <div className="debug-messages mt-3">
-              <h4>Debug Messages</h4>
-              <div className="debug-messages-container">
-                {debugMessages.map((message, index) => (
-                  <div key={index} className="debug-message">
-                    {message}
-                  </div>
-                ))}
+    return (
+      <div className="floating-overlay">
+        <div className="overlay-container">
+          <div className="overlay-content">
+            <div className={`status-indicator ${getStatusClass()}`}>
+              {getStatusText()}
+            </div>
+            <div className="audio-levels">
+              <div className="audio-level-row">
+                <div className="audio-bar">
+                  <div 
+                    className="audio-fill user"
+                    style={{ 
+                      width: `${Math.max(userAudioLevel * 100, 5)}%`,
+                      opacity: isUserSpeaking ? 1 : 0.5
+                    }}
+                  />
+                </div>
+              </div>
+              <div className="audio-level-row">
+                <div className="audio-bar">
+                  <div 
+                    className="audio-fill bot"
+                    style={{ 
+                      width: `${Math.max(botAudioLevel * 100, 5)}%`,
+                      opacity: isBotSpeaking ? 1 : 0.5
+                    }}
+                  />
+                </div>
               </div>
             </div>
-          )}
+          </div>
         </div>
-      </Card.Body>
-    </Card>
+      </div>
+    );
+  };
+
+  const handleConnectionToggle = async () => {
+    if (isConnected) {
+      // Disconnect
+      if (clientRef.current) {
+        try {
+          setIsConnecting(true);
+          await clientRef.current.disconnect();
+          setConnectionState('disconnected');
+          setIsConnected(false);
+          setIsClientReady(false);
+          addDebugMessage('Client disconnected');
+        } catch (error) {
+          addDebugMessage(`Error disconnecting: ${error.message}`);
+          setError(error.message);
+        } finally {
+          setIsConnecting(false);
+        }
+      }
+    } else {
+      // Connect
+      await initializeConnection();
+    }
+  };
+
+  return (
+    <>
+      <FloatingOverlay />
+      <Card className="p-4">
+        <Card.Body>
+          <h2>WebRTC Voice Chat</h2>
+          
+          {/* Connection Status */}
+          <div className="mb-3">
+            <span className={`status-indicator ${getCurrentStatus()}`}></span>
+            <span className="ms-2">Status: {
+              getCurrentStatus() === 'disconnected' ? 'Disconnected' :
+              getCurrentStatus() === 'waiting' ? 'Waiting for agent...' :
+              'Ready to talk'
+            }</span>
+          </div>
+
+          {/* Audio Level Indicators */}
+          <div className="audio-levels mb-3">
+            <AudioLevelIndicator 
+              level={userAudioLevel}
+              isSpeaking={isUserSpeaking}
+              label="You"
+            />
+            <AudioLevelIndicator 
+              level={botAudioLevel}
+              isSpeaking={isBotSpeaking}
+              label="Bot"
+            />
+          </div>
+
+          {/* Participants Display */}
+          <div className="mb-3 participants-display">
+            <Users size={20} className="me-2" />
+            <span>
+              {participants.length === 0 
+                ? "No other participants in room"
+                : `Participants: ${participants.map(p => p.name || p.id).join(', ')}`}
+            </span>
+          </div>
+
+          {/* Error Display */}
+          {error && (
+            <Alert variant="danger" className="mb-3">
+              {error}
+            </Alert>
+          )}
+
+          {/* Controls */}
+          <div className="voice-chat-controls">
+            <Button
+              variant={isConnected ? "danger" : "primary"}
+              onClick={handleConnectionToggle}
+              disabled={isConnecting}
+            >
+              {isConnecting ? 'Connecting...' : isConnected ? 'Disconnect' : 'Connect'}
+            </Button>
+          </div>
+
+          {/* Audio Provider */}
+          {isClientReady && clientRef.current && (
+            <RTVIClientProvider client={clientRef.current}>
+              <RTVIClientAudio />
+            </RTVIClientProvider>
+          )}
+
+          {/* Debug Toggle and Messages */}
+          <div className="mt-4">
+            <Form.Check 
+              type="switch"
+              id="debug-toggle"
+              label="Show Debug Messages"
+              checked={showDebug}
+              onChange={(e) => setShowDebug(e.target.checked)}
+            />
+            
+            {showDebug && (
+              <div className="debug-messages mt-3">
+                <h4>Debug Messages</h4>
+                <div className="debug-messages-container">
+                  {debugMessages.map((message, index) => (
+                    <div key={index} className="debug-message">
+                      {message}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </Card.Body>
+      </Card>
+    </>
   );
 };
 
