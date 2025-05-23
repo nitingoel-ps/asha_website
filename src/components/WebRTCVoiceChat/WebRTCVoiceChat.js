@@ -9,6 +9,7 @@ import {
     RTVIClientProvider,
     RTVIClientAudio
   } from '@pipecat-ai/client-react';
+import { useAuth } from '../../context/AuthContext';
   
 // DEBUG mode - set to true for verbose logging
 const DEBUG = true;
@@ -21,6 +22,7 @@ const debugLog = (...args) => {
 };
 
 const WebRTCVoiceChat = () => {
+  const { user } = useAuth();
   // State for connection and UI
   const [isConnected, setIsConnected] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
@@ -64,6 +66,18 @@ const WebRTCVoiceChat = () => {
         transport,
         enableMic: true,  // Start with mic enabled so the track is created
         callbacks: {
+          onParticipantJoined: p => {
+            addDebugMessage(`${p.name || p.id} joined - Full participant data: ${JSON.stringify(p, null, 2)}`);
+            console.log('[WebRTCVoiceChat] participantJoined:', p);
+          },
+          onParticipantLeft: p => {
+            addDebugMessage(`${p.name || p.id} left - Full participant data: ${JSON.stringify(p, null, 2)}`);
+            console.log('[WebRTCVoiceChat] participantLeft:', p);
+          },
+          onParticipantUpdated: p => {
+            addDebugMessage(`participantUpdated: ${JSON.stringify(p)}`);
+            console.log('[WebRTCVoiceChat] participantUpdated:', p);
+          },
           onPartialTranscript: (transcript) => {
             addDebugMessage(`Partial transcript: ${transcript}`);
           },
@@ -141,7 +155,8 @@ const WebRTCVoiceChat = () => {
             addDebugMessage('Configuring transport with Daily.co credentials...');
             await transportRef.current.preAuth({
               url: roomUrl,
-              token: token
+              token: token,
+              userName: user?.first_name || 'Guest'
             });
             addDebugMessage('Transport configured successfully');
             
@@ -170,7 +185,15 @@ const WebRTCVoiceChat = () => {
         setConnectionState('connected');
         setIsConnected(true);
         setIsClientReady(true);
-        addDebugMessage('Microphone enabled (UI state synced after connect)');
+
+        // Log current participants after a short delay (to allow map to populate)
+        setTimeout(() => {
+          if (clientRef.current && clientRef.current.transport && clientRef.current.transport.participants) {
+            const roster = Array.from(clientRef.current.transport.participants.values());
+            console.log('Current participants', roster);
+            addDebugMessage('Current participants: ' + JSON.stringify(roster));
+          }
+        }, 1000);
       } catch (connectError) {
         addDebugMessage(`Client connect error: ${connectError.message}`);
         if (connectError.stack) {
