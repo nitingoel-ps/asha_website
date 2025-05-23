@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Button, Card, Alert, Form } from 'react-bootstrap';
-import { Mic, MicOff, Users } from 'lucide-react';
+import { Mic, MicOff, Users, Volume2 } from 'lucide-react';
 import axiosInstance from '../../utils/axiosInstance';
 import { RTVIClient } from '@pipecat-ai/client-js';
 import { DailyTransport } from '@pipecat-ai/daily-transport';
@@ -32,6 +32,10 @@ const WebRTCVoiceChat = () => {
   const [isClientReady, setIsClientReady] = useState(false);
   const [showDebug, setShowDebug] = useState(false);
   const [participants, setParticipants] = useState([]);
+  const [userAudioLevel, setUserAudioLevel] = useState(0);
+  const [botAudioLevel, setBotAudioLevel] = useState(0);
+  const [isUserSpeaking, setIsUserSpeaking] = useState(false);
+  const [isBotSpeaking, setIsBotSpeaking] = useState(false);
 
   // Refs for maintaining connection state
   const clientRef = useRef(null);
@@ -141,7 +145,31 @@ const WebRTCVoiceChat = () => {
             } else {
               addDebugMessage(`Unhandled transport state: ${state}`);
             }
-          }
+          },
+          onLocalAudioLevel: (level) => {
+            setUserAudioLevel(level);
+          },
+          onRemoteAudioLevel: (level, participant) => {
+            setBotAudioLevel(level);
+          },
+          onBotStartedSpeaking: () => {
+            setIsBotSpeaking(true);
+            addDebugMessage('Bot started speaking');
+          },
+          onBotStoppedSpeaking: () => {
+            setIsBotSpeaking(false);
+            setBotAudioLevel(0);
+            addDebugMessage('Bot stopped speaking');
+          },
+          onUserStartedSpeaking: () => {
+            setIsUserSpeaking(true);
+            addDebugMessage('User started speaking');
+          },
+          onUserStoppedSpeaking: () => {
+            setIsUserSpeaking(false);
+            setUserAudioLevel(0);
+            addDebugMessage('User stopped speaking');
+          },
         },
         params: {
           baseUrl: baseUrl,
@@ -254,6 +282,25 @@ const WebRTCVoiceChat = () => {
     console.log('[WebRTCVoiceChat]', msg);
   }, [isConnected, isClientReady]);
 
+  // Audio level visualization component
+  const AudioLevelIndicator = ({ level, isSpeaking, label }) => (
+    <div className="audio-level-indicator">
+      <div className="audio-level-label">
+        <Volume2 size={16} className={isSpeaking ? 'speaking' : ''} />
+        <span>{label}</span>
+      </div>
+      <div className="audio-level-bar">
+        <div 
+          className="audio-level-fill"
+          style={{ 
+            width: `${level * 100}%`,
+            opacity: isSpeaking ? 1 : 0.5
+          }}
+        />
+      </div>
+    </div>
+  );
+
   return (
     <Card className="p-4">
       <Card.Body>
@@ -267,6 +314,20 @@ const WebRTCVoiceChat = () => {
             getCurrentStatus() === 'waiting' ? 'Waiting for agent...' :
             'Ready to talk'
           }</span>
+        </div>
+
+        {/* Audio Level Indicators */}
+        <div className="audio-levels mb-3">
+          <AudioLevelIndicator 
+            level={userAudioLevel}
+            isSpeaking={isUserSpeaking}
+            label="You"
+          />
+          <AudioLevelIndicator 
+            level={botAudioLevel}
+            isSpeaking={isBotSpeaking}
+            label="Bot"
+          />
         </div>
 
         {/* Participants Display */}

@@ -107,4 +107,58 @@
 
 .participants-display svg {
   color: #6c757d;
+}
+
+.audio-levels {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.audio-level-indicator {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.audio-level-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: #6c757d;
+}
+
+.audio-level-label svg {
+  transition: color 0.2s ease;
+}
+
+.audio-level-label svg.speaking {
+  color: #0d6efd;
+  animation: pulse 1.5s infinite;
+}
+
+.audio-level-bar {
+  height: 4px;
+  background-color: #e9ecef;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.audio-level-fill {
+  height: 100%;
+  background-color: #0d6efd;
+  transition: width 0.1s ease, opacity 0.2s ease;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 1;
+  }
 } 
