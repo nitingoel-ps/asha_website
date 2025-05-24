@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { VoiceChatOverlay } from './components/VoiceChatOverlay';
 import { VoiceChatDebug } from './components/VoiceChatDebug';
+import { RTVIClientProvider, RTVIClientAudio } from '@pipecat-ai/client-react';
 import './VoiceChat.css';
 
 export const VoiceChat = ({ 
@@ -35,6 +36,13 @@ export const VoiceChat = ({
         userAudioLevel={userAudioLevel}
         botAudioLevel={botAudioLevel}
       />
+      
+      {/* Audio Provider */}
+      {clientRef.current && (
+        <RTVIClientProvider client={clientRef.current}>
+          <RTVIClientAudio />
+        </RTVIClientProvider>
+      )}
       
       {showDebugMessages && (
         <VoiceChatDebug
