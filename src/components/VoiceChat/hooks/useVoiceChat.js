@@ -212,25 +212,35 @@ export const useVoiceChat = () => {
   // Handle connection toggle
   const handleConnectionToggle = async () => {
     if (isConnected) {
-      // Disconnect
-      if (clientRef.current) {
-        try {
-          setIsConnecting(true);
-          await clientRef.current.disconnect();
-          setConnectionState('disconnected');
-          setIsConnected(false);
-          setIsClientReady(false);
-          addDebugMessage('Client disconnected');
-        } catch (error) {
-          addDebugMessage(`Error disconnecting: ${error.message}`);
-          setError(error.message);
-        } finally {
-          setIsConnecting(false);
-        }
-      }
+      await disconnect();
     } else {
-      // Connect
+      await connect();
+    }
+  };
+
+  // Connect function
+  const connect = async () => {
+    if (!isConnected && !isConnecting) {
       await initializeConnection();
+    }
+  };
+
+  // Disconnect function
+  const disconnect = async () => {
+    if (isConnected && clientRef.current) {
+      try {
+        setIsConnecting(true);
+        await clientRef.current.disconnect();
+        setConnectionState('disconnected');
+        setIsConnected(false);
+        setIsClientReady(false);
+        addDebugMessage('Client disconnected');
+      } catch (error) {
+        addDebugMessage(`Error disconnecting: ${error.message}`);
+        setError(error.message);
+      } finally {
+        setIsConnecting(false);
+      }
     }
   };
 
@@ -260,6 +270,8 @@ export const useVoiceChat = () => {
     clientRef,
     
     // Actions
+    connect,
+    disconnect,
     handleConnectionToggle,
     addDebugMessage,
   };

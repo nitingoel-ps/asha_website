@@ -1,29 +1,28 @@
 import React, { useState } from 'react';
-import { useVoiceChat } from './hooks/useVoiceChat';
 import { VoiceChatOverlay } from './components/VoiceChatOverlay';
 import { VoiceChatDebug } from './components/VoiceChatDebug';
 import './VoiceChat.css';
 
-export const VoiceChat = ({ showDebug = false }) => {
+export const VoiceChat = ({ 
+  showDebug = false,
+  // Voice chat state and functions
+  isConnected,
+  isConnecting,
+  error,
+  connectionState,
+  isClientReady,
+  participants,
+  userAudioLevel,
+  botAudioLevel,
+  isUserSpeaking,
+  isBotSpeaking,
+  isBotThinking,
+  debugMessages,
+  clientRef,
+  handleConnectionToggle,
+  addDebugMessage
+}) => {
   const [showDebugMessages, setShowDebugMessages] = useState(showDebug);
-  
-  const {
-    isConnected,
-    isConnecting,
-    error,
-    connectionState,
-    isClientReady,
-    participants,
-    userAudioLevel,
-    botAudioLevel,
-    isUserSpeaking,
-    isBotSpeaking,
-    isBotThinking,
-    debugMessages,
-    clientRef,
-    handleConnectionToggle,
-    addDebugMessage,
-  } = useVoiceChat();
 
   return (
     <>
