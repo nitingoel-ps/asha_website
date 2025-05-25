@@ -3,6 +3,7 @@ import { RTVIClient } from '@pipecat-ai/client-js';
 import { DailyTransport } from '@pipecat-ai/daily-transport';
 import axiosInstance from '../../../utils/axiosInstance';
 import { useAuth } from '../../../context/AuthContext';
+import { useLocation } from 'react-router-dom';
 
 // Debug mode - set to true for verbose logging
 const DEBUG = true;
@@ -16,6 +17,7 @@ const debugLog = (...args) => {
 
 export const useVoiceChat = () => {
   const { user } = useAuth();
+  const location = useLocation();
   
   // State for connection and audio
   const [isConnected, setIsConnected] = useState(false);
@@ -34,6 +36,32 @@ export const useVoiceChat = () => {
   // Refs for maintaining connection state
   const clientRef = useRef(null);
   const transportRef = useRef(null);
+
+  // Function to send page context action
+  const sendPageContextAction = async () => {
+    console.log(' >>>> In sendPageContextAction, window.location.pathname:', window.location.pathname);
+    if (clientRef.current && isConnected) {
+      console.log(' >>>> In sendPageContextAction, clientRef.current:', clientRef.current);
+      console.log(' >>>> In sendPageContextAction, isConnected:', isConnected);
+      try {
+        const someAction = await clientRef.current.action({
+          service: "llm",
+          action: "append_to_messages",
+          arguments: [
+            { name: "messages", value: [{role: "system", content: "The user is currently on the page " + window.location.pathname + " of the app. Please keep this in mind when you are helping the user with their question."}] },
+          ],
+        });
+        console.log(' >> In sendPageContextAction, sent page context:', window.location.pathname);
+        console.log(' >> In sendPageContextAction, someAction:', someAction);
+        addDebugMessage(`Sent page context: ${window.location.pathname}`);
+      } catch (error) {
+        console.error('Error sending page context:', error);
+        addDebugMessage(`Error sending page context: ${error.message}`);
+      }
+    } else {
+      console.log('Cannot send page context - client not ready or not connected');
+    }
+  };
 
   // Add debug message to the list
   const addDebugMessage = (message) => {
@@ -62,6 +90,8 @@ export const useVoiceChat = () => {
           onParticipantJoined: p => {
             addDebugMessage(`${p.name || p.id} joined`);
             setParticipants(prev => [...prev, p]);
+            // Send page context when participant joins (connection is fully established)
+            setTimeout(() => sendPageContextAction(), 1000); // Add small delay to ensure everything is ready
           },
           onParticipantLeft: p => {
             addDebugMessage(`${p.name || p.id} left`);
@@ -91,6 +121,8 @@ export const useVoiceChat = () => {
               setIsConnected(true);
               setIsClientReady(true);
               setIsConnecting(false);
+              // Remove the immediate page context send from here
+              // It will be sent when the participant joins
             } else if (state === 'disconnected' || state === 'error') {
               setConnectionState('disconnected');
               setIsConnected(false);
@@ -208,6 +240,14 @@ export const useVoiceChat = () => {
       setIsConnecting(false);
     }
   };
+
+  // Effect to send page context when URL changes
+  useEffect(() => {
+    if (isConnected && clientRef.current) {
+      // Add a small delay to ensure client is ready
+      setTimeout(() => sendPageContextAction(), 500);
+    }
+  }, [location.pathname, isConnected]);
 
   // Handle connection toggle
   const handleConnectionToggle = async () => {
