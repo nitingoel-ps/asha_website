@@ -510,8 +510,8 @@
 }
 
 .microphone-icon {
-  font-size: 1.8rem !important; /* Make it bigger than other icons */
-  background-color: #20c0c3; /* Lighter shade of the navbar's teal color (#019ea1) */
+  font-size: 1.8rem !important;
+  background-color: #20c0c3; /* Default teal color for microphone state */
   color: white;
   border-radius: 50%;
   padding: 10px;
@@ -521,20 +521,49 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.2); /* Add subtle shadow for depth */
-  /*margin-top: -15px;  Pull it up slightly to stand out */
-  transition: transform 0.2s ease, background-color 0.2s ease;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  transition: all 0.3s ease;
 }
 
-.microphone-nav-item:hover .microphone-icon,
-.microphone-nav-item:focus .microphone-icon {
+/* Style for the stop button state */
+.microphone-nav-item.connected .microphone-icon {
+  background-color: #ef4444; /* A softer red color */
+  box-shadow: 0 2px 5px rgba(239, 68, 68, 0.3);
+}
+
+.microphone-nav-item:hover .microphone-icon {
   transform: scale(1.05);
-  background-color: #18b7ba; /* Slightly darker on hover but still lighter than navbar */
+}
+
+/* Different hover colors for different states */
+.microphone-nav-item:not(.connected):hover .microphone-icon {
+  background-color: #18b7ba; /* Darker teal on hover for microphone state */
+}
+
+.microphone-nav-item.connected:hover .microphone-icon {
+  background-color: #dc2626; /* Darker red on hover for stop state */
 }
 
 /* Adjust the position of other elements if needed due to the special microphone size */
 .mobile-nav-item.microphone-nav-item {
-  margin-top: -10px; /* Adjust this value to align the microphone icon nicely */
+  margin-top: -10px;
+}
+
+/* Add a subtle pulse animation when connected */
+.microphone-nav-item.connected .microphone-icon {
+  animation: pulse-red 2s infinite;
+}
+
+@keyframes pulse-red {
+  0% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 6px rgba(239, 68, 68, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+  }
 }
 
 /* Ensure user dropdown toggle (navbar-user-dropdown-name) matches main nav item hover */

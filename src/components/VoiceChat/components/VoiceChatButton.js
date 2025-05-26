@@ -39,7 +39,7 @@ const VoiceChatButton = () => {
     return (
       <>
         <button
-          className="mobile-nav-item microphone-nav-item"
+          className={`mobile-nav-item microphone-nav-item ${isConnected ? 'connected' : ''}`}
           onClick={handleClick}
           disabled={isConnecting}
         >
