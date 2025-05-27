@@ -134,14 +134,33 @@ export const useVoiceChat = () => {
   const handleNavigationMessage = (reference) => {
     console.log('[VoiceChat] Processing navigation reference:', reference);
     
-    // Extract the path from the reference string
-    const match = reference.match(/<<Ref:\s*([^>]+)>>/);
-    if (!match) {
+    // Extract the path from the reference string, handling all formats:
+    // 1. With brackets and Ref: <<Ref: section/med>>
+    // 2. With brackets without Ref: <<section/med>>
+    // 3. With Ref: prefix but no brackets: Ref: section/med
+    // 4. Plain path: section/med
+    let path;
+    
+    // Try to match with brackets first
+    const bracketMatch = reference.match(/<<(?:Ref:\s*)?([^>]+)>>/);
+    if (bracketMatch) {
+      path = bracketMatch[1].trim();
+    } else {
+      // If no brackets, try to match with Ref: prefix
+      const refMatch = reference.match(/^Ref:\s*(.+)$/);
+      if (refMatch) {
+        path = refMatch[1].trim();
+      } else {
+        // If no Ref: prefix, use the entire string
+        path = reference.trim();
+      }
+    }
+
+    if (!path) {
       console.log('[VoiceChat] Invalid reference format:', reference);
       return;
     }
 
-    const path = match[1].trim();
     console.log('[VoiceChat] Extracted path:', path);
 
     // Split the path into segments
