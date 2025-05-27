@@ -233,10 +233,12 @@ export const useVoiceChat = () => {
           },
           onUserTranscript: (data) => {
             if (data.final) {
+              console.log('[VoiceChat] User transcript:', data.text);
               addDebugMessage(`User: ${data.text}`);
             }
           },
           onBotTranscript: (data) => {
+            console.log('[VoiceChat] Bot transcript:', data.text);
             addDebugMessage(`Bot: ${data.text}`);
           },
           onError: (error) => {
