@@ -82,10 +82,9 @@ const VoiceChatButton = () => {
   return (
     <>
       <button
-        className="top-navbar-item"
+        className={`desktop-voice-chat-btn${isConnected ? ' connected' : ''}`}
         onClick={handleClick}
         disabled={isConnecting}
-        style={{ marginRight: '1rem' }}
       >
         {isConnected ? (
           <>

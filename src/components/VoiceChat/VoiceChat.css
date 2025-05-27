@@ -113,4 +113,47 @@
   100% {
     opacity: 1;
   }
+}
+
+@media (min-width: 992px) {
+  .desktop-voice-chat-btn {
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.97rem;
+    font-weight: 500;
+    padding: 0.32rem 0.85rem;
+    border: 2px solid #20c0c3;
+    background: white;
+    color: #20c0c3;
+    border-radius: 18px;
+    outline: none;
+    box-shadow: none;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(.4,0,.2,1);
+    margin-right: 1rem;
+    height: 36px;
+    min-width: 0;
+    line-height: 1.1;
+    gap: 0.4rem;
+    margin-top: 22px;
+    vertical-align: middle;
+  }
+  .desktop-voice-chat-btn svg {
+    margin-right: 0.4rem;
+    vertical-align: middle;
+  }
+  .desktop-voice-chat-btn.connected {
+    border-color: #ef4444;
+    color: #ef4444;
+    background: white;
+  }
+  .desktop-voice-chat-btn.connected:hover:not(:disabled) {
+    border-color: #dc2626;
+    color: #dc2626;
+    background: #fff0f0;
+  }
+  .desktop-voice-chat-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
 } 
