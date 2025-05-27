@@ -188,6 +188,7 @@ export const useVoiceChat = () => {
     // 2. With brackets without Ref: <<section/med>>
     // 3. With Ref: prefix but no brackets: Ref: section/med
     // 4. Plain path: section/med
+    // 5. New: Ref: app/xyz or <<Ref: app/xyz>>
     let path;
     
     // Try to match with brackets first
@@ -211,6 +212,13 @@ export const useVoiceChat = () => {
     }
 
     console.log('[VoiceChat] Extracted path:', path);
+
+    // Handle new app/xyz pattern
+    if (path.startsWith('app/')) {
+      const appPath = path.replace(/^app\//, '');
+      navigate(`/${appPath}`);
+      return;
+    }
 
     // Split the path into segments
     const segments = path.split('/');
