@@ -383,7 +383,7 @@ function LoggedInNavbar() {
       </Nav.Link>
       <Nav.Link 
         as={Link} 
-        to="/new-voice-chat" 
+        to="/ai-chat" 
         className="nav-item"
         onClick={closeMenu}
       >
@@ -412,7 +412,7 @@ function LoggedInNavbar() {
                 <Nav.Link as={Link} to="/add-health-data" className="top-navbar-item">
                   Add Data
                 </Nav.Link>
-                <Nav.Link as={Link} to="/new-voice-chat" className="top-navbar-item">
+                <Nav.Link as={Link} to="/ai-chat" className="top-navbar-item">
                   Chat with AI
                 </Nav.Link>
               </Nav>
