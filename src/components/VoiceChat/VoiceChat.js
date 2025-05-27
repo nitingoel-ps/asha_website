@@ -18,6 +18,7 @@ export const VoiceChat = ({
   isUserSpeaking,
   isBotSpeaking,
   isBotThinking,
+  hasBotJoined,
   debugMessages,
   clientRef,
   handleConnectionToggle,
@@ -35,6 +36,7 @@ export const VoiceChat = ({
         isUserSpeaking={isUserSpeaking}
         userAudioLevel={userAudioLevel}
         botAudioLevel={botAudioLevel}
+        hasBotJoined={hasBotJoined}
       />
       
       {/* Audio Provider */}

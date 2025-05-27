@@ -10,6 +10,7 @@ export const VoiceChatOverlay = ({
   isUserSpeaking,
   userAudioLevel,
   botAudioLevel,
+  hasBotJoined,
 }) => {
   const getStatusClass = () => {
     // Disconnected state takes precedence over all other states
@@ -20,7 +21,8 @@ export const VoiceChatOverlay = ({
     if (isBotThinking) return 'thinking';
     if (isBotSpeaking) return 'bot-speaking';
     if (isUserSpeaking) return 'user-speaking';
-    if (isConnected) return 'ready';
+    if (isConnected && hasBotJoined) return 'ready';
+    if (isConnected && !hasBotJoined) return 'waiting';
     
     return 'disconnected';
   };
