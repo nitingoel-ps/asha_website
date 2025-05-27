@@ -140,8 +140,8 @@
 @media (min-width: 992px) {
   .voice-chat-overlay {
     position: fixed;
-    top: 66px;
-    right: 200px;
+    top: 10px;
+    right: 680px;
     left: auto;
     justify-content: flex-end;
     z-index: 11000;
