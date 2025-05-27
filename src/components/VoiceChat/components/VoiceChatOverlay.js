@@ -1,6 +1,7 @@
 import React from 'react';
 import { Volume2 } from 'lucide-react';
 import './VoiceChatOverlay.css';
+import { useEffect } from 'react';
 
 export const VoiceChatOverlay = ({
   isConnected,
@@ -12,6 +13,28 @@ export const VoiceChatOverlay = ({
   botAudioLevel,
   hasBotJoined,
 }) => {
+  useEffect(() => {
+    console.log('[VoiceChatOverlay] State changed:', {
+      isConnected,
+      isConnecting,
+      isBotThinking,
+      isBotSpeaking,
+      isUserSpeaking,
+      userAudioLevel,
+      botAudioLevel,
+      hasBotJoined
+    });
+  }, [
+    isConnected,
+    isConnecting,
+    isBotThinking,
+    isBotSpeaking,
+    isUserSpeaking,
+    userAudioLevel,
+    botAudioLevel,
+    hasBotJoined
+  ]);
+
   const getStatusClass = () => {
     // Disconnected state takes precedence over all other states
     if (!isConnected && !isConnecting) return 'disconnected';

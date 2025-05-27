@@ -22,7 +22,8 @@ const VoiceChatButton = () => {
     connect,
     disconnect,
     handleConnectionToggle,
-    addDebugMessage
+    addDebugMessage,
+    hasBotJoined
   } = useVoiceChatControls();
 
   const isMobile = useMediaQuery({ maxWidth: 991 });
@@ -72,6 +73,7 @@ const VoiceChatButton = () => {
             clientRef={clientRef}
             handleConnectionToggle={handleConnectionToggle}
             addDebugMessage={addDebugMessage}
+            hasBotJoined={hasBotJoined}
           />
         )}
       </>
@@ -118,6 +120,7 @@ const VoiceChatButton = () => {
           clientRef={clientRef}
           handleConnectionToggle={handleConnectionToggle}
           addDebugMessage={addDebugMessage}
+          hasBotJoined={hasBotJoined}
         />
       )}
     </>

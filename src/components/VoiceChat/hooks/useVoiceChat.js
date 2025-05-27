@@ -524,6 +524,7 @@ export const useVoiceChat = () => {
     isBotThinking,
     debugMessages,
     clientRef,
+    hasBotJoined,
     
     // Actions
     connect,
