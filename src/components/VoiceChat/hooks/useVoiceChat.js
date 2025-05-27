@@ -38,6 +38,8 @@ export const useVoiceChat = () => {
   // Refs for maintaining connection state
   const clientRef = useRef(null);
   const transportRef = useRef(null);
+  const lastActivityRef = useRef(Date.now());
+  const inactivityTimerRef = useRef(null);
   
   // Refs for immediate state access
   const stateRef = useRef({
@@ -48,6 +50,53 @@ export const useVoiceChat = () => {
     hasBotJoined: false,
     participants: []
   });
+
+  // Function to check for inactivity and disconnect if needed
+  const checkInactivity = () => {
+    const timeSinceLastActivity = Date.now() - lastActivityRef.current;
+    console.log('[VoiceChat] Checking inactivity:', {
+      timeSinceLastActivity,
+      lastActivity: new Date(lastActivityRef.current).toISOString(),
+      currentTime: new Date().toISOString()
+    });
+
+    if (timeSinceLastActivity >= 120000) { // 2 minutes in milliseconds
+      console.log('[VoiceChat] Inactivity timeout reached, disconnecting...');
+      addDebugMessage('Disconnecting due to inactivity');
+      if (clientRef.current) {
+        clientRef.current.disconnect();
+      }
+    }
+  };
+
+  // Function to reset the inactivity timer
+  const resetInactivityTimer = () => {
+    lastActivityRef.current = Date.now();
+    console.log('[VoiceChat] Resetting inactivity timer:', new Date(lastActivityRef.current).toISOString());
+    
+    // Clear existing timer if any
+    if (inactivityTimerRef.current) {
+      clearTimeout(inactivityTimerRef.current);
+    }
+    
+    // Set new timer
+    inactivityTimerRef.current = setTimeout(checkInactivity, 120000); // Check after 2 minutes
+  };
+
+  // Function to update last activity timestamp
+  const updateLastActivity = () => {
+    lastActivityRef.current = Date.now();
+    console.log('[VoiceChat] Updating last activity:', new Date(lastActivityRef.current).toISOString());
+    resetInactivityTimer();
+  };
+
+  // Cleanup function for inactivity timer
+  const cleanupInactivityTimer = () => {
+    if (inactivityTimerRef.current) {
+      clearTimeout(inactivityTimerRef.current);
+      inactivityTimerRef.current = null;
+    }
+  };
 
   // Update both state and ref
   const updateState = (updates) => {
@@ -235,11 +284,13 @@ export const useVoiceChat = () => {
             if (data.final) {
               console.log('[VoiceChat] User transcript:', data.text);
               addDebugMessage(`User: ${data.text}`);
+              updateLastActivity(); // Reset inactivity timer on user speech
             }
           },
           onBotTranscript: (data) => {
             console.log('[VoiceChat] Bot transcript:', data.text);
             addDebugMessage(`Bot: ${data.text}`);
+            updateLastActivity(); // Reset inactivity timer on bot speech
           },
           onError: (error) => {
             addDebugMessage(`Error: ${error.message}`);
@@ -256,6 +307,7 @@ export const useVoiceChat = () => {
               isConnecting: false
             });
             logStateChange('onConnected', 'connected');
+            resetInactivityTimer(); // Start inactivity timer on connection
           },
           onDisconnected: () => {
             console.log('[VoiceChat] onDisconnected event received.');
@@ -267,6 +319,7 @@ export const useVoiceChat = () => {
               hasBotJoined: false
             });
             logStateChange('onDisconnected', 'disconnected');
+            cleanupInactivityTimer(); // Clean up timer on disconnect
           },
           onBotConnected: () => {
             console.log('[VoiceChat] onBotConnected event received.');
@@ -391,6 +444,7 @@ export const useVoiceChat = () => {
       setIsConnecting(false);
       setHasBotJoined(false);
       logStateChange('initializeConnection', 'error');
+      cleanupInactivityTimer(); // Clean up timer on error
     }
   };
 
@@ -440,6 +494,7 @@ export const useVoiceChat = () => {
   // Cleanup on unmount
   useEffect(() => {
     return () => {
+      cleanupInactivityTimer();
       if (clientRef.current) {
         clientRef.current.disconnect();
       }
