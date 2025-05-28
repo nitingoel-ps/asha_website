@@ -13,27 +13,6 @@ export const VoiceChatOverlay = ({
   botAudioLevel,
   hasBotJoined,
 }) => {
-  useEffect(() => {
-    console.log('[VoiceChatOverlay] State changed:', {
-      isConnected,
-      isConnecting,
-      isBotThinking,
-      isBotSpeaking,
-      isUserSpeaking,
-      userAudioLevel,
-      botAudioLevel,
-      hasBotJoined
-    });
-  }, [
-    isConnected,
-    isConnecting,
-    isBotThinking,
-    isBotSpeaking,
-    isUserSpeaking,
-    userAudioLevel,
-    botAudioLevel,
-    hasBotJoined
-  ]);
 
   const getStatusClass = () => {
     // Disconnected state takes precedence over all other states
