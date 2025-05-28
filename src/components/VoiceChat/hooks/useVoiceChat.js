@@ -51,6 +51,10 @@ export const useVoiceChat = () => {
     participants: []
   });
 
+  // Error debouncing state
+  const lastErrorRef = useRef({ message: null, timestamp: 0 });
+  const ERROR_DEBOUNCE_MS = 2000;
+
   // Function to check for inactivity and disconnect if needed
   const checkInactivity = () => {
     const timeSinceLastActivity = Date.now() - lastActivityRef.current;
@@ -340,9 +344,28 @@ export const useVoiceChat = () => {
             updateLastActivity(); // Reset inactivity timer on bot speech
           },
           onError: (error) => {
-            addDebugMessage(`Error: ${error.message}`);
-            setError(error.message);
+            // Debounce repeated errors
+            const now = Date.now();
+            const errorMsg = error?.message || (typeof error === 'string' ? error : JSON.stringify(error));
+            if (
+              lastErrorRef.current.message === errorMsg &&
+              now - lastErrorRef.current.timestamp < ERROR_DEBOUNCE_MS
+            ) {
+              // Skip logging repeated error
+              return;
+            }
+            lastErrorRef.current = { message: errorMsg, timestamp: now };
+
+            // Log full error details
+            console.error('[VoiceChat] Full error object:', error);
+            addDebugMessage(`Error: ${errorMsg}`);
+            setError(errorMsg);
             setIsConnecting(false);
+
+            // Optionally, show a user-friendly message if fatal
+            if (error?.fatal) {
+              alert('A fatal error occurred in the voice chat connection. Please refresh the page or try again later.');
+            }
           },
           onConnected: () => {
             console.log('[VoiceChat] onConnected event received.');

@@ -84,9 +84,15 @@
 }
 
 .status-indicator.thinking {
-  background-color: #7e22ce;
-  border-color: #7e22ce;
-  animation: pulse 1.5s infinite;
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  background: #fff !important;
+  border: 3px solid #e0e0e0;
+  border-top: 3px solid #20c0c3;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  box-shadow: 0 0 6px 1px #20c0c333;
 }
 
 .audio-levels {
