@@ -165,6 +165,44 @@ export const useVoiceChat = () => {
     }
   };
 
+  // Function to send timezone context action
+  const sendTimezoneContextAction = async () => {
+    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    console.log('[VoiceChat] Attempting to send timezone context:', {
+      hasClient: !!clientRef.current,
+      isConnected: stateRef.current.isConnected,
+      hasBotJoined: stateRef.current.hasBotJoined,
+      timezone
+    });
+
+    if (clientRef.current && stateRef.current.isConnected && stateRef.current.hasBotJoined) {
+      try {
+        const someAction = await clientRef.current.action({
+          service: "llm",
+          action: "append_to_messages",
+          arguments: [
+            { name: "messages", value: [{role: "system", content: `The user's current timezone is ${timezone}. Please use this information to convert times and dates appropriately when assisting the user.`}] },
+          ],
+        });
+        console.log('[VoiceChat] Successfully sent timezone context:', {
+          timezone,
+          action: someAction
+        });
+        addDebugMessage(`Sent timezone context: ${timezone}`);
+      } catch (error) {
+        console.error('[VoiceChat] Error sending timezone context:', error);
+        addDebugMessage(`Error sending timezone context: ${error.message}`);
+      }
+    } else {
+      console.log('[VoiceChat] Cannot send timezone context:', {
+        hasClient: !!clientRef.current,
+        isConnected: stateRef.current.isConnected,
+        hasBotJoined: stateRef.current.hasBotJoined,
+        reason: !clientRef.current ? 'No client' : !stateRef.current.isConnected ? 'Not connected' : 'Bot not joined'
+      });
+    }
+  };
+
   // Add debug message to the list
   const addDebugMessage = (message) => {
     console.log('[VoiceChat Debug]', message);
@@ -273,6 +311,7 @@ export const useVoiceChat = () => {
               updateState({ hasBotJoined: true });
               logStateChange('onParticipantJoined', 'assistant joined');
               setTimeout(() => sendPageContextAction(), 1000);
+              setTimeout(() => sendTimezoneContextAction(), 1200);
             }
           },
           onParticipantLeft: p => {

@@ -1,24 +1,3 @@
-.status-indicator {
-  display: inline-block;
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  margin-right: 8px;
-}
-
-.status-indicator.ready {
-  background-color: #28a745;
-}
-
-.status-indicator.waiting {
-  background-color: #ffc107;
-  animation: pulse 1.5s infinite;
-}
-
-.status-indicator.disconnected {
-  background-color: #dc3545;
-}
-
 .voice-chat-controls {
   display: flex;
   gap: 0.5rem;

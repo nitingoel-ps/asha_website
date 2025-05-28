@@ -43,16 +43,27 @@
 }
 
 .status-indicator.connecting {
-  background-color: transparent;
-  border-color: #d97706;
-  border-top-color: transparent;
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  background: #fff !important;
+  border: 3px solid #e0e0e0;
+  border-top: 3px solid #20c0c3;
+  border-radius: 50%;
   animation: spin 1s linear infinite;
+  box-shadow: 0 0 6px 1px #20c0c333;
 }
 
 .status-indicator.waiting {
-  background-color: #f59e0b;
-  border-color: #f59e0b;
-  animation: pulse 1.5s infinite;
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  background: #fff !important;
+  border: 3px solid #e0e0e0;
+  border-top: 3px solid #fbbf24;
+  border-radius: 50%;
+  animation: spin 1.2s linear infinite, pulse-wait 1.5s infinite;
+  box-shadow: 0 0 8px 2px #fbbf2433;
 }
 
 .status-indicator.ready {
@@ -129,12 +140,14 @@
 }
 
 @keyframes spin {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes pulse-wait {
+  0% { box-shadow: 0 0 8px 2px #fbbf2433; }
+  50% { box-shadow: 0 0 16px 4px #fbbf2477; }
+  100% { box-shadow: 0 0 8px 2px #fbbf2433; }
 }
 
 @media (min-width: 992px) {
