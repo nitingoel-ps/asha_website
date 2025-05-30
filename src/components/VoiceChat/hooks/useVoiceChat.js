@@ -314,8 +314,9 @@ export const useVoiceChat = () => {
               console.log('[VoiceChat] Assistant joined, updating state');
               updateState({ hasBotJoined: true });
               logStateChange('onParticipantJoined', 'assistant joined');
-              setTimeout(() => sendPageContextAction(), 1000);
-              setTimeout(() => sendTimezoneContextAction(), 1200);
+              // Temporarily disable context actions. See if disabling this eliminates the intermittent barrage of error issues.
+              // setTimeout(() => sendPageContextAction(), 1000);
+              // setTimeout(() => sendTimezoneContextAction(), 1200);
             }
           },
           onParticipantLeft: p => {
@@ -522,7 +523,8 @@ export const useVoiceChat = () => {
   useEffect(() => {
     if (isConnected && clientRef.current) {
       // Add a small delay to ensure client is ready
-      setTimeout(() => sendPageContextAction(), 500);
+      // Temporarily disable context actions. See if disabling this eliminates the intermittent barrage of error issues.
+      // setTimeout(() => sendPageContextAction(), 500);
     }
   }, [location.pathname, isConnected]);
 
