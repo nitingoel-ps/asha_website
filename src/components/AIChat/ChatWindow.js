@@ -448,15 +448,6 @@ function ChatWindow({ session, onSessionCreated, sessions = [], onSelectSession,
     }
   };
 
-  // Function to handle navigation to voice streaming page
-  const handleMicrophoneClick = () => {
-    // If we have a current session, pass its ID to the voice chat page
-    if (session?.id) {
-      navigate(`/new-voice-chat?session_id=${session.id}`);
-    } else {
-      navigate('/new-voice-chat');
-    }
-  };
 
   const handleToggleChat = (session) => {
     // If selecting a session, close the chat list
@@ -468,15 +459,6 @@ function ChatWindow({ session, onSessionCreated, sessions = [], onSelectSession,
 
   return (
     <div className="ai-chat-window">
-      {/* Microphone button - only visible on desktop/tablet */}
-      <Button
-        className="mic-btn d-none d-md-flex"
-        onClick={handleMicrophoneClick}
-        aria-label="Switch to voice chat"
-        variant="link"
-      >
-        <FiMic size={24} />
-      </Button>
       
       <div className={`ai-chat-sidebar ${isChatListVisible ? 'd-block' : 'd-none'}`}>
         <ChatList

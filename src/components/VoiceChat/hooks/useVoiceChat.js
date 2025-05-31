@@ -1,0 +1,599 @@
+import { useState, useEffect, useRef } from 'react';
+import { RTVIClient } from '@pipecat-ai/client-js';
+import { DailyTransport } from '@pipecat-ai/daily-transport';
+import axiosInstance from '../../../utils/axiosInstance';
+import { useAuth } from '../../../context/AuthContext';
+import { useLocation, useNavigate } from 'react-router-dom';
+
+// Debug mode - set to true for verbose logging
+const DEBUG = true;
+
+// Debug log function
+const debugLog = (...args) => {
+  if (DEBUG) {
+    console.log('[VoiceChat]', ...args);
+  }
+};
+
+export const useVoiceChat = () => {
+  const { user } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
+  
+  // State for connection and audio
+  const [isConnected, setIsConnected] = useState(false);
+  const [isConnecting, setIsConnecting] = useState(false);
+  const [error, setError] = useState(null);
+  const [connectionState, setConnectionState] = useState('disconnected');
+  const [isClientReady, setIsClientReady] = useState(false);
+  const [hasBotJoined, setHasBotJoined] = useState(false);
+  const [participants, setParticipants] = useState([]);
+  const [userAudioLevel, setUserAudioLevel] = useState(0);
+  const [botAudioLevel, setBotAudioLevel] = useState(0);
+  const [isUserSpeaking, setIsUserSpeaking] = useState(false);
+  const [isBotSpeaking, setIsBotSpeaking] = useState(false);
+  const [isBotThinking, setIsBotThinking] = useState(false);
+  const [debugMessages, setDebugMessages] = useState([]);
+
+  // Refs for maintaining connection state
+  const clientRef = useRef(null);
+  const transportRef = useRef(null);
+  const lastActivityRef = useRef(Date.now());
+  const inactivityTimerRef = useRef(null);
+  
+  // Refs for immediate state access
+  const stateRef = useRef({
+    isConnected: false,
+    isConnecting: false,
+    connectionState: 'disconnected',
+    isClientReady: false,
+    hasBotJoined: false,
+    participants: []
+  });
+
+  // Error debouncing state
+  const lastErrorRef = useRef({ message: null, timestamp: 0 });
+  const ERROR_DEBOUNCE_MS = 2000;
+
+  // Function to check for inactivity and disconnect if needed
+  const checkInactivity = () => {
+    const timeSinceLastActivity = Date.now() - lastActivityRef.current;
+    console.log('[VoiceChat] Checking inactivity:', {
+      timeSinceLastActivity,
+      lastActivity: new Date(lastActivityRef.current).toISOString(),
+      currentTime: new Date().toISOString()
+    });
+
+    if (timeSinceLastActivity >= 120000) { // 2 minutes in milliseconds
+      console.log('[VoiceChat] Inactivity timeout reached, disconnecting...');
+      addDebugMessage('Disconnecting due to inactivity');
+      if (clientRef.current) {
+        clientRef.current.disconnect();
+      }
+    }
+  };
+
+  // Function to reset the inactivity timer
+  const resetInactivityTimer = () => {
+    lastActivityRef.current = Date.now();
+    console.log('[VoiceChat] Resetting inactivity timer:', new Date(lastActivityRef.current).toISOString());
+    
+    // Clear existing timer if any
+    if (inactivityTimerRef.current) {
+      clearTimeout(inactivityTimerRef.current);
+    }
+    
+    // Set new timer
+    inactivityTimerRef.current = setTimeout(checkInactivity, 120000); // Check after 2 minutes
+  };
+
+  // Function to update last activity timestamp
+  const updateLastActivity = () => {
+    lastActivityRef.current = Date.now();
+    console.log('[VoiceChat] Updating last activity:', new Date(lastActivityRef.current).toISOString());
+    resetInactivityTimer();
+  };
+
+  // Cleanup function for inactivity timer
+  const cleanupInactivityTimer = () => {
+    if (inactivityTimerRef.current) {
+      clearTimeout(inactivityTimerRef.current);
+      inactivityTimerRef.current = null;
+    }
+  };
+
+  // Update both state and ref
+  const updateState = (updates) => {
+    // Update the ref immediately
+    stateRef.current = { ...stateRef.current, ...updates };
+    
+    // Update React state
+    Object.entries(updates).forEach(([key, value]) => {
+      switch(key) {
+        case 'isConnected':
+          setIsConnected(value);
+          break;
+        case 'isConnecting':
+          setIsConnecting(value);
+          break;
+        case 'connectionState':
+          setConnectionState(value);
+          break;
+        case 'isClientReady':
+          setIsClientReady(value);
+          break;
+        case 'hasBotJoined':
+          setHasBotJoined(value);
+          break;
+        case 'participants':
+          setParticipants(value);
+          break;
+      }
+    });
+  };
+
+  // Function to send page context action
+  const sendPageContextAction = async () => {
+    console.log('[VoiceChat] Attempting to send page context:', {
+      hasClient: !!clientRef.current,
+      isConnected: stateRef.current.isConnected,
+      hasBotJoined: stateRef.current.hasBotJoined,
+      pathname: window.location.pathname
+    });
+
+    if (clientRef.current && stateRef.current.isConnected && stateRef.current.hasBotJoined) {
+      try {
+        const someAction = await clientRef.current.action({
+          service: "llm",
+          action: "append_to_messages",
+          arguments: [
+            { name: "messages", value: [{role: "system", content: "The user is currently on the page " + window.location.pathname + " of the app. Please keep this in mind when you are helping the user with their question."}] },
+          ],
+        });
+        console.log('[VoiceChat] Successfully sent page context:', {
+          pathname: window.location.pathname,
+          action: someAction
+        });
+        addDebugMessage(`Sent page context: ${window.location.pathname}`);
+      } catch (error) {
+        console.error('[VoiceChat] Error sending page context:', error);
+        addDebugMessage(`Error sending page context: ${error.message}`);
+      }
+    } else {
+      console.log('[VoiceChat] Cannot send page context:', {
+        hasClient: !!clientRef.current,
+        isConnected: stateRef.current.isConnected,
+        hasBotJoined: stateRef.current.hasBotJoined,
+        reason: !clientRef.current ? 'No client' : !stateRef.current.isConnected ? 'Not connected' : 'Bot not joined'
+      });
+    }
+  };
+
+  // Function to send timezone context action
+  const sendTimezoneContextAction = async () => {
+    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    console.log('[VoiceChat] Attempting to send timezone context:', {
+      hasClient: !!clientRef.current,
+      isConnected: stateRef.current.isConnected,
+      hasBotJoined: stateRef.current.hasBotJoined,
+      timezone
+    });
+
+    if (clientRef.current && stateRef.current.isConnected && stateRef.current.hasBotJoined) {
+      try {
+        const someAction = await clientRef.current.action({
+          service: "llm",
+          action: "append_to_messages",
+          arguments: [
+            { name: "messages", value: [{role: "system", content: `The user's current timezone is ${timezone}. Please use this information to convert times and dates appropriately when assisting the user.`}] },
+          ],
+        });
+        console.log('[VoiceChat] Successfully sent timezone context:', {
+          timezone,
+          action: someAction
+        });
+        addDebugMessage(`Sent timezone context: ${timezone}`);
+      } catch (error) {
+        console.error('[VoiceChat] Error sending timezone context:', error);
+        addDebugMessage(`Error sending timezone context: ${error.message}`);
+      }
+    } else {
+      console.log('[VoiceChat] Cannot send timezone context:', {
+        hasClient: !!clientRef.current,
+        isConnected: stateRef.current.isConnected,
+        hasBotJoined: stateRef.current.hasBotJoined,
+        reason: !clientRef.current ? 'No client' : !stateRef.current.isConnected ? 'Not connected' : 'Bot not joined'
+      });
+    }
+  };
+
+  // Add debug message to the list
+  const addDebugMessage = (message) => {
+    console.log('[VoiceChat Debug]', message);
+    setDebugMessages(prev => [...prev, `${new Date().toISOString()}: ${message}`].slice(-10));
+  };
+
+  // Add a function to log state changes
+  const logStateChange = (source, newState) => {
+    console.log(`[VoiceChat State Change] ${source}:`, {
+      ...stateRef.current,
+      newState
+    });
+  };
+
+  // Handler for navigation messages
+  const handleNavigationMessage = (reference) => {
+    console.log('[VoiceChat] Processing navigation reference:', reference);
+    
+    // Extract the path from the reference string, handling all formats:
+    // 1. With brackets and Ref: <<Ref: section/med>>
+    // 2. With brackets without Ref: <<section/med>>
+    // 3. With Ref: prefix but no brackets: Ref: section/med
+    // 4. Plain path: section/med
+    // 5. New: Ref: app/xyz or <<Ref: app/xyz>>
+    let path;
+    
+    // Try to match with brackets first
+    const bracketMatch = reference.match(/<<(?:Ref:\s*)?([^>]+)>>/);
+    if (bracketMatch) {
+      path = bracketMatch[1].trim();
+    } else {
+      // If no brackets, try to match with Ref: prefix
+      const refMatch = reference.match(/^Ref:\s*(.+)$/);
+      if (refMatch) {
+        path = refMatch[1].trim();
+      } else {
+        // If no Ref: prefix, use the entire string
+        path = reference.trim();
+      }
+    }
+
+    if (!path) {
+      console.log('[VoiceChat] Invalid reference format:', reference);
+      return;
+    }
+
+    console.log('[VoiceChat] Extracted path:', path);
+
+    // Handle new app/xyz pattern
+    if (path.startsWith('app/')) {
+      const appPath = path.replace(/^app\//, '');
+      navigate(`/${appPath}`);
+      return;
+    }
+
+    // Split the path into segments
+    const segments = path.split('/');
+    
+    // Handle different navigation patterns
+    if (segments[0] === 'section') {
+      // Format: section/med -> /patient-dashboard/med
+      const section = segments[1];
+      navigate(`/patient-dashboard/${section}`);
+    } else if (segments.length === 2) {
+      // Format: med/18 -> /patient-dashboard/med/18
+      const [section, id] = segments;
+      navigate(`/patient-dashboard/${section}/${id}`);
+    } else {
+      console.log('[VoiceChat] Unrecognized navigation pattern:', path);
+    }
+  };
+
+  // Initialize connection
+  const initializeConnection = async () => {
+    try {
+      updateState({
+        isConnecting: true,
+        error: null,
+        connectionState: 'connecting',
+        isConnected: false,
+        isClientReady: false,
+        hasBotJoined: false
+      });
+      addDebugMessage('Initializing connection...');
+      logStateChange('initializeConnection', 'starting');
+
+      const baseUrl = process.env.REACT_APP_API_BASE_URL || '';
+      const connectEndpoint = '/voice/connect/';
+      
+      // Create transport
+      const transport = new DailyTransport();
+      transportRef.current = transport;
+
+      // Create RTVIClient with full configuration
+      const client = new RTVIClient({
+        transport,
+        enableMic: true,
+        callbacks: {
+          onParticipantJoined: p => {
+            console.log('[VoiceChat] Participant joined - Full object:', JSON.stringify(p, null, 2));
+            const newParticipants = [...stateRef.current.participants, p];
+            updateState({ participants: newParticipants });
+            
+            if (p.name?.includes('Assistant')) {
+              console.log('[VoiceChat] Assistant joined, updating state');
+              updateState({ hasBotJoined: true });
+              logStateChange('onParticipantJoined', 'assistant joined');
+              // Temporarily disable context actions. See if disabling this eliminates the intermittent barrage of error issues.
+              // setTimeout(() => sendPageContextAction(), 1000);
+              // setTimeout(() => sendTimezoneContextAction(), 1200);
+            }
+          },
+          onParticipantLeft: p => {
+            const newParticipants = stateRef.current.participants.filter(participant => participant.id !== p.id);
+            updateState({ participants: newParticipants });
+            
+            if (p.name?.includes('Assistant')) {
+              console.log('[VoiceChat] Assistant left, updating state');
+              updateState({ hasBotJoined: false });
+              logStateChange('onParticipantLeft', 'assistant left');
+            }
+          },
+          onParticipantUpdated: p => {
+            addDebugMessage(`participantUpdated: ${JSON.stringify(p)}`);
+          },
+          onUserTranscript: (data) => {
+            if (data.final) {
+              console.log('[VoiceChat] User transcript:', data.text);
+              addDebugMessage(`User: ${data.text}`);
+              updateLastActivity(); // Reset inactivity timer on user speech
+            }
+          },
+          onBotTranscript: (data) => {
+            console.log('[VoiceChat] Bot transcript:', data.text);
+            addDebugMessage(`Bot: ${data.text}`);
+            updateLastActivity(); // Reset inactivity timer on bot speech
+          },
+          onError: (error) => {
+            // Debounce repeated errors
+            const now = Date.now();
+            const errorMsg = error?.message || (typeof error === 'string' ? error : JSON.stringify(error));
+            if (
+              lastErrorRef.current.message === errorMsg &&
+              now - lastErrorRef.current.timestamp < ERROR_DEBOUNCE_MS
+            ) {
+              // Skip logging repeated error
+              return;
+            }
+            lastErrorRef.current = { message: errorMsg, timestamp: now };
+
+            // Log full error details
+            console.error('[VoiceChat] Full error object:', error);
+            addDebugMessage(`Error: ${errorMsg}`);
+            setError(errorMsg);
+            setIsConnecting(false);
+
+            // Optionally, show a user-friendly message if fatal
+            if (error?.fatal) {
+              alert('A fatal error occurred in the voice chat connection. Please refresh the page or try again later.');
+            }
+          },
+          onConnected: () => {
+            console.log('[VoiceChat] onConnected event received.');
+            addDebugMessage(`Client has now connected to the chat room.`);
+            updateState({
+              connectionState: 'connected',
+              isConnected: true,
+              isClientReady: true,
+              isConnecting: false
+            });
+            logStateChange('onConnected', 'connected');
+            resetInactivityTimer(); // Start inactivity timer on connection
+          },
+          onDisconnected: () => {
+            console.log('[VoiceChat] onDisconnected event received.');
+            addDebugMessage(`Client has now disconnected from the chat room.`);
+            updateState({
+              connectionState: 'disconnected',
+              isConnected: false,
+              isClientReady: false,
+              hasBotJoined: false
+            });
+            logStateChange('onDisconnected', 'disconnected');
+            cleanupInactivityTimer(); // Clean up timer on disconnect
+          },
+          onBotConnected: () => {
+            console.log('[VoiceChat] onBotConnected event received.');
+            addDebugMessage(`Bot has now connected to the chat room.`);
+            updateState({ hasBotJoined: true });
+            logStateChange('onBotConnected', 'bot connected');
+          },
+          onBotDisconnected: () => {
+            console.log('[VoiceChat] onBotDisconnected event received.');
+            addDebugMessage(`Bot has now disconnected from the chat room.`);
+            updateState({ hasBotJoined: false });
+            logStateChange('onBotDisconnected', 'bot disconnected');
+          },
+          onTransportStateChanged: (state) => {
+            console.log('[VoiceChat] Transport state changed:', {
+              newState: state,
+              currentState: {
+                isConnected: stateRef.current.isConnected,
+                isConnecting: stateRef.current.isConnecting,
+                connectionState: stateRef.current.connectionState,
+                isClientReady: stateRef.current.isClientReady,
+                hasBotJoined: stateRef.current.hasBotJoined
+              }
+            });
+            addDebugMessage(`Transport state changed to: ${state}`);
+          },
+          onServerMessage: (message) => {
+            console.log('[VoiceChat] Server message received:', message);
+            addDebugMessage(`Server message received: ${message}`);
+
+            // Handle navigation messages
+            if (message.type === 'navigate' && message.reference) {
+              handleNavigationMessage(message.reference);
+            }
+          },
+          onLocalAudioLevel: (level) => {
+            setUserAudioLevel(level);
+          },
+          onRemoteAudioLevel: (level) => {
+            setBotAudioLevel(level);
+          },
+          onBotStartedSpeaking: () => {
+            setIsBotSpeaking(true);
+            addDebugMessage('Bot started speaking');
+          },
+          onBotStoppedSpeaking: () => {
+            setIsBotSpeaking(false);
+            setBotAudioLevel(0);
+            addDebugMessage('Bot stopped speaking');
+          },
+          onUserStartedSpeaking: () => {
+            setIsUserSpeaking(true);
+            addDebugMessage('User started speaking');
+          },
+          onUserStoppedSpeaking: () => {
+            setIsUserSpeaking(false);
+            setUserAudioLevel(0);
+            addDebugMessage('User stopped speaking');
+          },
+          onBotLlmStarted: () => {
+            setIsBotThinking(true);
+            addDebugMessage('Bot started thinking');
+          },
+          onBotLlmStopped: () => {
+            setIsBotThinking(false);
+            addDebugMessage('Bot finished thinking');
+          },
+        },
+        params: {
+          baseUrl: baseUrl,
+          endpoints: {
+            connect: connectEndpoint,
+            action: '/voice/action/'
+          },
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('access_token')}`,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          }
+        },
+        customConnectHandler: async (params, timeout, abortController) => {
+          try {
+            const response = await axiosInstance.post(params.endpoints.connect);
+            const { url: roomUrl, token } = response.data;
+            
+            await transportRef.current.preAuth({
+              url: roomUrl,
+              token: token,
+              userName: user?.first_name || 'Guest'
+            });
+            
+            if (timeout) {
+              clearTimeout(timeout);
+            }
+            
+            return response.data;
+          } catch (error) {
+            addDebugMessage(`Connect request failed: ${error.message}`);
+            throw error;
+          }
+        }
+      });
+      clientRef.current = client;
+
+      addDebugMessage('RTVIClient created, attempting to connect...');
+
+      // Connect the client
+      await client.connect();
+      addDebugMessage('Client connected successfully');
+      setConnectionState('connected');
+      setIsConnected(true);
+      setIsClientReady(true);
+      setIsConnecting(false);
+
+    } catch (error) {
+      console.error('[VoiceChat] Error initializing connection:', error);
+      addDebugMessage(`Error initializing connection: ${error.message}`);
+      setError(error.message);
+      setConnectionState('disconnected');
+      setIsConnected(false);
+      setIsClientReady(false);
+      setIsConnecting(false);
+      setHasBotJoined(false);
+      logStateChange('initializeConnection', 'error');
+      cleanupInactivityTimer(); // Clean up timer on error
+    }
+  };
+
+  // Effect to send page context when URL changes
+  useEffect(() => {
+    if (isConnected && clientRef.current) {
+      // Add a small delay to ensure client is ready
+      // Temporarily disable context actions. See if disabling this eliminates the intermittent barrage of error issues.
+      // setTimeout(() => sendPageContextAction(), 500);
+    }
+  }, [location.pathname, isConnected]);
+
+  // Handle connection toggle
+  const handleConnectionToggle = async () => {
+    if (isConnected) {
+      await disconnect();
+    } else {
+      await connect();
+    }
+  };
+
+  // Connect function
+  const connect = async () => {
+    if (!isConnected && !isConnecting) {
+      await initializeConnection();
+    }
+  };
+
+  // Disconnect function
+  const disconnect = async () => {
+    if (isConnected && clientRef.current) {
+      try {
+        setIsConnecting(true);
+        await clientRef.current.disconnect();
+        setConnectionState('disconnected');
+        setIsConnected(false);
+        setIsClientReady(false);
+        addDebugMessage('Client disconnected');
+      } catch (error) {
+        addDebugMessage(`Error disconnecting: ${error.message}`);
+        setError(error.message);
+      } finally {
+        setIsConnecting(false);
+      }
+    }
+  };
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      cleanupInactivityTimer();
+      if (clientRef.current) {
+        clientRef.current.disconnect();
+      }
+    };
+  }, []);
+
+  return {
+    // State
+    isConnected,
+    isConnecting,
+    error,
+    connectionState,
+    isClientReady,
+    participants,
+    userAudioLevel,
+    botAudioLevel,
+    isUserSpeaking,
+    isBotSpeaking,
+    isBotThinking,
+    debugMessages,
+    clientRef,
+    hasBotJoined,
+    
+    // Actions
+    connect,
+    disconnect,
+    handleConnectionToggle,
+    addDebugMessage,
+  };
+}; 

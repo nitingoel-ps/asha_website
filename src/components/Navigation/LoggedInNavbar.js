@@ -4,6 +4,7 @@ import { Navbar, Nav, Container, NavDropdown, Image } from 'react-bootstrap';
 import { FaHome, FaSignOutAlt, FaTachometerAlt, FaCog, FaRobot, FaPlusCircle, FaBars, FaHeartbeat, FaMicrophone, FaEllipsisH, FaChevronLeft, FaPlus, FaKeyboard, FaBell, FaUserCircle, FaComments, FaRegComments } from 'react-icons/fa';
 import { PiUserSound } from "react-icons/pi";
 import { FiEdit, FiList } from "react-icons/fi";
+import VoiceChatButton from '../VoiceChat/components/VoiceChatButton';
 
 import { useAuth } from '../../context/AuthContext';
 import MobileMenu from './MobileMenu';
@@ -382,7 +383,7 @@ function LoggedInNavbar() {
       </Nav.Link>
       <Nav.Link 
         as={Link} 
-        to="/new-voice-chat" 
+        to="/ai-chat" 
         className="nav-item"
         onClick={closeMenu}
       >
@@ -411,11 +412,12 @@ function LoggedInNavbar() {
                 <Nav.Link as={Link} to="/add-health-data" className="top-navbar-item">
                   Add Data
                 </Nav.Link>
-                <Nav.Link as={Link} to="/new-voice-chat" className="top-navbar-item">
+                <Nav.Link as={Link} to="/ai-chat" className="top-navbar-item">
                   Chat with AI
                 </Nav.Link>
               </Nav>
               <Nav className="user-nav-section">
+                <VoiceChatButton />
                 <NavDropdown 
                   title={
                     <span className="top-navbar-item">
@@ -510,22 +512,7 @@ function LoggedInNavbar() {
               <FaHeartbeat />
               <span>Records</span>
             </Link>
-            <button 
-              className="mobile-nav-item microphone-nav-item" 
-              onClick={handleVoiceTextToggle}
-            >
-              {isAIVoicePage() ? (
-                <>
-                  <FaKeyboard className="microphone-icon" />
-                  <span>Chat</span>
-                </>
-              ) : (
-                <>
-                  <FaMicrophone className="microphone-icon" />
-                  <span>Voice</span>
-                </>
-              )}
-            </button>
+            <VoiceChatButton />
             <Link to="/add-health-data" className="mobile-nav-item">
               <FaPlusCircle />
               <span>Add</span>
