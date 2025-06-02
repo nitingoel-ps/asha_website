@@ -9,7 +9,7 @@ import PatientDashboard from './components/PatientDashboard';
 import MyDocuments from './components/MyDocuments';
 import PrivateRoute from './components/PrivateRoute';
 import UploadFiles from "./components/UploadFiles";
-import { LoggedInNavbar, LoggedOutNavbar } from './components/Navigation';
+import { LoggedInNavbar } from './components/Navigation';
 import InvitationCodeEntry from './components/InvitationCodeEntry';
 import ConfigurationLayout from './components/Configuration/ConfigurationLayout';
 import ConfigurationHome from './components/Configuration/ConfigurationHome';
@@ -45,7 +45,8 @@ function AppContent() {
 
   return (
     <>
-      {isAuthenticated ? <LoggedInNavbar /> : <LoggedOutNavbar />}
+      {/* {isAuthenticated ? <LoggedInNavbar /> : <LoggedOutNavbar />} */}
+      {isAuthenticated && <LoggedInNavbar />}
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/old-register" element={<Register />} />

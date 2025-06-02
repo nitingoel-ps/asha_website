@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Asha AI</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Crete+Round&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <link rel="stylesheet" href="assets/css/style.css">   
+  <link href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Header -->
+<nav class="navbar navbar-expand-lg bg-transparent py-3">
+  <div class="container text-white align-items-center d-flex justify-content-between">
+    <!-- Left: Logo -->
+    <a class="navbar-brand fw-bold" href="#">
+      <img src="assets/images/Asha AI.png" alt="logo" height="64">
+    </a>
+
+    <!-- Toggler for mobile -->
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown"
+      aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <!-- Center: Collapsible nav links -->
+    <div class="collapse navbar-collapse justify-content-center" id="navbarNavDropdown">
+      <ul class="navbar-nav">
+        <li class="nav-item mx-4"><a class="nav-link" href="#">Home</a></li>
+        <li class="nav-item mx-4"><a class="nav-link" href="#">Features</a></li>
+        <li class="nav-item mx-4"><a class="nav-link" href="#">How It Works</a></li>
+        <li class="nav-item mx-4"><a class="nav-link" href="#">Sign Up</a></li>
+		<li class="nav-item mx-4 d-block d-lg-none"><a class="nav-link" href="/login">login</a></li>
+      </ul>
+    </div>
+
+    <!-- Right: Login button -->
+    <a href="/login" class="btn btn-outline-light rounded-pill header-button d-none d-lg-flex ">
+      Login <img src="assets/images/Union 33.png" class="arrow">
+    </a>
+  </div>
+</nav>
+
+
+  <!-- Hero Section -->
+  <section class="hero-section position-relative text-white text-center">
+    <video autoplay muted loop playsinline class="bg-video">
+      <source src="assets/images/blue-particle-waves.mp4" type="video/mp4" />
+      Your browser does not support the video tag.
+    </video>
+    <div class="overlay position-absolute top-0 start-0 w-100 h-100"></div>
+    <div class="content position-relative z-2 container py-5" data-aos="fade-up">
+      <h3 class="text-uppercase small letter-spacing mb-2 sub-heading d-flex justify-content-center">Meet Asha</h3>
+      <h1 class="display-5 fw-bold main-heading">Your AI Health Companion <br> for patients & caregivers</h1>
+      <p class="my-3">All your health data, securely organized. Ask questions, track symptoms,<br>get personalized insights — with full control over your privacy.</p>
+      <div class="d-block d-md-flex justify-content-center mt-4">
+        <input type="email" placeholder="Email Address" class="form-control rounded-start-pill w-auto px-3" style="max-width: 300px;">
+        <button class="btn btn-info w-auto w-md-100 mt-3 mt-md-0 rounded-end-pill">Join the Waitlist <img src="assets/images/Union 33.png" class="arrow"></button>
+      </div>
+    </div>
+  </section>
+  <section class="healthcare-section">
+    <div class="container" data-aos="fade-up">
+      <div class="row">
+        <div class="col-12 text-white" id="healthcare-content-organizer">
+          <div class="healthcare-text-content">
+            <h3 class="text-uppercase small letter-spacing mb-2 sub-heading hc-item-1"><img src="assets/images/Path-1682.svg"  height="14" width="14" class="me-2">ASPEN HEALTH AI<img src="assets/images/Path-1682.svg"  height="14" width="14" class="ms-1"></h3>
+            <h2 class="fw-bold mb-3 main-heading hc-item-2">Healthcare data is<br> fragmented & complex</h2>
+            <p class="mb-3 light-text hc-item-3">
+              Test results over here, clinic notes over there, wearables on your phone. Add
+              medical jargon and you're left piecing the puzzle alone.
+            </p>
+            <div class="stat-cards-container mt-4 hc-item-4">
+              <div class="stat-card">
+                <p class="stat-card-number">42%</p>
+                <p class="stat-card-text">Adults with 2+ chronic conditions</p>
+              </div>
+              <div class="stat-card">
+                <p class="stat-card-number">35%</p>
+                <p class="stat-card-text">Medicare patients see 5+ doctors</p>
+              </div>
+              <div class="stat-card">
+                <p class="stat-card-number">80%</p>
+                <p class="stat-card-text">of health data hides in jargon-heavy notes</p>
+              </div>
+              <div class="stat-card">
+                <p class="stat-card-number">1 in 4</p>
+                <p class="stat-card-text">patients find errors or missing history</p>
+              </div>
+            </div>
+            <p class="mt-3 big-text fw-bold hc-item-5">One secure view of all your records is the first step to real answers.</p>
+          </div>
+          <div class="healthcare-image-content text-center hc-item-img">
+            <img src="assets/images/Group-863.png" height="400" alt="Doctor with laptop" class="img-fluid object-fit-contain doctor-img" style="max-width: 100%;">
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="ai-warning-section py-lg-5 py-3">
+  <div class="container">
+    <div class="row">
+      <div class="col-12" id="ai-warning-content-organizer">
+        <div class="ai-warning-image-content ai-item-img-desktop-first ai-item-4-mobile text-center" data-aos="fade-right">
+          <img src="assets/images/Path-1682.png" alt="Non-HIPAA compliant chatbot example" class="img-fluid object-fit-contain">
+        </div>
+        <div class="ai-warning-text-content ai-item-text-desktop-second text-white" data-aos="fade-left">
+          <h3 class="text-uppercase small letter-spacing mb-2 sub-heading ai-item-1"><img src="assets/images/Path-1682.svg"  height="14" width="14" class="me-2">ASPEN HEALTH AI<img src="assets/images/Path-1682.svg"  height="14" width="14" class="ms-1"></h3>
+          <h2 class="fw-bold mb-3 main-heading ai-item-2">Copy pasting into<br> Google/ChatGPT is not<br> the answer.</h2>
+          <p class="mb-3 light-text ai-item-3">
+            Public chatbots aren't HIPAA‑compliant. And a few pasted PDFs never tell your whole story.
+          </p>
+          <ul class="text-white ps-3 healthcare-list light-text ai-item-5">
+              <li class="mb-2">Insecure - not HIPAA compliant</li>
+              <li class="mb-2">Context-blind - Only sees what you paste</li>
+              <li class="mb-2">One-off - You health journey won't fit in a prompt</li>            
+            </ul>
+          <p class="mt-3 big-text fw-bold ai-item-6">
+          You need AI that can reason over your entire medical journey.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<div class="main-timeline py-5" data-aos="fade-up">
+
+   <h3 class="text-uppercase small letter-spacing mb-2 sub-heading text-center text-white d-flex justify-content-center"><img src="assets/images/Path-1682.svg"  height="14" width="14" class="me-2"> HOW IT WORKS <img src="assets/images/Path-1682.svg"  height="14" width="14" class="ms-1"></h3>
+      <h2 class="fw-bold mb-3 main-heading text-center text-white">How Aspen Health AI Works</h2>
+        <p class="mb-3 text-center pb-5 light-text">
+          From record aggregation to doctor-ready prep, Asha helps you every step of the way.
+        </p>
+  <div class="timeline">
+  
+  <div class="container left">
+    <div class="content">
+      <div class="text-image-wrapper">
+        <div class="text-side side-dot timeline-left-content text-end pe-5">
+          <h2>Connect Your Health Data</h2>
+          <p class="light-text">Link provider portals, devices, or upload<br> scanned records.</p>
+        </div>
+        <div class="image-side">
+          <img src="assets/images/health-data.png" alt="Connect Your Health Data">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container right">
+    <div class="content">
+      <div class="text-image-wrapper">
+        <div class="image-side side-dot">
+          <img src="assets/images/health-timeline.png" alt="Unified Health Timeline">
+        </div>
+        <div class="text-side timeline-right-content text-start ps-5">
+          <h2>Unified Health Timeline</h2>
+          <p>Your records are organized into one<br> clear, chronological timeline.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+   <div class="container left">
+    <div class="content">
+      <div class="text-image-wrapper">
+        <div class="text-side side-dot timeline-left-content text-end pe-5">
+          <h2>Chat with Asha</h2>
+          <p class="light-text">Log symptoms, vitals, and medications<br> using simple voice or text chat.</p>
+        </div>
+        <div class="image-side">
+          <img src="assets/images/Asha-Ai.png" alt="Connect Your Health Data">
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="container right">
+    <div class="content">
+      <div class="text-image-wrapper">
+        <div class="image-side side-dot">
+          <img src="assets/images/medical-jrgon.png" alt="Unified Health Timeline">
+        </div>
+        <div class="text-side timeline-right-content text-start ps-5">
+          <h2>Decode Medical Jargon</h2>
+          <p class="light-text">Asha explains complex health terms in<br> clear, everyday language.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="container left">
+    <div class="content">
+      <div class="text-image-wrapper">
+        <div class="text-side side-dot timeline-left-content text-end pe-5">
+          <h2>Personalized Research</h2>
+          <p class="light-text">Ask questions and get trusted answers<br> based on your health data.</p>
+        </div>
+        <div class="image-side">
+          <img src="assets/images/research.png" alt="Connect Your Health Data">
+        </div>
+      </div>
+    </div>
+  </div>
+ <div class="container right">
+    <div class="content">
+      <div class="text-image-wrapper">
+        <div class="image-side side-dot">
+          <img src="assets/images/doctor-ready.png" alt="Unified Health Timeline">
+        </div>
+        <div class="text-side timeline-right-content text-start ps-5">
+          <h2>Get Doctor-Ready</h2>
+          <p class="light-text">Receive a smart summary and tailored<br> questions before appointments.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+
+<!-- Security & Privacy Section -->
+<section class="text-white py-lg-5 pt-5 pb-0 data-control" data-aos="fade-up">
+  <div class="container text-center pb-0 pb-lg-5">
+    <div class="row g-4 justify-content-between">
+      <!-- Item 1 -->
+      <div class="col-md-12 col-lg-4 d-flex align-items-center pe-lg-5 pe-0 justify-content-center justify-content-lg-start">
+        <div class="text-center text-lg-start">
+          <h3 class="text-uppercase small letter-spacing mb-2 sub-heading"><img src="assets/images/Path-1682.svg"  height="14" width="14" class="me-2">SECURITY & PRIVACY<img src="assets/images/Path-1682.svg"  height="14" width="14" class="ms-1"></h3>
+    <h2 class="fw-bold mb-2 main-heading text-white-25 mb-0">Your Data, Your Control Always</h2>
+    <p>We follow HIPAA-level protections without selling, sharing, or storing your data.</p>
+        </div>
+      </div>
+      <!-- Item 2 -->
+      <div class="col-md-6 col-lg-4 image-box">
+        <div class="health-ai text-start">
+          <div class="img-box-icon"><img src="assets/images/HIPAA -COMPLIANT.svg" alt="Zero Retention"></div>
+          <p class="data-text pt-3 mb-0">Hosted on HIPAA-eligible cloud (AWS/GCP with signed BAAs)</p>
+        </div>
+      </div>
+      <!-- Item 3 -->
+      <div class="col-md-6 col-lg-4 image-box">
+        <div class="health-ai text-start">
+          <div class="img-box-icon"><img src="assets/images/zero-ret.svg" alt="Encryption"></div>
+          <p class="data-text pt-3 mb-0">Zero-retention AI: No logs, no prompt storage</p>
+        </div>
+      </div>
+      <!-- Item 4 -->
+      <div class="col-md-6 col-lg-4 image-box">
+        <div class="health-ai text-start ">
+           <div class="img-box-icon"><img src="assets/images/Aes-256.svg" alt="No Sharing"></div>
+          <p class="data-text pt-3 mb-0">AES-256 encrypted at rest and TLS 1.3 in transit</p>
+        </div>
+      </div>
+      <!-- Item 5 -->
+      <div class="col-md-6 col-lg-4 image-box">
+        <div class="health-ai text-start">
+          <div class="img-box-icon"> <img src="assets/images/your-data.svg" alt="No Training"></div>
+          <p class="data-text pt-3 mb-0">Your data is never shared with third parties.</p>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-4 image-box">
+        <div class="health-ai text-start">
+          <div class="img-box-icon"> <img src="assets/images/no-training.svg" alt="No Training"></div>
+          <p class="data-text pt-3 mb-0">No training of public AI models on your data</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Footer Section -->
+<footer class="footer-bottom text-white pt-5" data-aos="fade-up">
+  <div class="container">
+    <!-- Waitlist Section -->
+    <div class="rounded-4 row join px-lg-5 px-3 mb-5 d-flex flex-column flex-lg-row align-items-center justify-content-between">
+      
+      <div class="mb-4 mb-lg-0 col-md-12 col-lg-7 content-sec">
+        <h3 class="text-uppercase small letter-spacing mb-2 sub-heading justify-content-center justify-content-lg-start ">JOIN THE WAITLIST TODAY</h3>
+        <h2 class="fw-bold mb-3 main-heading pb-2">Ready to take control of your<br>chronic care journey?</h2>
+        <div class="input-group d-flex footer-form">
+          <input type="email" class="form-control rounded-pill ps-4 me-3" placeholder="Email Address">
+        <button class="btn btn-info-footer btn-info rounded-end-pill px-4 w-auto w-md-100 mt-3 mt-md-0">Send <img src="assets/images/Union 33.png" class="arrow" style="background: #69C9CB!important;"></button>
+        </div>
+        
+      </div>
+      <div class="col-md-12 col-lg-5 ">
+      <img src="assets/images/doctor.png" alt="Doctor" class="img-fluid doctor-img object-fit-contain"></div>
+    </div>
+
+    <!-- Footer Navigation -->
+    <div class="row text-center footer-links text-lg-start mb-4">
+      <div class="col-lg-4 col-md-12 mb-4">
+        <h4 class="mb-4">Soon Available on</h4>
+		<div class="row app-links">
+        <div class="col-lg-4 col-md-6"><a href="#"><img src="assets/images/app-store.png" alt="App Store" style="height: 40px;"></a></div>
+        <div class="col-lg-8 col-md-6"><a href="#"><img src="assets/images/Google-play.png" alt="Google Play" style="height: 40px;"></a></div>
+		</div>
+      </div>
+      <div class="col-lg-3 col-md-4 mb-4 text-md-start">
+        <h4 class="mb-3">Quick Links</h4>
+        <ul class="list-unstyled mb-0">
+          <li class="pb-1"><a href="#" class="text-white text-decoration-none">Home</a></li>
+          <li class="pb-1"><a href="#" class="text-white text-decoration-none">Features</a></li>
+          <li class="pb-1"><a href="#" class="text-white text-decoration-none">How It Works</a></li>
+        </ul>
+      </div>
+      <div class="col-lg-3 col-md-4 mb-4 text-md-start">
+        <h4 class="mb-3">Info</h4>
+        <ul class="list-unstyled mb-0">
+          <li class="pb-1"><a href="#" class="text-white text-decoration-none">Demo Video</a></li>
+          <li class="pb-1"><a href="#" class="text-white text-decoration-none">Privacy Policy</a></li>
+          <li class="pb-1"><a href="#" class="text-white text-decoration-none">Sign Up | Login</a></li>
+        </ul>
+      </div>
+      <div class="col-lg-2 col-md-4 mb-4 text-md-start">
+        <h4 class="mb-3">Get In Touch</h4>
+        <ul class="list-unstyled mb-0">
+        <li class="pb-1"><a href="#" class="text-white text-decoration-none">Email: nitin@aspenhealth.ai</a></li>
+       <li class="pb-1"><a href="#" class="text-white text-decoration-none">LinkedIn: Nitin Goel</a></li></ul>
+      </div>
+    </div>
+
+    <!-- Social Media & Copyright -->
+    <div class="d-flex justify-content-between align-items-center flex-column flex-md-row border-top border-secondary py-3 footer-bottom">
+      <div class="mb-3 mb-md-0">
+        <a href="#" class="text-white me-3"><i class="fa fa-facebook" aria-hidden="true"></i></a>
+        <a href="#" class="text-white me-3"><i class="fa fa-linkedin" aria-hidden="true"></i></a>
+        <a href="#" class="text-white"><i class="fa fa-twitter" aria-hidden="true"></i></a>
+      </div>
+      <p class="small text-white-80 mb-0">© 2025 Aspen Health AI. All Rights Reserved</p>
+    </div>
+  </div>
+</footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+<script>
+  window.addEventListener("scroll", function () {
+    const navbar = document.querySelector(".navbar");
+    if (window.scrollY > 106) {
+      navbar.classList.add("scrolled");
+    } else {
+      navbar.classList.remove("scrolled");
+    }
+  });
+</script>
+<script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
+
+  <!-- Initialize AOS -->
+  <script>
+    AOS.init({
+      duration: 1000,  // Duration of the animation
+      easing: 'ease-in-out', // Easing function
+      once: true // Animation happens only once when scrolling
+    });
+  </script>
+
+</html>
