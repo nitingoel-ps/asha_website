@@ -225,6 +225,76 @@ border-radius: 18px;
         padding-right: 40px;
 
 }
+
+/* New styles for Security & Privacy section */
+.data-control .security-item {
+  /* Using Bootstrap's g-3 on the parent row for gaps */
+  /* Add a hover effect similar to the old .image-box */
+  transition: transform 0.3s ease;
+}
+
+.data-control .security-item:hover {
+  transform: translateY(-5px) scale(1.01); /* Adjusted hover effect for subtlety */
+}
+
+.data-control .security-item .img-box-icon {
+  background: #FFFFFF;
+  box-shadow: 0px 0px 18px rgba(0, 0, 0, 0.07);
+  border-radius: 18px;
+  padding: 15px;
+  height: 100px; /* Original desktop height */
+  width: 100px;  /* Original desktop width */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-shrink: 0; /* From Bootstrap class me-3 flex-shrink-0 */
+}
+
+.data-control .security-item .img-box-icon img {
+  height: 56px; /* Original image height */
+  object-fit: contain;
+  width: auto; /* Maintain aspect ratio */
+}
+
+.security-item-heading {
+  font-family: 'CreatoDisplay', sans-serif;
+  font-weight: 700;
+  font-size: 18px; /* Heading size */
+  color: var(--color-white);
+  margin-bottom: 4px;
+}
+
+.security-item-detail.data-text { /* Overriding generic .data-text for this specific use */
+  font-size: 14px; /* Detail text size */
+  line-height: 1.5;
+  color: var(--color-light);
+  padding-right: 0 !important; /* Remove padding specific to old layout */
+  text-align: left !important; /* Ensure left alignment, overriding mobile .data-text */
+  margin-bottom: 0; /* Remove default P margin if any, handled by item spacing */
+}
+
+/* Responsive adjustments for Security & Privacy items */
+@media only screen and (max-width: 767px) { /* Mobile devices */
+  .data-control .security-item .img-box-icon {
+    height: 80px;
+    width: 80px;
+    padding: 12px; /* Adjust padding for smaller icon box */
+    margin-right: 12px !important; /* Adjust space between icon and text, me-3 is 1rem */
+  }
+
+  .data-control .security-item .img-box-icon img {
+    height: 45px; /* Proportionally smaller image */
+  }
+
+  .security-item-heading {
+    font-size: 16px; /* Slightly smaller heading for mobile */
+  }
+
+  .security-item-detail.data-text {
+    font-size: 13px; /* Slightly smaller detail text for mobile */
+  }
+}
+
 /* data-controls */
 /*end footer css */
 footer .join {
