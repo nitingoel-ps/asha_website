@@ -232,6 +232,8 @@ footer .join {
   background-repeat: no-repeat;
   background-position: center;
   background-size: cover;
+  padding-top: 3rem;
+  padding-bottom: 3rem;
 }
 
 footer h6 {
@@ -941,4 +943,22 @@ button.btn.btn-info-footer {
     justify-content: center; /* if it's a flex container itself */
     text-align: center; /* Fallback or if not a flex container */
   }
+}
+
+.sub-text-footer {
+  font-size: 0.9rem; /* Slightly smaller for sub-text */
+  font-weight: 400; /* Standard weight */
+  color: rgba(255, 255, 255, 0.7); /* More transparent for subtlety */
+  line-height: 1.4; /* Good readability */
+  /* Margins will be handled by utility classes in HTML */
+}
+
+.footer-bottom .btn-info-footer {
+  background: #69C9CB!important;
+  border-color: #69C9CB!important;
+  color: #fff !important;
+}
+
+.footer-bottom .btn-info-footer .arrow {
+  background: #69C9CB!important;
 }

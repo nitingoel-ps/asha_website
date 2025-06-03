@@ -57,8 +57,7 @@
       <h1 class="display-5 fw-bold main-heading">Your AI Health Companion <br> for patients & caregivers</h1>
       <p class="my-3">All your health data organized. Ask questions, track symptoms,<br> get personalized insights — with full control over your privacy.</p>
       <div class="d-block d-md-flex justify-content-center mt-4 hero-waitlist-form">
-        <input type="email" placeholder="Email Address" class="form-control rounded-start-pill w-auto px-3" style="max-width: 300px;">
-        <button class="btn btn-info w-auto w-md-100 mt-3 mt-md-0 rounded-end-pill">Join the Waitlist <img src="assets/images/Union 33.png" class="arrow"></button>
+        <a href="#footer-waitlist-section" class="btn btn-info w-auto w-md-100 rounded-pill">Request an invite <img src="assets/images/Union 33.png" class="arrow"></a>
       </div>
     </div>
   </section>
@@ -305,16 +304,22 @@
 <footer class="footer-bottom text-white pt-5" data-aos="fade-up">
   <div class="container">
     <!-- Waitlist Section -->
-    <div class="rounded-4 row join px-lg-5 px-3 mb-5 d-flex flex-column flex-lg-row align-items-center justify-content-between">
+    <div id="footer-waitlist-section" class="rounded-4 row join px-lg-5 px-3 mb-5 d-flex flex-column flex-lg-row align-items-center justify-content-between">
       
       <div class="mb-4 mb-lg-0 col-md-12 col-lg-7 content-sec">
         <h3 class="text-uppercase small letter-spacing mb-2 sub-heading justify-content-center justify-content-lg-start ">JOIN THE WAITLIST TODAY</h3>
-        <h2 class="fw-bold mb-3 main-heading pb-2">Ready to take control of your<br>chronic care journey?</h2>
-        <div class="input-group d-flex footer-form">
-          <input type="email" class="form-control rounded-pill ps-4 me-3" placeholder="Email Address">
-        <button class="btn btn-info-footer btn-info rounded-end-pill px-4 w-auto w-md-100 mt-3 mt-md-0">Send <img src="assets/images/Union 33.png" class="arrow" style="background: #69C9CB!important;"></button>
-        </div>
-        
+        <h2 class="fw-bold mb-2 main-heading pb-2">Be among the first to try Asha for free!</h2>
+        <p class="sub-text-footer mb-1">No credit card required.</p>
+        <p class="sub-text-footer mb-3">Sign up to get an invitation.</p>
+        <form class="footer-waitlist-form">
+          <div class="mb-3">
+            <input type="text" class="form-control rounded-pill ps-4 py-3 mb-3" placeholder="Your Name" required>
+          </div>
+          <div class="mb-3">
+            <input type="email" class="form-control rounded-pill ps-4 py-3" placeholder="Your Email Address" required>
+          </div>
+          <button type="submit" class="btn btn-info-footer btn-info rounded-pill px-4 py-3 w-auto w-md-100 mt-3 mt-md-0">Request an invite <img src="assets/images/Union 33.png" class="arrow" style="background: #69C9CB!important;"></button>
+        </form>
       </div>
       <div class="col-md-12 col-lg-5 ">
       <img src="assets/images/doctor.png" alt="Doctor" class="img-fluid doctor-img object-fit-contain"></div>
