@@ -132,6 +132,11 @@ img.arrow {
   z-index: 2;
 }
 
+/* Desktop: Gap for hero section waitlist form */
+.hero-waitlist-form {
+  margin-top: 100px !important; /* Adjust this for desktop gap above email + join waitlist button */
+}
+
 input.form-control {
   background: #F6F6F6 0% 0% no-repeat padding-box;
   border: 1px solid #1A1A1A1F;
@@ -551,7 +556,7 @@ section.healthcare-section .doctor-img {
     }
   .hero-section {
     align-items: flex-start;
-    padding-top: 150px;
+    padding-top: 150px; /* control this to change where the start of the words "meet asha" are shown on the hero section */
     padding-bottom: 40px;
   }
   .hero-section h1 {
@@ -562,9 +567,12 @@ section.healthcare-section .doctor-img {
     font-size: 1rem;
   }
 
+  /* Mobile: Gap for hero section waitlist form */
+  .hero-waitlist-form {
+    margin-top: 100px !important; /* Adjust this for mobile gap above email + join waitlist button */
+  }
 
- 
- a.navbar-brand img {
+  a.navbar-brand img {
     height: 50px;
 }
 .hero-section input {
