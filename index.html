@@ -70,8 +70,7 @@
             <h3 class="text-uppercase small letter-spacing mb-2 sub-heading hc-item-1"><img src="assets/images/Path-1682.svg"  height="14" width="14" class="me-2">ASPEN HEALTH AI<img src="assets/images/Path-1682.svg"  height="14" width="14" class="ms-1"></h3>
             <h2 class="fw-bold mb-3 main-heading hc-item-2">Healthcare data is<br> fragmented & complex</h2>
             <p class="mb-3 light-text hc-item-3">
-              Test results over here, clinic notes over there, wearables on your phone. Add
-              medical jargon and you're left piecing the puzzle alone.
+              Spread across portals, devices, and paper records. Full of jargon and hard to understand.
             </p>
           </div>
           <div class="stat-cards-container mt-4 hc-item-4 order-3 order-lg-2 text-white">
@@ -99,7 +98,7 @@
           </div>
         </div>
         <div class="col-12 order-4 order-lg-3 text-white">
-          <p class="mt-3 big-text fw-bold hc-item-5 hc-standout-paragraph border border-light">One secure view of all your records is the first step to real answers.</p>
+          <p class="mt-3 big-text fw-bold hc-item-5 hc-standout-paragraph border border-light text-center rounded p-3">One secure view of all your records is the first step to real answers.</p>
         </div>
       </div>
     </div>
@@ -107,26 +106,50 @@
   <section class="ai-warning-section py-lg-5 py-3">
   <div class="container">
     <div class="row">
-      <div class="col-12" id="ai-warning-content-organizer">
-        <div class="ai-warning-image-content ai-item-img-desktop-first ai-item-4-mobile text-center" data-aos="fade-right">
-          <img src="assets/images/Path-1682.png" alt="Non-HIPAA compliant chatbot example" class="img-fluid object-fit-contain">
-        </div>
-        <div class="ai-warning-text-content ai-item-text-desktop-second text-white" data-aos="fade-left">
-          <h3 class="text-uppercase small letter-spacing mb-2 sub-heading ai-item-1"><img src="assets/images/Path-1682.svg"  height="14" width="14" class="me-2">ASPEN HEALTH AI<img src="assets/images/Path-1682.svg"  height="14" width="14" class="ms-1"></h3>
-          <h2 class="fw-bold mb-3 main-heading ai-item-2">Copy pasting into<br> Google/ChatGPT is not<br> the answer.</h2>
-          <p class="mb-3 light-text ai-item-3">
+
+      <!-- Desktop Right Column (TEXT + CARDS) -->
+      <div class="col-lg-6 order-lg-2 d-flex flex-column" data-aos="fade-left">
+        <!-- TEXT: Mobile Order 1 -->
+        <div class="ai-warning-text-content text-white order-1">
+          <h3 class="text-uppercase small letter-spacing mb-2 sub-heading"><img src="assets/images/Path-1682.svg"  height="14" width="14" class="me-2">ASPEN HEALTH AI<img src="assets/images/Path-1682.svg"  height="14" width="14" class="ms-1"></h3>
+          <h2 class="fw-bold mb-3 main-heading">Pasting records into ChatGPT is not the answer.</h2>
+          <p class="mb-3 light-text">
             Public chatbots aren't HIPAA‑compliant. And a few pasted PDFs never tell your whole story.
           </p>
-          <ul class="text-white ps-3 healthcare-list light-text ai-item-5">
-              <li class="mb-2">Insecure - not HIPAA compliant</li>
-              <li class="mb-2">Context-blind - Only sees what you paste</li>
-              <li class="mb-2">One-off - You health journey won't fit in a prompt</li>            
-            </ul>
-          <p class="mt-3 big-text fw-bold ai-item-6">
-          You need AI that can reason over your entire medical journey.
-          </p>
+        </div>
+        <!-- CARDS (restyled list): Mobile Order 3 -->
+        <div class="stat-cards-container mt-4 text-white order-3" data-aos-delay="100">
+          <div class="stat-card">
+            <p class="stat-card-number">Insecure</p>
+            <p class="stat-card-text">Not HIPAA compliant</p>
+          </div>
+          <div class="stat-card">
+            <p class="stat-card-number">Context-blind</p>
+            <p class="stat-card-text">Only sees what you paste</p>
+          </div>
+          <div class="stat-card">
+            <p class="stat-card-number">One-off</p>
+            <p class="stat-card-text">You health journey won't fit in a prompt</p>
+          </div>
         </div>
       </div>
+
+      <!-- Desktop Left Column (IMAGE) -->
+      <!-- IMAGE: Mobile Order 2 -->
+      <div class="col-lg-6 order-2 order-lg-1 d-flex" data-aos="fade-right">
+        <div class="ai-warning-image-content text-center w-100 align-self-center">
+          <img src="assets/images/Path-1682.png" alt="Non-HIPAA compliant chatbot example" class="img-fluid object-fit-contain">
+        </div>
+      </div>
+
+      <!-- Desktop Bottom Row (STANDOUT PARAGRAPH) -->
+      <!-- STANDOUT PARAGRAPH: Mobile Order 4 -->
+      <div class="col-12 order-4 order-lg-3 text-white">
+        <p class="mt-3 big-text fw-bold border border-light text-center rounded p-3">
+          You need AI that can reason over your entire medical journey.
+        </p>
+      </div>
+
     </div>
   </div>
 </section>
