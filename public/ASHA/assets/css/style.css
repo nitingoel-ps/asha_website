@@ -42,6 +42,9 @@ li a {
   font-size: 15px;
   font-weight: 500;
   line-height: 1.3em;
+  background: #69C9CB!important;
+  border-color: #69C9CB!important;
+  color: #fff !important;  
 }
 .big-text {
     font-size: 22px;
@@ -100,6 +103,7 @@ img.arrow {
   border-radius: 99px;
   height: 28px;
   padding: 8px;
+  background: #69C9CB!important;
 }
 
 /*  navbar end */
