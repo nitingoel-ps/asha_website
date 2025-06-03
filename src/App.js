@@ -28,6 +28,7 @@ import RegistrationFlow from './components/NewRegistration/RegistrationFlow';
 import HealthPriorities from './components/HealthPriorities/HealthPriorities';
 import HealthPriorityDetail from './components/HealthPriorities/HealthPriorityDetail';
 import WebRTCVoiceChat from './components/WebRTCVoiceChat/WebRTCVoiceChat';
+import JoinWaitlistPage from './components/Waitlist/JoinWaitlistPage';
 
 import './theme.css';
 import './components/shared/TabStyling.css';
@@ -49,6 +50,7 @@ function AppContent() {
       {isAuthenticated && <LoggedInNavbar />}
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/join-waitlist" element={<JoinWaitlistPage />} />
         <Route path="/old-register" element={<Register />} />
         <Route path="/register" element={<RegistrationFlow />} />
         <Route path="/login" element={<Login />} />

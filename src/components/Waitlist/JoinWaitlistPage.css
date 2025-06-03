@@ -1,0 +1,46 @@
+/* src/components/Waitlist/JoinWaitlistPage.css */
+
+.join-waitlist-container {
+  min-height: 80vh; /* Ensure it takes up most of the viewport height */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background-color: #f8f9fa; /* A light background for the page */
+}
+
+.join-waitlist-container .card {
+  border: none; /* Remove default card border */
+}
+
+.join-waitlist-container h1 {
+  color: #333;
+  font-weight: 600;
+}
+
+.join-waitlist-container .main-cta-button {
+  background-color: #019ea1; /* Teal color from Home.css */
+  border-color: #019ea1;
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+  font-size: 1.1rem;
+}
+
+.join-waitlist-container .main-cta-button:hover {
+  background-color: #017f81; /* Darker teal for hover */
+  border-color: #017f81;
+}
+
+.join-waitlist-container .form-label {
+  font-weight: 500;
+}
+
+/* Responsive adjustments if needed */
+@media (max-width: 767px) {
+  .join-waitlist-container .card {
+    margin-left: 15px;
+    margin-right: 15px;
+  }
+  .join-waitlist-container h1 {
+    font-size: 1.75rem;
+  }
+} 
