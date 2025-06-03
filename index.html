@@ -67,13 +67,13 @@
       <div class="row">
         <div class="col-lg-6 d-flex flex-column order-1 order-lg-1">
           <div class="healthcare-text-content text-white">
-            <h3 class="text-uppercase small letter-spacing mb-2 sub-heading hc-item-1"><img src="assets/images/Path-1682.svg"  height="14" width="14" class="me-2">ASPEN HEALTH AI<img src="assets/images/Path-1682.svg"  height="14" width="14" class="ms-1"></h3>
+            <h3 class="text-uppercase small letter-spacing mb-2 sub-heading hc-item-1" style="display: none;"><img src="assets/images/Path-1682.svg"  height="14" width="14" class="me-2">ASPEN HEALTH AI<img src="assets/images/Path-1682.svg"  height="14" width="14" class="ms-1"></h3>
             <h2 class="fw-bold mb-3 main-heading hc-item-2">Healthcare data is<br> fragmented & complex</h2>
             <p class="mb-3 light-text hc-item-3">
               Spread across portals, devices, and paper records. Full of jargon and hard to understand.
             </p>
           </div>
-          <div class="stat-cards-container mt-4 hc-item-4 order-3 order-lg-2 text-white">
+          <div class="stat-cards-container mt-4 hc-item-4 order-3 order-lg-2 text-white" style="display: none;">
             <div class="stat-card">
               <p class="stat-card-number">42%</p>
               <p class="stat-card-text">Adults with 2+ chronic conditions</p>
@@ -91,14 +91,17 @@
               <p class="stat-card-text">patients find errors or missing history</p>
             </div>
           </div>
+          <div class="col-12 order-4 order-lg-3 text-white mt-auto d-none d-lg-block">
+            <p class="mt-3 big-text fw-bold hc-item-5 hc-standout-paragraph border border-light text-center rounded p-3">One secure view of all your records is the first step to real answers.</p>
+          </div>          
         </div>
         <div class="col-lg-6 d-flex order-2 order-lg-2">
           <div class="healthcare-image-content text-center hc-item-img w-100">
             <img src="assets/images/Group-863.png" height="400" alt="Doctor with laptop" class="img-fluid object-fit-contain doctor-img" style="max-width: 100%;">
           </div>
         </div>
-        <div class="col-12 order-4 order-lg-3 text-white">
-          <p class="mt-3 big-text fw-bold hc-item-5 hc-standout-paragraph border border-light text-center rounded p-3">One secure view of all your records is the first step to real answers.</p>
+        <div class="col-12 order-3 d-block d-lg-none text-white">
+           <p class="mt-3 big-text fw-bold hc-item-5 hc-standout-paragraph border border-light text-center rounded p-3">One secure view of all your records is the first step to real answers.</p>
         </div>
       </div>
     </div>
@@ -108,17 +111,17 @@
     <div class="row">
 
       <!-- Desktop Right Column (TEXT + CARDS) -->
-      <div class="col-lg-6 order-lg-2 d-flex flex-column" data-aos="fade-left">
+      <div class="col-lg-6 order-1 order-lg-2 d-flex flex-column" data-aos="fade-left">
         <!-- TEXT: Mobile Order 1 -->
-        <div class="ai-warning-text-content text-white order-1">
-          <h3 class="text-uppercase small letter-spacing mb-2 sub-heading"><img src="assets/images/Path-1682.svg"  height="14" width="14" class="me-2">ASPEN HEALTH AI<img src="assets/images/Path-1682.svg"  height="14" width="14" class="ms-1"></h3>
+        <div class="ai-warning-text-content text-white order-1 text-center text-lg-start">
+          <h3 class="text-uppercase small letter-spacing mb-2 sub-heading" style="display: none;"><img src="assets/images/Path-1682.svg"  height="14" width="14" class="me-2">ASPEN HEALTH AI<img src="assets/images/Path-1682.svg"  height="14" width="14" class="ms-1"></h3>
           <h2 class="fw-bold mb-3 main-heading">Pasting records into ChatGPT is not the answer.</h2>
           <p class="mb-3 light-text">
             Public chatbots aren't HIPAA‑compliant. And a few pasted PDFs never tell your whole story.
           </p>
         </div>
         <!-- CARDS (restyled list): Mobile Order 3 -->
-        <div class="stat-cards-container mt-4 text-white order-3" data-aos-delay="100">
+        <div class="stat-cards-container mt-4 text-white order-3" data-aos-delay="100" style="display: none;">
           <div class="stat-card">
             <p class="stat-card-number">Insecure</p>
             <p class="stat-card-text">Not HIPAA compliant</p>
@@ -132,6 +135,13 @@
             <p class="stat-card-text">You health journey won't fit in a prompt</p>
           </div>
         </div>
+        <!-- Desktop Bottom Row (STANDOUT PARAGRAPH) -->
+        <!-- STANDOUT PARAGRAPH: Mobile Order 4 -->
+        <div class="col-12 order-4 order-lg-3 text-white mt-auto d-none d-lg-block">
+          <p class="mt-3 big-text fw-bold border border-light text-center rounded p-3">
+            You need AI that can reason over your entire medical journey.
+          </p>
+        </div>        
       </div>
 
       <!-- Desktop Left Column (IMAGE) -->
@@ -142,12 +152,8 @@
         </div>
       </div>
 
-      <!-- Desktop Bottom Row (STANDOUT PARAGRAPH) -->
-      <!-- STANDOUT PARAGRAPH: Mobile Order 4 -->
-      <div class="col-12 order-4 order-lg-3 text-white">
-        <p class="mt-3 big-text fw-bold border border-light text-center rounded p-3">
-          You need AI that can reason over your entire medical journey.
-        </p>
+       <div class="col-12 order-3 d-block d-lg-none text-white">
+         <p class="mt-3 big-text fw-bold border border-light text-center rounded p-3">You need AI that can reason over your entire medical journey.</p>
       </div>
 
     </div>
