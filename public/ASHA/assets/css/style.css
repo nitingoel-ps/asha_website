@@ -742,7 +742,7 @@ button.btn.btn-info-footer {
 /* Desktops & Larger Screens - 4 Columns (>= 1200px) - EXTREMELY COMPACT */
 @media (min-width: 1200px) {
   .stat-cards-container {
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(2, 1fr); /* Changed from 4 to 2 columns for 2x2 layout */
     gap: 8px; /* Minimal gap */
   }
   .stat-card {
@@ -763,59 +763,78 @@ button.btn.btn-info-footer {
 #healthcare-content-organizer {
   display: flex;
   flex-direction: row;
-  align-items: center; /* Vertically center items in the row */
+  align-items: flex-start; /* Changed from center to flex-start for better top alignment */
   gap: 30px; /* Space between text and image columns */
+  flex-wrap: wrap; /* Allow standout paragraph to wrap */
 }
 
 .healthcare-text-content {
-  flex: 1; /* Takes up available space, typically 50% if image is also flex:1 */
-  order: 1; /* Text content first on desktop */
-  text-align: left; /* Ensure text is left-aligned on desktop */
+  flex: 1 1 calc(50% - 15px); /* Explicit basis, considering half of the gap */
+  min-width: 280px; /* Prevent excessive squishing before wrap */
+  order: 1; 
+  text-align: left; 
 }
 
 .healthcare-image-content {
-  flex: 1; /* Takes up available space */
-  order: 2; /* Image content second on desktop */
-  text-align: center; /* Center the image within its column */
+  flex: 1 1 calc(50% - 15px); /* Explicit basis */
+  min-width: 280px; /* Prevent excessive squishing */
+  order: 2; 
+  text-align: center; 
 }
 
-.healthcare-image-content .doctor-img {
-  /* max-height: 420px; /* Maintain existing height or adjust as needed */
-  /* height: auto; /* Allow image to scale if using max-height */
+.hc-standout-paragraph.hc-item-5 { /* Styles for the standout paragraph on desktop */
+  order: 3;
+  flex-basis: 100%;
+  text-align: center;
+  margin-top: 30px;
+  padding: 15px;
+  border: 2px solid var(--color-skyblue);
+  border-radius: 8px;
+  /* Inherits .big-text and .fw-bold from HTML */
 }
 
 /* Mobile and Tablet Styles (< 992px) */
-@media only screen and (max-width: 991.98px) { /* Adjusted breakpoint */
+@media only screen and (max-width: 991.98px) {
   #healthcare-content-organizer {
     flex-direction: column;
-    align-items: stretch; /* Stretch items to full width */
+    align-items: stretch; 
   }
 
   .healthcare-text-content {
-    display: contents; /* Allow children to be flex items of the parent for ordering */
-    order: 1; /* Ensure text block comes before image block, then items order within */
-    text-align: center; /* Center text on mobile as per original .content-sec */
+    display: contents; 
+    order: 1; 
+    text-align: center; 
+    flex-basis: auto; /* Reset desktop basis */
+    min-width: unset; /* Reset desktop min-width */
   }
   
   .healthcare-image-content {
-    order: 2; /* The whole image block comes after text content block */
-    margin-top: 20px; /* Space above image */
-    margin-bottom: 20px; /* Space below image */
+    order: 2; /* This was its original overall order in mobile column flow idea */
+              /* But individual items within text-content are ordered, and then this image block */
+              /* Let's check the hc-item-img order for mobile */
+    margin-top: 20px; 
+    margin-bottom: 20px; 
+    flex-basis: auto; /* Reset desktop basis */
+    min-width: unset; /* Reset desktop min-width */
   }
 
+  /* Corrected order for items within #healthcare-content-organizer (mobile) */
   .hc-item-1 { order: 1; }
   .hc-item-2 { order: 2; margin-top: 10px; }
   .hc-item-3 { order: 3; margin-top: 10px; }
-  .hc-item-img { order: 4; } /* This is the .healthcare-image-content div itself for mobile ordering */
-  .hc-item-4 { order: 5; margin-top: 15px; } /* Stat cards */
-  .hc-item-5 { order: 6; margin-top: 15px; }
+  .healthcare-image-content.hc-item-img { order: 4; } 
+  .hc-item-4 { order: 5; margin-top: 15px; } 
+  .hc-item-5 { order: 6; margin-top: 15px; } /* This is .hc-standout-paragraph */
 
-  /* Override for .hc-item-img when it's part of .healthcare-text-content (display: contents) structure */
-  /* This makes the .healthcare-image-content div behave as if it's outside for ordering */
-  /* This is tricky. The HTML places it outside, so the primary flex order is enough. */
-  /* The hc-item-img on the div itself is what will be used with the new flex-direction column parent. */
-  /* Let's simplify: the image will be ordered via its parent .healthcare-image-content */
-  /* So the hc-item-img will dictate image order within the main column flow */
+  .hc-standout-paragraph.hc-item-5 { /* Reset standout styles for mobile */
+    /* order: 6; is already set by .hc-item-5 */
+    flex-basis: auto;
+    margin-top: 15px; /* Or specific mobile margin */
+    padding: 0; /* Reset desktop padding */
+    border: none;
+    border-radius: 0;
+    text-align: center; /* Ensure it's centered on mobile */
+  }
 
   .healthcare-section .content-sec {
     padding-top: 40px; /* Adjust from original 80px if needed for mobile */
