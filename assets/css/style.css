@@ -110,11 +110,12 @@ img.arrow {
 /* video section */
 .hero-section {
   position: relative!important;
-  height: 700px;
+  height: 650px;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
+  padding-top: 50px;
 }
 
 .bg-video {
@@ -279,6 +280,38 @@ border-radius: 18px;
 
 /* Responsive adjustments for Security & Privacy items */
 @media only screen and (max-width: 767px) { /* Mobile devices */
+
+body {
+  margin: 0;
+  height: 100%;
+  scroll-behavior: smooth;  
+}
+
+.scroll-container {
+  height: 100vh;
+  overflow-y: scroll;
+  scroll-snap-type: y mandatory;
+}
+
+.screen {
+  height: 100vh;
+  scroll-snap-align: start;  
+  position:relative;
+  z-index:9;
+}
+
+[data-aos^=fade][data-aos^=fade]{
+	opacity:1 !important;
+	        transform: inherit;
+}
+
+div#how-it-works {
+    padding-bottom: 0 !important;
+	    z-index: 9;
+    position: relative;
+}
+
+
   .data-control .security-item .img-box-icon {
     height: 80px;
     width: 80px;
@@ -306,8 +339,8 @@ footer .join {
   background-repeat: no-repeat;
   background-position: center;
   background-size: cover;
-  padding-top: 3rem;
-  padding-bottom: 3rem;
+  padding-top: 2rem;
+  padding-bottom: 2rem;
 }
 
 footer h6 {
@@ -332,6 +365,7 @@ footer a:hover {
   height: 400px;
   margin-top: -78px;
   padding: 0 80px !important;
+  margin-bottom:-2rem;
 }
 
 .footer-links h4 {
@@ -441,7 +475,7 @@ footer a:hover {
 .timeline .content{
   position: relative;
 }
-.timeline .content:after {
+.timeline .content:after,.timeline .content:before {
   content: '';
   position: absolute;
   width: 15px;
@@ -452,6 +486,21 @@ footer a:hover {
   border-radius: 50%;
   z-index: 1;
 }
+
+.timeline .content:before{
+	width: 2px;
+    background-color: rgb(90 90 90);
+    top: 0;
+    left: -12px;
+    margin-left: -3px;
+    height: 100%;
+    right: inherit;
+    border-radius: 0;
+	display:none;
+}
+
+
+
 .timeline .left img {
     object-position: left;
 }
@@ -517,13 +566,15 @@ border-bottom: 0;
     position: relative;
 }
 
+
 .navbar {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
-  z-index: 1050; /* above other content */
+  z-index: 1050; 
 }
+
 
 .navbar.scrolled {
     background: #111111 !important;
@@ -621,8 +672,12 @@ section.healthcare-section .doctor-img {
 }
 }
 @media only screen and (max-width: 767px) {
+	.timeline .content:before{
+		display:block;
+	}
 	.healthcare-section .container {
         background-size: 100% 200px;
+		margin-top:0;
     }
 	section.healthcare-section .doctor-img{
 		height:250px;
@@ -634,6 +689,10 @@ section.healthcare-section .doctor-img {
     align-items: flex-start;
     padding-top: 150px; /* control this to change where the start of the words "meet asha" are shown on the hero section */
     padding-bottom: 40px;
+	        height: 100vh;
+			align-items: center;
+        padding: 0;	
+		z-index:1;
   }
   .hero-section h1 {
     font-size: 1.8rem;
@@ -645,7 +704,7 @@ section.healthcare-section .doctor-img {
 
   /* Mobile: Gap for hero section waitlist form */
   .hero-waitlist-form {
-    margin-top: 100px !important; /* Adjust this for mobile gap above email + join waitlist button */
+    margin-top:0 !important; /* Adjust this for mobile gap above email + join waitlist button */
   }
 
   a.navbar-brand img {
@@ -662,7 +721,19 @@ section.ai-warning-section .left-img-sec img {
 }
 section.healthcare-section {
     padding: 0 15px;
+	height:100vh;
+	background: #111111;
+	display: flex;
+        align-items: center;
 }
+
+.ai-warning-section{
+	height:100vh;
+	background: #111111;
+	display: flex;
+        align-items: center;
+}
+
 .main-heading, h1 {
     font-size: 28px;
 }
@@ -677,13 +748,8 @@ section.healthcare-section {
 .text-side h2 {
     font-size: 20px;
 }
-.image-side img {
-    height: 180px;
-}
-.timeline .content:after {
-    width: 8px;
-    height: 8px;
-}
+
+
 .main-timeline.pb-5 {
     padding-bottom: 20px !important;
 }
@@ -730,29 +796,47 @@ footer.footer-bottom br {
 }
 
 .timeline .container.left .text-image-wrapper {
-    display: flex;
-    flex-direction: column-reverse!important;
+    display: flex;    
     align-items: center;
 }
-.timeline .left img {
-    object-position: right;
+
+.timeline .container.right .text-image-wrapper {
+	flex-direction:column-reverse;
 }
-.text-side {
-    flex: unset !important; 
+
+.timeline .left img {            
+			padding-bottom:40px;
+}
+
+.image-side.asha-img img {
+    padding-left: 20px;
+}
+
+.timeline {
+    padding: 0 40px;
+}
+
+.text-side,.image-side {
+    flex: unset !important;
+width: 100%;	
 }
 .timeline::after {
-    left: 20px;
+    left: 40px;
+	display:none;
 }
 .timeline .content:after {
-    right: auto;
-    left: 2px;
+    right: inherit;
+   left: -21px;
+   top:0;
 }
 .timeline .timeline-right-content, .timeline .timeline-left-content {
-    padding:0 20px !important;
-    text-align: center !important;
+    padding:0 25px !important;
+    text-align: left !important;
 }
 .timeline .right img {
-    object-position: center;
+    object-position:left;
+	
+	        padding-bottom: 40px;
 }
 .hero-section button.btn.btn-info {
     width: 100% !important;
@@ -764,8 +848,8 @@ button.btn.btn-info-footer {
         top: 66px;
     }
         .navbar button.navbar-toggler {
-      
-        right: 148px;
+        position:absolute;
+         right: calc(var(--bs-gutter-x) * .5);
     }
         .navbar .header-button {
         position: absolute;
@@ -862,6 +946,7 @@ button.btn.btn-info-footer {
   min-width: 280px; /* Prevent excessive squishing before wrap */
   order: 1; 
   text-align: left; 
+  flex:inherit;
 }
 
 .healthcare-image-content {
@@ -1031,6 +1116,7 @@ button.btn.btn-info-footer {
   background: #69C9CB!important;
   border-color: #69C9CB!important;
   color: #fff !important;
+      text-decoration: none;
 }
 
 .footer-bottom .btn-info-footer .arrow {
